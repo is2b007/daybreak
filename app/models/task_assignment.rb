@@ -14,11 +14,11 @@ class TaskAssignment < ApplicationRecord
   scope :for_day, -> { where(week_bucket: "day") }
   scope :incomplete, -> { where.not(status: :completed) }
 
-  def complete!
+  def complete!(rotation: nil)
     update!(
       status: :completed,
       completed_at: Time.current,
-      stamp_rotation_degrees: rand(-3..3)
+      stamp_rotation_degrees: rotation || rand(-3..3)
     )
   end
 

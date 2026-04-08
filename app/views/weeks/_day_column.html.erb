@@ -20,7 +20,13 @@
     <% end %>
 
     <div class="kanban__tasks" data-sortable-target="taskList" data-date="<%= date %>">
-      <% tasks.sort_by(&:position).each do |task| %>
+      <% tasks.reject(&:completed?).sort_by(&:position).each do |task| %>
+        <%= render "shared/task_card", task: task, compact: true %>
+      <% end %>
+    </div>
+
+    <div class="kanban__tasks kanban__tasks--completed" id="day_<%= date %>_completed">
+      <% tasks.select(&:completed?).each do |task| %>
         <%= render "shared/task_card", task: task, compact: true %>
       <% end %>
     </div>

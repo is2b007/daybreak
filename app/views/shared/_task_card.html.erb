@@ -4,6 +4,7 @@
      draggable="true"
      data-controller="task-card"
      data-task-card-id-value="<%= task.id %>"
+     data-task-card-completed-value="<%= task.completed? %>"
      data-action="dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
@@ -11,7 +12,15 @@
     <% if task.source_badge_color %>
       <span class="badge badge--<%= task.source %>"></span>
     <% end %>
-    <span class="task-card__title"><%= task.title %></span>
+    <% if task.completed? %>
+      <span class="task-card__title"><%= task.title %></span>
+    <% else %>
+      <button class="task-card__complete-button"
+              data-action="click->task-card#animateThenComplete"
+              title="Mark done">
+        <%= task.title %>
+      </button>
+    <% end %>
     <button class="size-badge"
             data-action="click->task-card#cycleSize"
             title="Click to change size">
