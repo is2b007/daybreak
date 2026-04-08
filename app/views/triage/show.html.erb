@@ -1,0 +1,30 @@
+<% content_for :title, "Triage — Daybreak" %>
+
+<div class="container triage">
+  <div class="triage__header">
+    <%= link_to root_path, class: "btn btn--ghost btn--small" do %>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Week
+    <% end %>
+    <div>
+      <h1 class="triage__title">Triage</h1>
+      <p class="triage__subtitle">Pull things in from HEY, or let them go. We don't touch HEY itself.</p>
+    </div>
+  </div>
+
+  <% %i[imbox reply_later set_aside].each do |folder| %>
+    <% emails = @emails_by_folder[folder.to_s] || [] %>
+    <section class="triage__section">
+      <h2 class="triage__section-title"><%= folder.to_s.humanize %></h2>
+      <%# Both .triage__list and .triage__empty render every time. CSS uses
+          :has() to hide the empty-state while the list holds any .triage-row,
+          so Turbo Stream removing the last row auto-reveals the empty state. %>
+      <div class="triage__list">
+        <% emails.each do |email| %>
+          <%= render "hey_email", email: email %>
+        <% end %>
+      </div>
+      <p class="triage__empty">Nothing here. Quiet is a choice.</p>
+    </section>
+  <% end %>
+</div>

@@ -28,6 +28,7 @@ class HeyConnectionsController < ApplicationController
   end
 
   def destroy
+    current_user.hey_emails.delete_all
     current_user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
     redirect_to settings_path, notice: "HEY is disconnected."
   end

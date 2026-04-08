@@ -18,6 +18,15 @@ Rails.application.routes.draw do
   get  "auth/hey/callback",       to: "hey_connections#create", as: :auth_hey_callback
   delete "auth/hey",              to: "hey_connections#destroy", as: :disconnect_hey
 
+  # HEY email triage
+  resource :triage, only: [ :show ], controller: "triage"
+  resources :hey_emails, only: [] do
+    member do
+      patch :triage
+      patch :dismiss
+    end
+  end
+
   # Onboarding
   resource :onboarding, only: [ :show, :update ], controller: "onboarding" do
     post :complete

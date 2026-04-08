@@ -2358,6 +2358,161 @@ select.form-input {
 .toast.show { opacity: 1; }
 
 /* --------------------------------------------------------------------------
+   TRIAGE — HEY email triage surface
+   -------------------------------------------------------------------------- */
+.triage {
+  max-width: 720px;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-16);
+}
+
+.triage__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.triage__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.triage__subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-1);
+}
+
+.triage__section {
+  margin-bottom: var(--space-10);
+}
+
+.triage__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-2);
+}
+
+.triage__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.triage__empty {
+  color: var(--color-text-faint);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  padding: var(--space-3) 0;
+}
+
+/* Hide the empty-state whenever the sibling list still has a row.
+   When Turbo Stream removes the last .triage-row, :has() flips false and
+   the empty-state reveals itself — no JS, no extra request. */
+.triage__list:has(.triage-row) + .triage__empty {
+  display: none;
+}
+
+.triage-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+.triage-row__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.triage-row__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.triage-row__sender {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
+}
+
+.triage-row__time {
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.triage-row__subject {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  text-decoration: none;
+  line-height: var(--line-height-tight);
+}
+
+.triage-row__subject:hover {
+  color: var(--color-accent);
+}
+
+.triage-row__snippet {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.triage-row__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.ritual__footnote {
+  margin-top: var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.ritual__footnote a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.ritual__footnote a:hover {
+  text-decoration: underline;
+}
+
+.settings__sub-action {
+  margin-top: var(--space-1);
+}
+
+.settings__sub-action a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.settings__sub-action a:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
    UTILITIES
    -------------------------------------------------------------------------- */
 .flex { display: flex; }

@@ -42,6 +42,16 @@
     </div>
   <% end %>
 
+  <% if current_user.hey_connected? %>
+    <% triage_count = current_user.hey_emails.for_triage.count %>
+    <% if triage_count > 0 %>
+      <p class="ritual__footnote">
+        <%= pluralize(triage_count, "email") %> waiting in HEY.
+        <%= link_to "Triage them", triage_path %>.
+      </p>
+    <% end %>
+  <% end %>
+
   <%= form_with url: ritual_morning_path, method: :post do |f| %>
     <%= f.hidden_field :step, value: 2 %>
     <div class="mt-8">

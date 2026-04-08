@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_071713) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_120000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -48,6 +48,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_071713) do
     t.integer "user_id", null: false
     t.index ["user_id", "date"], name: "index_day_plans_on_user_id_and_date", unique: true
     t.index ["user_id"], name: "index_day_plans_on_user_id"
+  end
+
+  create_table "hey_emails", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "dismissed_at"
+    t.string "external_id", null: false
+    t.integer "folder", null: false
+    t.string "hey_url"
+    t.datetime "received_at", null: false
+    t.string "sender_email"
+    t.string "sender_name"
+    t.text "snippet"
+    t.string "subject", null: false
+    t.datetime "triaged_at"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "external_id"], name: "index_hey_emails_on_user_id_and_external_id", unique: true
+    t.index ["user_id", "folder"], name: "index_hey_emails_on_user_id_and_folder"
+    t.index ["user_id", "received_at"], name: "index_hey_emails_on_user_id_and_received_at"
+    t.index ["user_id"], name: "index_hey_emails_on_user_id"
   end
 
   create_table "local_journal_entries", force: :cascade do |t|
@@ -156,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_071713) do
   add_foreign_key "calendar_events", "users"
   add_foreign_key "daily_logs", "users"
   add_foreign_key "day_plans", "users"
+  add_foreign_key "hey_emails", "users"
   add_foreign_key "local_journal_entries", "users"
   add_foreign_key "local_tasks", "users"
   add_foreign_key "local_timer_sessions", "task_assignments"

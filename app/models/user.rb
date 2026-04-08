@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :local_journal_entries, dependent: :destroy
   has_many :local_timer_sessions, dependent: :destroy
   has_many :calendar_events, dependent: :destroy
+  has_many :hey_emails, dependent: :destroy
 
   validates :name, presence: true
   validates :basecamp_uid, presence: true, uniqueness: true
