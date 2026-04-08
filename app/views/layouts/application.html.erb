@@ -1,9 +1,6 @@
 <!DOCTYPE html>
-<html
-  <% theme = current_user&.theme || "system" %>
-  <%= "data-theme=\"#{theme}\"".html_safe unless theme == "system" %>
-  data-controller="dark-mode"
-  data-dark-mode-theme-value="<%= theme %>">
+<% theme = current_user&.theme || "system" %>
+<html data-controller="dark-mode" data-dark-mode-theme-value="<%= theme %>"<% unless theme == "system" %> data-theme="<%= theme %>"<% end %>>
   <head>
     <title><%= content_for(:title) || "Daybreak" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,10 +29,12 @@
                   data-action="click->dark-mode#cycle"
                   data-dark-mode-target="icon"
                   title="Theme">
-            <% case current_user&.theme %>
-            <% when "light" %><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <% when "dark" %><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <% else %><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <% if current_user&.theme == "light" %>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <% elsif current_user&.theme == "dark" %>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <% else %>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             <% end %>
           </button>
           <%= link_to settings_path, class: "nav__icon-btn", title: "Settings" do %>
