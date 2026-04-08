@@ -1,0 +1,13 @@
+<h2 class="onboarding__title">What should we call you?</h2>
+<p class="onboarding__subtitle">Just your first name. This is how Daybreak will greet you each morning.</p>
+
+<%= form_with url: onboarding_path, method: :patch do |f| %>
+  <%= f.hidden_field :step, value: 1 %>
+  <div class="form-group">
+    <%= f.text_field :name, value: current_user.name, class: "form-input form-input--large", placeholder: "Your first name", autofocus: true, required: true %>
+  </div>
+  <div class="onboarding__actions">
+    <span></span>
+    <%= f.submit "Continue", class: "btn btn--primary btn--large" %>
+  </div>
+<% end %>

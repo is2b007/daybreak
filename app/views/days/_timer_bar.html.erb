@@ -1,0 +1,16 @@
+<%# locals: (timer:) %>
+<div class="timer-bar" data-controller="timer" data-timer-started-at-value="<%= timer.started_at.iso8601 %>">
+  <div class="timer-bar__task">
+    <% if timer.task_assignment %>
+      <%= timer.task_assignment.title %>
+    <% else %>
+      Timer running
+    <% end %>
+  </div>
+  <div class="timer-bar__time" data-timer-target="display">0:00:00</div>
+  <div class="timer-bar__controls">
+    <%= button_to timer_session_path(timer), method: :patch, params: { timer_session: { ended_at: Time.current } }, class: "btn btn--primary btn--small" do %>
+      Stop
+    <% end %>
+  </div>
+</div>

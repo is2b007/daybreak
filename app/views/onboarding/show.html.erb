@@ -1,0 +1,22 @@
+<div class="onboarding">
+  <div class="onboarding__card">
+    <div class="onboarding__step-indicator">
+      <% (1..4).each do |s| %>
+        <div class="onboarding__step-dot <%= 'onboarding__step-dot--active' if s == @step %> <%= 'onboarding__step-dot--done' if s < @step %>"></div>
+      <% end %>
+    </div>
+
+    <%= turbo_frame_tag "onboarding_step" do %>
+      <% case @step %>
+      <% when 1 %>
+        <%= render "step_1_name" %>
+      <% when 2 %>
+        <%= render "step_2_stamp" %>
+      <% when 3 %>
+        <%= render "step_3_hey" %>
+      <% when 4 %>
+        <%= render "step_4_timezone" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

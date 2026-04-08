@@ -1,0 +1,35 @@
+<%# locals: (tasks:, day_plan:) %>
+<div class="ritual__step">
+  <p class="ritual__prompt">What do you want to work on?</p>
+  <p class="text-sm text-muted mb-6">Tap tasks to add them to today. Set rough durations — how much time you <em>want</em> to give each one.</p>
+
+  <%= form_with url: ritual_morning_path, method: :post do |f| %>
+    <%= f.hidden_field :step, value: 3 %>
+    <div class="ritual__task-list">
+      <% tasks.each do |task| %>
+        <div class="ritual__task-item">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" name="selected_tasks[]" value="<%= task.id %>" checked>
+          </label>
+          <% if task.source_badge_color %>
+            <span class="badge badge--<%= task.source %>"></span>
+          <% end %>
+          <span class="ritual__task-item__title"><%= task.title %></span>
+          <select name="sizes[<%= task.id %>]" class="form-input" style="width: 60px; padding: 4px 8px; font-size: 12px;">
+            <option value="small" <%= 'selected' if task.small? %>>S</option>
+            <option value="medium" <%= 'selected' if task.medium? %>>M</option>
+            <option value="large" <%= 'selected' if task.large? %>>L</option>
+          </select>
+          <input type="number" name="durations[<%= task.id %>]" value="<%= task.planned_duration_minutes %>" placeholder="min" class="form-input" style="width: 70px; padding: 4px 8px; font-size: 12px;">
+        </div>
+      <% end %>
+
+      <% if tasks.empty? %>
+        <p class="text-muted">No tasks available. Add something personal in the next step.</p>
+      <% end %>
+    </div>
+    <div class="mt-8">
+      <%= f.submit "Continue", class: "btn btn--primary btn--large" %>
+    </div>
+  <% end %>
+</div>

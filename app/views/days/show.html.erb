@@ -1,0 +1,74 @@
+<div class="container">
+  <div class="day-view__header">
+    <div class="flex items-center gap-4">
+      <%= link_to root_path, class: "btn btn--ghost btn--small" do %>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Week
+      <% end %>
+      <div>
+        <h1 class="day-view__date"><%= @date.strftime("%A, %B %-d") %></h1>
+        <p class="day-view__subtitle">
+          <%= @pending_tasks.count %> tasks &middot;
+          <% total = @tasks.sum(:planned_duration_minutes).to_i %>
+          <% if total > 0 %><%= total / 60 %>h <%= total % 60 %>m planned<% else %>no time planned<% end %>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <%= link_to day_path(@date - 1.day), class: "btn btn--ghost btn--small" do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <% end %>
+      <% unless @date == Date.current %>
+        <%= link_to "Today", day_path(Date.current), class: "btn btn--ghost btn--small" %>
+      <% end %>
+      <%= link_to day_path(@date + 1.day), class: "btn btn--ghost btn--small" do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="day-tabs">
+    <%= link_to "Tasks", day_path(@date, tab: "tasks"), class: "day-tab #{'day-tab--active' if @tab == 'tasks'}" %>
+    <%= link_to "Daily Log", day_path(@date, tab: "log"), class: "day-tab #{'day-tab--active' if @tab == 'log'}" %>
+  </div>
+
+  <div class="day-view">
+    <div class="day-view__tasks">
+      <% if @tab == "log" %>
+        <%= render "daily_log", daily_log: @daily_log, log_entries: @log_entries, date: @date %>
+      <% else %>
+        <% if @pending_tasks.any? %>
+          <% @pending_tasks.each do |task| %>
+            <%= render "shared/task_card", task: task, compact: false %>
+          <% end %>
+        <% else %>
+          <p class="text-muted text-sm p-6 text-center">
+            <% if @completed_tasks.any? %>
+              All done for today. Nice work.
+            <% else %>
+              No tasks planned for this day. <%= link_to "Run your morning ritual", ritual_morning_path %> to shape your day.
+            <% end %>
+          </p>
+        <% end %>
+
+        <% if @completed_tasks.any? %>
+          <div class="mt-6" style="opacity: 0.6;">
+            <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
+            <% @completed_tasks.each do |task| %>
+              <%= render "shared/task_card", task: task, compact: false %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div>
+      <%= render "timeline", date: @date, events: @calendar_events, tasks: @tasks %>
+    </div>
+  </div>
+</div>
+
+<% if @active_timer %>
+  <%= render "timer_bar", timer: @active_timer %>
+<% end %>

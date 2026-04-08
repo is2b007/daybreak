@@ -1,0 +1,35 @@
+<h2 class="onboarding__title">Pick your stamp</h2>
+<p class="onboarding__subtitle">When you complete a task, your stamp marks it done. Like a wax seal or a library date stamp.</p>
+
+<%= form_with url: onboarding_path, method: :patch, data: { controller: "stamp-picker" } do |f| %>
+  <%= f.hidden_field :step, value: 2 %>
+  <%= f.hidden_field :stamp_choice, value: current_user.stamp_choice, data: { stamp_picker_target: "input" } %>
+
+  <div class="stamp-picker">
+    <% User::STAMP_OPTIONS.each do |stamp| %>
+      <button type="button"
+              class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>"
+              data-action="click->stamp-picker#select"
+              data-stamp="<%= stamp %>">
+        <%= render "stamps/#{stamp}" %>
+      </button>
+    <% end %>
+  </div>
+
+  <div class="stamp-preview" data-stamp-picker-target="preview">
+    <div class="task-card task-card--medium" style="max-width: 240px; margin: 0 auto; position: relative;">
+      <div class="task-card__header">
+        <span class="task-card__title">Sample task</span>
+        <span class="size-badge">M</span>
+      </div>
+      <div class="task-card__stamp" style="opacity: 0.85;" data-stamp-picker-target="stampPreview">
+        <%= render "stamps/#{current_user.stamp_choice}" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="onboarding__actions">
+    <%= link_to "Back", onboarding_path(step: 1), class: "btn btn--ghost" %>
+    <%= f.submit "Continue", class: "btn btn--primary btn--large" %>
+  </div>
+<% end %>

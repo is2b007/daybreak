@@ -1,0 +1,14 @@
+<div class="ritual ritual--evening" data-controller="ritual">
+  <div class="ritual__content">
+    <%= turbo_frame_tag "ritual_step" do %>
+      <% case @step %>
+      <% when 1 %>
+        <%= render "evening_step_1", tasks: @completed_tasks %>
+      <% when 2 %>
+        <%= render "evening_step_2", tasks: @remaining_tasks %>
+      <% when 3 %>
+        <%= render "evening_step_3" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+<div class="ritual__step">
+  <p class="ritual__prompt">How did today go?</p>
+  <p class="text-sm text-muted mb-6">One line. That's your record.</p>
+
+  <%= form_with url: ritual_evening_path, method: :post do |f| %>
+    <%= f.hidden_field :step, value: 3 %>
+    <div class="form-group">
+      <%= f.text_field :reflection, class: "form-input form-input--large", placeholder: "Shipped the landing page. Good day.", autofocus: true %>
+    </div>
+    <%= f.submit "Done", class: "btn btn--warm" %>
+  <% end %>
+</div>

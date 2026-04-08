@@ -1,0 +1,28 @@
+<%= turbo_frame_tag "day_#{date}" do %>
+  <div class="kanban__column"
+       data-sortable-target="column"
+       data-date="<%= date %>"
+       data-action="dragover->sortable#dragover drop->sortable#drop dragenter->sortable#dragenter dragleave->sortable#dragleave">
+
+    <div class="kanban__column-header <%= 'kanban__column-header--today' if date == Date.current %>">
+      <div class="kanban__day-name"><%= date.strftime("%a") %></div>
+      <div class="kanban__day-number">
+        <%= link_to date.day, day_path(date), style: "color: inherit; text-decoration: none;" %>
+      </div>
+    </div>
+
+    <% if events.any? %>
+      <div class="kanban__events">
+        <% events.each do |event| %>
+          <%= render "calendar_event", event: event %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="kanban__tasks" data-sortable-target="taskList" data-date="<%= date %>">
+      <% tasks.sort_by(&:position).each do |task| %>
+        <%= render "shared/task_card", task: task, compact: true %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

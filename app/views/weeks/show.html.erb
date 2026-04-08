@@ -1,0 +1,30 @@
+<div class="container">
+  <div class="week-nav">
+    <div class="week-nav__arrows">
+      <%= link_to week_path(@week_start - 7.days), class: "btn btn--ghost btn--small" do %>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <% end %>
+      <%= link_to "Today", root_path, class: "btn btn--ghost btn--small" unless @week_start == Date.current.beginning_of_week(:monday) %>
+    </div>
+    <h2 class="week-nav__title">
+      <%= @week_start.strftime("%B %-d") %> &ndash; <%= (@week_start + 6.days).strftime("%-d, %Y") %>
+    </h2>
+    <div class="week-nav__arrows">
+      <%= link_to week_path(@week_start + 7.days), class: "btn btn--ghost btn--small" do %>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="kanban" data-controller="sortable">
+    <% @week_dates.each do |date| %>
+      <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
+    <% end %>
+  </div>
+
+  <% if @sometime_tasks.any? %>
+    <%= render "sometime_row", tasks: @sometime_tasks %>
+  <% end %>
+
+  <%= render "weekly_goals", goals: @weekly_goals, week_start: @week_start %>
+</div>

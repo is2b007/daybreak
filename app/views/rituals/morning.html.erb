@@ -1,0 +1,22 @@
+<div class="ritual ritual--morning" data-controller="ritual">
+  <div class="ritual__content">
+    <% if @step == 1 %>
+      <h1 class="ritual__greeting"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>
+    <% end %>
+
+    <%= turbo_frame_tag "ritual_step" do %>
+      <% case @step %>
+      <% when 1 %>
+        <%= render "morning_step_1", tasks: @yesterday_tasks %>
+      <% when 2 %>
+        <%= render "morning_step_2", events: @calendar_events, assignments: @basecamp_assignments %>
+      <% when 3 %>
+        <%= render "morning_step_3", tasks: @available_tasks, day_plan: @day_plan %>
+      <% when 4 %>
+        <%= render "morning_step_4" %>
+      <% when 5 %>
+        <%= render "morning_step_5", tasks: @tasks, total_planned: @total_planned, work_hours: @work_hours, overfull: @overfull %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+<h2 class="onboarding__title">Your timezone</h2>
+<p class="onboarding__subtitle" data-controller="timezone-detector" data-timezone-detector-target="message">Detecting your timezone...</p>
+
+<%= form_with url: onboarding_path, method: :patch do |f| %>
+  <%= f.hidden_field :step, value: 4 %>
+  <div class="form-group" data-controller="timezone-detector">
+    <%= f.select :timezone,
+        ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] },
+        { selected: current_user.timezone },
+        class: "form-input",
+        data: { timezone_detector_target: "select" } %>
+  </div>
+  <div class="onboarding__actions">
+    <%= link_to "Back", onboarding_path(step: 3), class: "btn btn--ghost" %>
+    <%= f.submit "Start using Daybreak", class: "btn btn--warm" %>
+  </div>
+<% end %>

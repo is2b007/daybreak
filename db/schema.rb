@@ -1,0 +1,145 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_030007) do
+  create_table "daily_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "date"], name: "index_daily_logs_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_daily_logs_on_user_id"
+  end
+
+  create_table "day_plans", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.boolean "evening_ritual_done", default: false, null: false
+    t.boolean "morning_ritual_done", default: false, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "date"], name: "index_day_plans_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_day_plans_on_user_id"
+  end
+
+  create_table "local_journal_entries", force: :cascade do |t|
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "date"], name: "index_local_journal_entries_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_local_journal_entries_on_user_id"
+  end
+
+  create_table "local_tasks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_local_tasks_on_user_id"
+  end
+
+  create_table "local_timer_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "ended_at"
+    t.datetime "started_at", null: false
+    t.integer "task_assignment_id"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["task_assignment_id"], name: "index_local_timer_sessions_on_task_assignment_id"
+    t.index ["user_id"], name: "index_local_timer_sessions_on_user_id"
+  end
+
+  create_table "log_entries", force: :cascade do |t|
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.integer "daily_log_id", null: false
+    t.datetime "logged_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["daily_log_id"], name: "index_log_entries_on_daily_log_id"
+  end
+
+  create_table "task_assignments", force: :cascade do |t|
+    t.integer "actual_duration_minutes"
+    t.string "basecamp_bucket_id"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.integer "day_plan_id"
+    t.text "description"
+    t.string "external_id"
+    t.integer "planned_duration_minutes"
+    t.integer "position"
+    t.string "project_name"
+    t.integer "size", default: 1, null: false
+    t.integer "source", default: 0, null: false
+    t.integer "stamp_rotation_degrees"
+    t.integer "status", default: 0, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.string "week_bucket", default: "day", null: false
+    t.date "week_start_date"
+    t.index ["day_plan_id"], name: "index_task_assignments_on_day_plan_id"
+    t.index ["external_id", "source"], name: "index_task_assignments_on_external_id_and_source"
+    t.index ["user_id", "day_plan_id"], name: "index_task_assignments_on_user_id_and_day_plan_id"
+    t.index ["user_id", "week_start_date"], name: "index_task_assignments_on_user_id_and_week_start_date"
+    t.index ["user_id"], name: "index_task_assignments_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "basecamp_access_token"
+    t.string "basecamp_account_id"
+    t.string "basecamp_refresh_token"
+    t.datetime "basecamp_token_expires_at"
+    t.string "basecamp_uid", null: false
+    t.datetime "created_at", null: false
+    t.string "email"
+    t.string "hey_access_token"
+    t.string "hey_refresh_token"
+    t.datetime "hey_token_expires_at"
+    t.date "last_open_date"
+    t.string "name", null: false
+    t.boolean "onboarded", default: false, null: false
+    t.string "stamp_choice", default: "red_done", null: false
+    t.string "sundown_time", default: "17:00", null: false
+    t.string "theme", default: "system", null: false
+    t.string "timezone", default: "UTC", null: false
+    t.datetime "updated_at", null: false
+    t.decimal "work_hours_target", default: "5.5", null: false
+    t.index ["basecamp_uid"], name: "index_users_on_basecamp_uid", unique: true
+  end
+
+  create_table "weekly_goals", force: :cascade do |t|
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.date "week_start_date", null: false
+    t.index ["user_id", "week_start_date"], name: "index_weekly_goals_on_user_id_and_week_start_date"
+    t.index ["user_id"], name: "index_weekly_goals_on_user_id"
+  end
+
+  add_foreign_key "daily_logs", "users"
+  add_foreign_key "day_plans", "users"
+  add_foreign_key "local_journal_entries", "users"
+  add_foreign_key "local_tasks", "users"
+  add_foreign_key "local_timer_sessions", "task_assignments"
+  add_foreign_key "local_timer_sessions", "users"
+  add_foreign_key "log_entries", "daily_logs"
+  add_foreign_key "task_assignments", "day_plans"
+  add_foreign_key "task_assignments", "users"
+  add_foreign_key "weekly_goals", "users"
+end

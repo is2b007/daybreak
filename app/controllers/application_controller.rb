@@ -1,7 +1,9 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  include Authentication
 
-  # Changes to the importmap will invalidate the etag for HTML responses
+  allow_browser versions: :modern
   stale_when_importmap_changes
+
+  before_action :authenticate_user!
+  before_action :require_onboarding!
 end

@@ -1,0 +1,28 @@
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <h1 class="login-logo">Daybreak</h1>
+      <p class="login-tagline">The space between your tools, where you decide what today is actually about.</p>
+    </div>
+
+    <% if flash[:alert] %>
+      <div class="flash flash--alert"><%= flash[:alert] %></div>
+    <% end %>
+
+    <% if BasecampClient.configured? %>
+      <%= link_to BasecampClient.authorize_url(auth_basecamp_callback_url), class: "btn btn--primary btn--large" do %>
+        Sign in with Basecamp
+      <% end %>
+    <% else %>
+      <div class="flash flash--alert">
+        Basecamp OAuth is not configured. Set <code>BASECAMP_CLIENT_ID</code> and <code>BASECAMP_CLIENT_SECRET</code> in your environment or run <code>bin/rails credentials:edit</code> to add them under the <code>basecamp:</code> key.
+      </div>
+      <a href="#" class="btn btn--primary btn--large" style="opacity: 0.5; pointer-events: none;">Sign in with Basecamp</a>
+    <% end %>
+
+    <p class="login-footnote">
+      Daybreak uses your Basecamp account to pull in your assignments and schedules.
+      No new accounts, no new data silos.
+    </p>
+  </div>
+</div>

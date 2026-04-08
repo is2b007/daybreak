@@ -1,0 +1,42 @@
+<%# locals: (tasks:) %>
+<div class="ritual__step">
+  <p class="ritual__prompt">A few things from yesterday.</p>
+
+  <% if tasks.any? %>
+    <%= form_with url: ritual_morning_path, method: :post do |f| %>
+      <%= f.hidden_field :step, value: 1 %>
+      <div class="ritual__task-list">
+        <% tasks.each do |task| %>
+          <div class="ritual__task-item">
+            <% if task.source_badge_color %>
+              <span class="badge badge--<%= task.source %>"></span>
+            <% end %>
+            <span class="ritual__task-item__title"><%= task.title %></span>
+            <div class="ritual__task-item__actions">
+              <label class="btn btn--small btn--ghost">
+                <input type="radio" name="tasks[<%= task.id %>]" value="done" class="sr-only"> Done
+              </label>
+              <label class="btn btn--small btn--secondary">
+                <input type="radio" name="tasks[<%= task.id %>]" value="today" class="sr-only" checked> Today
+              </label>
+              <label class="btn btn--small btn--ghost">
+                <input type="radio" name="tasks[<%= task.id %>]" value="let_go" class="sr-only"> Let it go
+              </label>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <div class="mt-8">
+        <%= f.submit "Continue", class: "btn btn--primary btn--large" %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-muted">Nothing left over. Clean slate.</p>
+    <%= form_with url: ritual_morning_path, method: :post do |f| %>
+      <%= f.hidden_field :step, value: 1 %>
+      <div class="mt-8">
+        <%= f.submit "Continue", class: "btn btn--primary btn--large" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

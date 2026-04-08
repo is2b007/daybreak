@@ -1,0 +1,27 @@
+<%# locals: (date:, events:, tasks:) %>
+<div class="timeline" data-controller="timeline" data-timeline-date-value="<%= date %>">
+  <% (7..21).each do |hour| %>
+    <div class="timeline__hour"
+         data-timeline-target="hour"
+         data-hour="<%= hour %>"
+         data-action="dragover->timeline#dragover drop->timeline#drop dragenter->timeline#dragenter dragleave->timeline#dragleave">
+      <span class="timeline__hour-label"><%= hour <= 12 ? "#{hour}am" : "#{hour - 12}pm" %></span>
+    </div>
+  <% end %>
+
+  <%# Render calendar events as positioned blocks %>
+  <% events.each do |event| %>
+    <% if event[:start_hour] %>
+      <div class="timeline__block timeline__block--<%= event[:source] || 'calendar' %>"
+           style="top: <%= (event[:start_hour] - 7) * 60 %>px; height: <%= (event[:duration_hours] || 1) * 60 %>px;">
+        <strong><%= event[:title] %></strong>
+        <span class="text-xs"><%= event[:time] %></span>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Render timeboxed tasks %>
+  <% tasks.select { |t| t.planned_duration_minutes.present? }.each_with_index do |task, i| %>
+    <%# Position based on order for now; timeboxing positions will be stored later %>
+  <% end %>
+</div>

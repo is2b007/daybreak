@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  email: MyString
+  timezone: MyString
+  stamp_choice: MyString
+  work_hours_target: 9.99
+  sundown_time: MyString
+  theme: MyString
+  last_open_date: 2026-04-08
+  basecamp_uid: MyString
+  basecamp_access_token: MyString
+  basecamp_refresh_token: MyString
+  basecamp_token_expires_at: 2026-04-08 12:29:28
+  basecamp_account_id: MyString
+  hey_access_token: MyString
+  hey_refresh_token: MyString
+  hey_token_expires_at: 2026-04-08 12:29:28
+  onboarded: false
+
+two:
+  name: MyString
+  email: MyString
+  timezone: MyString
+  stamp_choice: MyString
+  work_hours_target: 9.99
+  sundown_time: MyString
+  theme: MyString
+  last_open_date: 2026-04-08
+  basecamp_uid: MyString
+  basecamp_access_token: MyString
+  basecamp_refresh_token: MyString
+  basecamp_token_expires_at: 2026-04-08 12:29:28
+  basecamp_account_id: MyString
+  hey_access_token: MyString
+  hey_refresh_token: MyString
+  hey_token_expires_at: 2026-04-08 12:29:28
+  onboarded: false

@@ -1,0 +1,5 @@
+<%# locals: (event:) %>
+<div class="calendar-event calendar-event--<%= event[:source] || 'basecamp' %>">
+  <span class="calendar-event__time"><%= event[:time] %></span>
+  <span><%= event[:title] %></span>
+</div>

@@ -1,0 +1,37 @@
+<div class="checkin">
+  <h1 class="checkin__title">Weekly Check-in</h1>
+  <p class="checkin__subtitle">Monday, <%= @week_start.strftime("%B %-d") %>. Look back, then look forward.</p>
+
+  <%= form_with url: weekly_checkin_path, method: :patch do |f| %>
+    <% if @last_week_goals.any? %>
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4">Last week's goals</h3>
+        <div class="checkin__goals">
+          <% @last_week_goals.each do |goal| %>
+            <label class="ritual__task-item">
+              <input type="checkbox" name="completed_goals[]" value="<%= goal.id %>" <%= 'checked' if goal.completed? %>>
+              <span class="ritual__task-item__title <%= 'text-muted' if goal.completed? %>" style="<%= 'text-decoration: line-through;' if goal.completed? %>">
+                <%= goal.title %>
+              </span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4">This week's goals</h3>
+      <p class="text-sm text-muted mb-4">Set 2&ndash;4 goals for the week. What would make this week a success?</p>
+      <div class="checkin__goals">
+        <% 4.times do |i| %>
+          <div class="checkin__goal-input">
+            <span class="text-muted font-semibold"><%= i + 1 %>.</span>
+            <input type="text" name="goals[]" value="<%= @this_week_goals[i]&.title %>" class="form-input" placeholder="<%= i < 2 ? 'Goal' : 'Optional' %>">
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%= f.submit "Set goals & start the week", class: "btn btn--warm" %>
+  <% end %>
+</div>

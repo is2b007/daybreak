@@ -1,14 +1,60 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  # Authentication
+  get  "login",                   to: "sessions#new",     as: :login
+  get  "auth/basecamp",           to: "sessions#new",     as: :auth_basecamp
+  get  "auth/basecamp/callback",  to: "sessions#create",  as: :auth_basecamp_callback
+  delete "logout",                to: "sessions#destroy",  as: :logout
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # HEY OAuth
+  get  "auth/hey",                to: "hey_connections#new",    as: :auth_hey
+  get  "auth/hey/callback",       to: "hey_connections#create", as: :auth_hey_callback
+  delete "auth/hey",              to: "hey_connections#destroy", as: :disconnect_hey
+
+  # Onboarding
+  resource :onboarding, only: [ :show, :update ], controller: "onboarding" do
+    post :complete
+  end
+
+  # Week view (home)
+  root "weeks#show"
+  get "weeks/:date", to: "weeks#show", as: :week
+
+  # Day view
+  get "days/:date", to: "days#show", as: :day
+  get "days/:date/log", to: "daily_logs#show", as: :day_log
+  post "days/:date/log", to: "daily_logs#create"
+  patch "days/:date/log", to: "daily_logs#update"
+
+  # Tasks
+  resources :task_assignments, only: [ :create, :update, :destroy ] do
+    member do
+      patch :move
+      patch :cycle_size
+      patch :complete
+      patch :defer
+    end
+  end
+
+  # Local tasks (personal, not in any API)
+  resources :local_tasks, only: [ :create, :destroy ]
+
+  # Timer
+  resources :timer_sessions, only: [ :create, :update ]
+
+  # Rituals
+  get  "ritual/morning",          to: "rituals#morning"
+  post "ritual/morning",          to: "rituals#morning_update"
+  post "ritual/morning/complete", to: "rituals#morning_complete"
+  get  "ritual/evening",          to: "rituals#evening"
+  post "ritual/evening",          to: "rituals#evening_update"
+  post "ritual/evening/complete", to: "rituals#evening_complete"
+
+  # Weekly check-in
+  resource :weekly_checkin, only: [ :show, :update ], controller: "weekly_checkins"
+
+  # Settings
+  resource :settings, only: [ :show, :update ], controller: "settings"
 end

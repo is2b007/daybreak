@@ -1,0 +1,90 @@
+<div class="settings">
+  <h1 class="settings__title">Settings</h1>
+
+  <%= form_with model: current_user, url: settings_path, method: :patch do |f| %>
+    <div class="settings__section">
+      <div class="settings__section-title">Profile</div>
+      <div class="form-group">
+        <%= f.label :name, "Name", class: "form-label" %>
+        <%= f.text_field :name, class: "form-input" %>
+      </div>
+    </div>
+
+    <div class="settings__section">
+      <div class="settings__section-title">Stamp</div>
+      <div class="stamp-picker">
+        <% User::STAMP_OPTIONS.each do |stamp| %>
+          <label class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>">
+            <input type="radio" name="user[stamp_choice]" value="<%= stamp %>" class="sr-only" <%= 'checked' if current_user.stamp_choice == stamp %>>
+            <%= render "stamps/#{stamp}" %>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="settings__section">
+      <div class="settings__section-title">Schedule</div>
+      <div class="form-group">
+        <%= f.label :work_hours_target, "Work hours target", class: "form-label" %>
+        <%= f.number_field :work_hours_target, class: "form-input", step: 0.5, min: 1, max: 24 %>
+        <p class="text-xs text-muted mt-1">How many hours of planned work before Daybreak warns you.</p>
+      </div>
+      <div class="form-group">
+        <%= f.label :sundown_time, "Sundown time", class: "form-label" %>
+        <%= f.time_field :sundown_time, class: "form-input" %>
+        <p class="text-xs text-muted mt-1">When the evening ritual triggers.</p>
+      </div>
+    </div>
+
+    <div class="settings__section">
+      <div class="settings__section-title">Timezone</div>
+      <div class="form-group">
+        <%= f.select :timezone, ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] }, {}, class: "form-input" %>
+      </div>
+    </div>
+
+    <div class="settings__section">
+      <div class="settings__section-title">Theme</div>
+      <div class="form-group">
+        <% %w[system light dark].each do |theme| %>
+          <label class="flex items-center gap-2 mb-2">
+            <%= f.radio_button :theme, theme %>
+            <span class="text-sm"><%= theme.capitalize %></span>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="settings__section">
+      <div class="settings__section-title">Connections</div>
+      <div class="settings__row">
+        <div>
+          <span class="settings__row-label">Basecamp</span>
+        </div>
+        <div class="settings__connection">
+          <span class="settings__connection-status settings__connection-status--connected"></span>
+          <span class="text-sm text-muted">Connected</span>
+        </div>
+      </div>
+      <div class="settings__row">
+        <div>
+          <span class="settings__row-label">HEY</span>
+        </div>
+        <div class="settings__connection">
+          <% if current_user.hey_connected? %>
+            <span class="settings__connection-status settings__connection-status--connected"></span>
+            <span class="text-sm text-muted">Connected</span>
+            <%= button_to "Disconnect", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
+          <% else %>
+            <span class="settings__connection-status settings__connection-status--disconnected"></span>
+            <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <%= f.submit "Save settings", class: "btn btn--primary btn--large" %>
+    </div>
+  <% end %>
+</div>

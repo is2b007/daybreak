@@ -1,0 +1,26 @@
+<%# locals: (daily_log:, log_entries:, date:) %>
+<div class="daily-log">
+  <h2 class="daily-log__date">Daily Log &mdash; <%= date.strftime("%A, %-d %B %Y") %></h2>
+
+  <div class="daily-log__entries">
+    <% log_entries.each do |entry| %>
+      <div class="log-entry">
+        <div class="log-entry__time"><%= entry.logged_at.in_time_zone(current_user.timezone).strftime("%-I:%M%P") %></div>
+        <div class="log-entry__content"><%= simple_format(entry.content) %></div>
+      </div>
+    <% end %>
+
+    <% if log_entries.empty? %>
+      <p class="text-muted text-sm">No entries yet. Start typing below.</p>
+    <% end %>
+  </div>
+
+  <div class="daily-log__input">
+    <%= form_with url: day_log_path(date), method: (daily_log.persisted? ? :patch : :post), data: { controller: "auto-save" } do |f| %>
+      <div class="form-group">
+        <%= f.text_area :content, class: "form-input", placeholder: "Type here...", rows: 3, data: { auto_save_target: "input", action: "input->auto-save#save" } %>
+      </div>
+      <%= f.submit "Add entry", class: "btn btn--primary btn--small" %>
+    <% end %>
+  </div>
+</div>

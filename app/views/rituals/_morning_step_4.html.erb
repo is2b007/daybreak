@@ -1,0 +1,15 @@
+<div class="ritual__step">
+  <p class="ritual__prompt">Anything you want to do today that isn't in a project?</p>
+  <p class="text-sm text-muted mb-6">The most important things you do aren't always assigned to you.</p>
+
+  <%= form_with url: ritual_morning_path, method: :post do |f| %>
+    <%= f.hidden_field :step, value: 4 %>
+    <div class="form-group">
+      <%= f.text_field :personal_task, class: "form-input form-input--large", placeholder: "Go for a walk, sketch that logo idea, call mom...", autofocus: true %>
+    </div>
+    <div class="flex gap-3">
+      <%= f.submit "Add & continue", class: "btn btn--primary btn--large" %>
+      <%= f.submit "Skip", class: "btn btn--ghost", name: "personal_task", value: "" %>
+    </div>
+  <% end %>
+</div>

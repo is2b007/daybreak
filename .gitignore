@@ -33,3 +33,6 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Claude Code local settings and worktree checkouts
+/.claude/
+
