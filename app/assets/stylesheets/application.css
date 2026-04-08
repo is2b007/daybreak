@@ -887,6 +887,15 @@ select.form-input {
   background: var(--color-accent-light);
 }
 
+.timeline__hour--dragover {
+  background: var(--color-accent-light);
+}
+
+.timeline__block--completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
 /* --------------------------------------------------------------------------
    TIMER BAR
    -------------------------------------------------------------------------- */

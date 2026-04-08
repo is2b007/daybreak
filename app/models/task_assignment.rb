@@ -13,6 +13,9 @@ class TaskAssignment < ApplicationRecord
   scope :sometime, -> { where(week_bucket: "sometime") }
   scope :for_day, -> { where(week_bucket: "day") }
   scope :incomplete, -> { where.not(status: :completed) }
+  scope :timeboxed_for, ->(date) {
+    where(planned_start_at: date.beginning_of_day..date.end_of_day)
+  }
 
   def complete!(rotation: nil)
     update!(
@@ -50,5 +53,19 @@ class TaskAssignment < ApplicationRecord
 
   def card_height_class
     "card--#{size}"
+  end
+
+  def timeboxed?
+    planned_start_at.present?
+  end
+
+  def start_hour_in(timezone)
+    return nil unless timeboxed?
+    t = planned_start_at.in_time_zone(timezone)
+    t.hour + (t.min / 60.0)
+  end
+
+  def duration_hours
+    (planned_duration_minutes || 60) / 60.0
   end
 end

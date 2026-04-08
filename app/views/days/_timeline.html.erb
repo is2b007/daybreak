@@ -1,5 +1,5 @@
 <%# locals: (date:, events:, tasks:) %>
-<div class="timeline" data-controller="timeline" data-timeline-date-value="<%= date %>">
+<div class="timeline" id="timeline_<%= date %>" data-controller="timeline" data-timeline-date-value="<%= date %>">
   <% (7..21).each do |hour| %>
     <div class="timeline__hour"
          data-timeline-target="hour"
@@ -21,7 +21,13 @@
   <% end %>
 
   <%# Render timeboxed tasks %>
-  <% tasks.select { |t| t.planned_duration_minutes.present? }.each_with_index do |task, i| %>
-    <%# Position based on order for now; timeboxing positions will be stored later %>
+  <% tasks.select(&:timeboxed?).each do |task| %>
+    <% start = task.start_hour_in(current_user.timezone) %>
+    <% next if start.nil? || start < 7 || start > 21 %>
+    <div class="timeline__block timeline__block--task <%= 'timeline__block--completed' if task.completed? %>"
+         style="top: <%= (start - 7) * 60 %>px; height: <%= task.duration_hours * 60 %>px;">
+      <strong><%= task.title %></strong>
+      <span class="text-xs"><%= task.planned_duration_minutes || 60 %>m</span>
+    </div>
   <% end %>
 </div>
