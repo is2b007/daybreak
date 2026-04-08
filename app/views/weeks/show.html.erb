@@ -1,44 +1,47 @@
-<div class="container">
+<% content_for(:topbar) do %>
   <div class="week-nav">
     <div class="week-nav__arrows">
-      <%= link_to week_path(@week_start - 7.days), class: "btn btn--ghost btn--small" do %>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <%= link_to week_path(@week_start - 7.days), class: "topbar__nav-arrow" do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       <% end %>
-      <%= link_to "Today", root_path, class: "btn btn--ghost btn--small" unless @week_start == Date.current.beginning_of_week(:monday) %>
     </div>
-    <h2 class="week-nav__title">
-      <%= @week_start.strftime("%B %-d") %> &ndash; <%= (@week_start + 6.days).strftime("%-d, %Y") %>
-    </h2>
+    <span class="topbar__title"><%= @week_start.strftime("%B %-d") %> &ndash; <%= (@week_start + 6.days).strftime("%-d") %></span>
     <div class="week-nav__arrows">
-      <%= link_to week_path(@week_start + 7.days), class: "btn btn--ghost btn--small" do %>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <%= link_to week_path(@week_start + 7.days), class: "topbar__nav-arrow" do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       <% end %>
     </div>
-    <%= button_to sync_basecamp_path, method: :post, class: "btn btn--ghost btn--small", title: "Sync Basecamp" do %>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-    <% end %>
-  </div>
-
-  <% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
-
-  <% if first_run %>
-    <div class="first-run">
-      <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
-      <p class="first-run__body">
-        This is your week. The columns below are days. Tasks from Basecamp
-        will start appearing as you sync. When you're ready,
-        <%= link_to "shape today", ritual_morning_path %> with the morning ritual.
-      </p>
+    <span class="topbar__sub"><%= @week_start.strftime("%Y") %></span>
+    <div class="topbar__right">
+      <%= button_to sync_basecamp_path, method: :post, class: "btn btn--ghost btn--small", title: "Sync Basecamp" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      <% end %>
+      <% unless @week_start == Date.current.beginning_of_week(:monday) %>
+        <%= link_to "Today", root_path, class: "btn btn--ghost btn--small" %>
+      <% end %>
+      <%= link_to "Wrap up", ritual_evening_path, class: "btn" %>
+      <%= link_to "Start day", ritual_morning_path, class: "btn btn--primary" %>
     </div>
-  <% end %>
-
-  <div class="kanban" data-controller="sortable">
-    <% @week_dates.each do |date| %>
-      <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
-    <% end %>
   </div>
+<% end %>
 
-  <%= render "sometime_row", tasks: @sometime_tasks %>
+<% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
 
-  <%= render "weekly_goals", goals: @weekly_goals, week_start: @week_start %>
+<% if first_run %>
+  <div class="first-run">
+    <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
+    <p class="first-run__body">
+      This is your week. The columns below are days. Tasks from Basecamp
+      will start appearing as you sync. When you're ready,
+      <%= link_to "shape today", ritual_morning_path %> with the morning ritual.
+    </p>
+  </div>
+<% end %>
+
+<div class="kanban" data-controller="sortable">
+  <% @week_dates.each do |date| %>
+    <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
+  <% end %>
 </div>
+
+<%= render "sometime_row", tasks: @sometime_tasks %>
