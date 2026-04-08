@@ -497,6 +497,21 @@ select.form-input {
   flex: 1;
 }
 
+.task-card__complete-button {
+  all: unset;
+  cursor: pointer;
+  flex: 1;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.task-card__complete-button:hover {
+  color: var(--color-accent-dark);
+}
+
 .task-card__meta {
   display: flex;
   align-items: center;
@@ -1460,9 +1475,9 @@ select.form-input {
   color: #E8E6E1;
 }
 
-/* Card slide-to-bottom animation */
-.task-card--completing {
-  animation: fadeIn 0.3s ease reverse forwards;
+/* Stamp press animation on completing */
+.task-card--completing .task-card__stamp {
+  animation: stampPress 0.4s ease-out forwards;
 }
 
 /* --------------------------------------------------------------------------

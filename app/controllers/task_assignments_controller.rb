@@ -91,11 +91,19 @@ class TaskAssignmentsController < ApplicationController
   end
 
   def complete
-    @task.complete!
+    rotation = params[:rotation]&.to_i
+    @task.complete!(rotation: rotation)
     WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey?
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true }) }
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.remove("task_#{@task.id}"),
+          turbo_stream.append("day_#{@task.day_plan&.date}_completed",
+            partial: "shared/task_card",
+            locals: { task: @task, compact: true })
+        ]
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end

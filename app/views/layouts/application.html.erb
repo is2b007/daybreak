@@ -34,6 +34,12 @@
       </nav>
     <% end %>
 
+    <% if logged_in? %>
+      <template data-user-stamp-svg>
+        <%= render "stamps/#{current_user.stamp_choice}" %>
+      </template>
+    <% end %>
+
     <main class="app-main">
       <% if flash[:notice] %>
         <div class="container"><div class="flash flash--notice" data-controller="flash"><%= flash[:notice] %></div></div>

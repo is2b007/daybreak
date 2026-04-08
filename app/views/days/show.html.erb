@@ -52,14 +52,14 @@
           </p>
         <% end %>
 
-        <% if @completed_tasks.any? %>
-          <div class="mt-6" style="opacity: 0.6;">
+        <div class="mt-6" style="opacity: 0.6;" id="day_<%= @date %>_completed">
+          <% if @completed_tasks.any? %>
             <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
             <% @completed_tasks.each do |task| %>
               <%= render "shared/task_card", task: task, compact: false %>
             <% end %>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       <% end %>
     </div>
 
