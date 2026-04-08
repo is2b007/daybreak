@@ -5,6 +5,11 @@ All notable changes to Daybreak will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1.1] - 2026-04-08
+
+### Changed
+- **Official Basecamp and HEY brand icons in the right panel** — Replaced the generic monitor and envelope placeholder SVGs with the official Basecamp and HEY brand logos. Icons use `currentColor` so active/hover states still work.
+
 ## [0.1.1] - 2026-04-08
 
 ### Fixed
