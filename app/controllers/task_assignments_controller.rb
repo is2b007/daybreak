@@ -45,7 +45,39 @@ class TaskAssignmentsController < ApplicationController
     )
 
     respond_to do |format|
-      format.turbo_stream
+      format.turbo_stream do
+        streams = [
+          turbo_stream.replace("day_#{target_date}",
+            partial: "weeks/day_column",
+            locals: {
+              date: target_date,
+              tasks: current_user.task_assignments
+                       .for_week(target_date.beginning_of_week(:monday))
+                       .where(day_plan: target_plan)
+                       .ordered,
+              events: []
+            })
+        ]
+
+        if params[:source_date].present?
+          source_date = Date.parse(params[:source_date])
+          if source_date != target_date
+            source_plan = current_user.day_plans.find_by(date: source_date)
+            streams << turbo_stream.replace("day_#{source_date}",
+              partial: "weeks/day_column",
+              locals: {
+                date: source_date,
+                tasks: current_user.task_assignments
+                         .for_week(source_date.beginning_of_week(:monday))
+                         .where(day_plan: source_plan)
+                         .ordered,
+                events: []
+              })
+          end
+        end
+
+        render turbo_stream: streams
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end

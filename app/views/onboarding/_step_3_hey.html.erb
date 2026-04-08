@@ -23,8 +23,8 @@
 <%= form_with url: onboarding_path, method: :patch do |f| %>
   <%= f.hidden_field :step, value: 3 %>
   <div class="flex flex-col gap-3">
-    <%= f.submit "Connect HEY", name: "connect_hey", value: "true", class: "btn btn--primary btn--large" %>
-    <%= f.submit "Skip for now", name: "connect_hey", value: "false", class: "btn btn--ghost" %>
+    <%= f.submit "Skip for now", name: "connect_hey", value: "false", class: "btn btn--primary btn--large" %>
+    <p class="text-xs text-muted text-center">HEY support is on the way. You'll be able to connect from Settings.</p>
   </div>
 <% end %>
 
