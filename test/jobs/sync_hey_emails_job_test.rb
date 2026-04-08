@@ -174,6 +174,28 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     assert_equal 2, @user.hey_emails.count
   end
 
+  test "rescues HeyClient::AuthError without raising" do
+    # Seed a live row so we can also prove the rescue short-circuits before any prune.
+    @user.hey_emails.create!(
+      external_id: "101", folder: :imbox, subject: "Still here",
+      received_at: 1.hour.ago
+    )
+
+    auth_fail = Object.new
+    def auth_fail.imbox; raise HeyClient::AuthError, "HEY session expired"; end
+    def auth_fail.reply_later; raise "should not be called"; end
+    def auth_fail.set_aside; raise "should not be called"; end
+
+    with_hey_client(auth_fail) do
+      assert_nothing_raised do
+        SyncHeyEmailsJob.perform_now(@user.id)
+      end
+    end
+
+    # Rescue fires on the first folder; no pruning happens.
+    assert_equal 1, @user.hey_emails.count
+  end
+
   test "skips sync when user is not HEY-connected" do
     @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
 
