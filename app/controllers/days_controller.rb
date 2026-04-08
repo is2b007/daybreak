@@ -17,7 +17,9 @@ class DaysController < ApplicationController
   private
 
   def fetch_calendar_events
-    # TODO: Fetch from Basecamp schedules and HEY Calendar for this date
-    []
+    current_user.calendar_events
+      .for_date(@date)
+      .chronological
+      .map(&:to_view_hash)
   end
 end

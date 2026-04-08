@@ -28,8 +28,10 @@ class WeeksController < ApplicationController
   end
 
   def fetch_calendar_events
-    # TODO: Fetch from Basecamp schedules and HEY Calendar
-    # Returns empty hash for now, keyed by date
-    {}
+    current_user.calendar_events
+      .for_week(@week_start)
+      .chronological
+      .group_by { |e| e.starts_at.in_time_zone(current_user.timezone).to_date }
+      .transform_values { |events| events.map(&:to_view_hash) }
   end
 end

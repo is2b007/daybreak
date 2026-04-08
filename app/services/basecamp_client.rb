@@ -89,6 +89,23 @@ class BasecampClient
     get("/schedules/#{schedule_id}/entries.json")
   end
 
+  # Discovers schedule IDs from the user's projects via the project "dock".
+  # Returns [{ project_id:, project_name:, schedule_id: }, ...]
+  def schedules
+    projects_data = projects
+    return [] unless projects_data.is_a?(Array)
+
+    projects_data.flat_map do |project|
+      schedule = project["dock"]&.find { |d| d["name"] == "schedule" }
+      next [] unless schedule && schedule["enabled"]
+      [ {
+        project_id: project["id"],
+        project_name: project["name"],
+        schedule_id: schedule["id"]
+      } ]
+    end
+  end
+
   def create_todolist(todoset_id, name:)
     post("/todosets/#{todoset_id}/todolists.json", { name: name })
   end

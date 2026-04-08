@@ -20,6 +20,19 @@ class HeyClient
     get("/calendars/#{calendar_id}/recordings")
   end
 
+  # Returns calendar events from all of the user's calendars within a date window.
+  # `starts_on` / `ends_on` should be ISO8601 date strings (e.g. "2026-04-08").
+  def calendar_events(starts_on:, ends_on:)
+    calendars_data = calendars
+    return [] unless calendars_data.is_a?(Array)
+
+    calendars_data.flat_map do |cal|
+      query = URI.encode_www_form(starts_on: starts_on, ends_on: ends_on)
+      events = get("/calendars/#{cal['id']}/events.json?#{query}")
+      events.is_a?(Array) ? events : []
+    end
+  end
+
   # Todos
 
   def todos

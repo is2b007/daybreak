@@ -10,7 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_030007) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_054655) do
+  create_table "calendar_events", force: :cascade do |t|
+    t.boolean "all_day", default: false, null: false
+    t.string "basecamp_bucket_id"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "ends_at"
+    t.string "external_id", null: false
+    t.string "location"
+    t.integer "source", null: false
+    t.datetime "starts_at", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["external_id", "source"], name: "index_calendar_events_on_external_id_and_source", unique: true
+    t.index ["user_id", "starts_at"], name: "index_calendar_events_on_user_id_and_starts_at"
+    t.index ["user_id"], name: "index_calendar_events_on_user_id"
+  end
+
   create_table "daily_logs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -132,6 +150,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_030007) do
     t.index ["user_id"], name: "index_weekly_goals_on_user_id"
   end
 
+  add_foreign_key "calendar_events", "users"
   add_foreign_key "daily_logs", "users"
   add_foreign_key "day_plans", "users"
   add_foreign_key "local_journal_entries", "users"
