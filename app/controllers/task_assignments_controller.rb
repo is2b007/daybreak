@@ -1,5 +1,5 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :update, :destroy, :move, :cycle_size, :complete, :defer ]
+  before_action :set_task, only: [ :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox ]
 
   def create
     day_plan = current_user.day_plans.find_or_create_by!(date: params[:date])
@@ -119,6 +119,41 @@ class TaskAssignmentsController < ApplicationController
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove("task_#{@task.id}") }
       format.html { redirect_back fallback_location: root_path }
+    end
+  end
+
+  def timebox
+    date = Date.parse(params[:date])
+    hour = params[:hour].to_i
+    minute = params[:minute].to_i
+
+    starts_at = ActiveSupport::TimeZone[current_user.timezone].local(
+      date.year, date.month, date.day, hour, minute
+    )
+
+    @task.update!(
+      planned_start_at: starts_at,
+      planned_duration_minutes: @task.planned_duration_minutes || 60
+    )
+
+    SyncTimeboxToHeyJob.perform_later(@task.id) if current_user.hey_connected?
+
+    day_plan = current_user.day_plans.find_by(date: date)
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "timeline_#{date}",
+          partial: "days/timeline",
+          locals: {
+            date: date,
+            events: [],
+            tasks: current_user.task_assignments
+                     .where(day_plan: day_plan)
+                     .ordered
+          }
+        )
+      end
+      format.html { redirect_to day_path(date) }
     end
   end
 

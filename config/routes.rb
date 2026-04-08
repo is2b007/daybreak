@@ -35,6 +35,7 @@ Rails.application.routes.draw do
       patch :cycle_size
       patch :complete
       patch :defer
+      patch :timebox
     end
   end
 
