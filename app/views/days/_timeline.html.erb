@@ -10,7 +10,7 @@
          data-timeline-target="hour"
          data-hour="<%= hour %>"
          data-action="dragover->timeline#dragover drop->timeline#drop dragenter->timeline#dragenter dragleave->timeline#dragleave">
-      <span class="timeline__hour-label"><%= hour <= 12 ? "#{hour}am" : "#{hour - 12}pm" %></span>
+      <span class="timeline__hour-label"><%= hour < 12 ? "#{hour}am" : (hour == 12 ? "12pm" : "#{hour - 12}pm") %></span>
     </div>
   <% end %>
 

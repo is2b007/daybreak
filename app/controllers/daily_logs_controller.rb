@@ -1,8 +1,6 @@
 class DailyLogsController < ApplicationController
   def show
-    @date = Date.parse(params[:date])
-    @daily_log = current_user.daily_logs.find_or_initialize_by(date: @date)
-    @log_entries = @daily_log.persisted? ? @daily_log.log_entries.order(:logged_at) : []
+    redirect_to day_path(params[:date], tab: "log")
   end
 
   def create

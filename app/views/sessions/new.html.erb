@@ -5,10 +5,6 @@
       <p class="login-tagline">The space between your tools, where you decide what today is actually about.</p>
     </div>
 
-    <% if flash[:alert] %>
-      <div class="flash flash--alert"><%= flash[:alert] %></div>
-    <% end %>
-
     <% if BasecampClient.configured? %>
       <%= link_to BasecampClient.authorize_url(auth_basecamp_callback_url), class: "btn btn--primary btn--large" do %>
         Sign in with Basecamp

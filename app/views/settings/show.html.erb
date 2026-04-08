@@ -39,7 +39,7 @@
     <div class="settings__section">
       <div class="settings__section-title">Timezone</div>
       <div class="form-group">
-        <%= f.select :timezone, ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] }, {}, class: "form-input" %>
+        <%= f.select :timezone, ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] }, {}, class: "form-input" %>
       </div>
     </div>
 

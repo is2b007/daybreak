@@ -2,6 +2,11 @@ Rails.application.routes.draw do
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Dev backdoor login (development only)
+  if Rails.env.development?
+    get "dev/login/:user_id", to: "dev#login", as: :dev_login
+  end
+
   # Authentication
   get  "login",                   to: "sessions#new",     as: :login
   get  "auth/basecamp",           to: "sessions#new",     as: :auth_basecamp
@@ -17,6 +22,9 @@ Rails.application.routes.draw do
   resource :onboarding, only: [ :show, :update ], controller: "onboarding" do
     post :complete
   end
+
+  # Manual Basecamp sync
+  post "sync/basecamp", to: "sync#basecamp", as: :sync_basecamp
 
   # Week view (home)
   root "weeks#show"

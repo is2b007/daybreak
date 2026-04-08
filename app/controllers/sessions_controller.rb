@@ -25,6 +25,7 @@ class SessionsController < ApplicationController
     user.save!
 
     SyncCalendarEventsJob.perform_later(user.id)
+    SyncBasecampAssignmentsJob.perform_later(user.id)
 
     session[:user_id] = user.id
 
