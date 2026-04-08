@@ -71,6 +71,11 @@
       <div class="settings__row">
         <div>
           <span class="settings__row-label">HEY</span>
+          <% if current_user.hey_connected? %>
+            <div class="settings__sub-action">
+              <%= link_to "Triage inbox", triage_path, class: "text-sm" %>
+            </div>
+          <% end %>
         </div>
         <div class="settings__connection">
           <% if current_user.hey_connected? %>

@@ -18,6 +18,11 @@ production:
     queue: sync
     schedule: every 15 minutes
 
+  sync_hey_emails:
+    command: "User.where.not(hey_access_token: nil).find_each { |u| SyncHeyEmailsJob.perform_later(u.id) }"
+    queue: sync
+    schedule: at 6am every day
+
   sync_calendar_events:
     command: "User.where.not(basecamp_access_token: nil).find_each { |u| SyncCalendarEventsJob.perform_later(u.id) }"
     queue: sync

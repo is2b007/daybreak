@@ -151,7 +151,40 @@ class HeyClient
     patch("/calendar/days/#{day}/journal_entry", { content: content })
   end
 
+  # Email triage (read-only)
+  #
+  # HEY's box endpoints return a BoxShowResponse wrapper:
+  #   { id:, kind:, name:, postings: [Posting, ...] }
+  # Posting shape (polymorphic by `kind`: "topic" | "bundle" | "entry"):
+  #   { id:, kind:, name: (subject), summary: (snippet), app_url:,
+  #     observed_at:, created_at:, updated_at:, seen:,
+  #     creator: { name:, email_address: } }
+  #
+  # Paths documented in basecamp/hey-cli API-COVERAGE.md.
+
+  def imbox
+    fetch_box("/imbox.json")
+  end
+
+  def reply_later
+    fetch_box("/laterbox.json")
+  end
+
+  def set_aside
+    fetch_box("/asidebox.json")
+  end
+
   private
+
+  # Returns the postings array from a BoxShowResponse, or nil on error.
+  # nil is meaningful: it tells the sync job "the fetch failed, don't prune."
+  # An actual empty folder in HEY still returns [] here.
+  def fetch_box(path)
+    data = get(path)
+    return nil unless data.is_a?(Hash)
+    postings = data["postings"]
+    postings.is_a?(Array) ? postings : []
+  end
 
   def get(path)
     request(:get, path)
