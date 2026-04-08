@@ -1,40 +1,26 @@
-<div class="container">
-  <div class="day-view__header">
-    <div class="flex items-center gap-4">
-      <%= link_to root_path, class: "btn btn--ghost btn--small" do %>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Week
-      <% end %>
-      <div>
-        <h1 class="day-view__date"><%= @date.strftime("%A, %B %-d") %></h1>
-        <p class="day-view__subtitle">
-          <%= pluralize(@pending_tasks.count, "task") %> &middot;
-          <% total = @tasks.sum(:planned_duration_minutes).to_i %>
-          <% if total > 0 %><%= total / 60 %>h <%= total % 60 %>m planned<% else %>nothing planned yet<% end %>
-        </p>
-      </div>
-    </div>
-
-    <div class="flex gap-2">
-      <%= link_to day_path(@date - 1.day), class: "btn btn--ghost btn--small" do %>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      <% end %>
-      <% unless @date == Date.current %>
-        <%= link_to "Today", day_path(Date.current), class: "btn btn--ghost btn--small" %>
-      <% end %>
-      <%= link_to day_path(@date + 1.day), class: "btn btn--ghost btn--small" do %>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      <% end %>
-    </div>
+<% content_for(:topbar) do %>
+  <%= link_to day_path(@date - 1.day), class: "topbar__nav-arrow" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+  <% end %>
+  <span class="topbar__title"><%= @date.strftime("%A, %B %-d") %></span>
+  <%= link_to day_path(@date + 1.day), class: "topbar__nav-arrow" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  <% end %>
+  <span class="topbar__sub">
+    <%= pluralize(@pending_tasks.count, "task") %> &middot;
+    <% total = @tasks.sum(:planned_duration_minutes).to_i %>
+    <% if total > 0 %><%= total / 60 %>h <%= total % 60 %>m<% else %>nothing planned<% end %>
+  </span>
+  <div class="topbar__right">
+    <% unless @date == Date.current %>
+      <%= link_to "Today", day_path(Date.current), class: "btn btn--ghost btn--small" %>
+    <% end %>
   </div>
+<% end %>
 
-  <div class="day-tabs">
-    <%= link_to "Tasks", day_path(@date, tab: "tasks"), class: "day-tab #{'day-tab--active' if @tab == 'tasks'}" %>
-    <%= link_to "Daily Log", day_path(@date, tab: "log"), class: "day-tab #{'day-tab--active' if @tab == 'log'}" %>
-  </div>
-
-  <div class="day-view">
-    <div class="day-view__tasks">
+<div class="day-view">
+  <div class="day-view__tasks">
+    <div class="day-view__tasks-list">
       <% if @tab == "log" %>
         <%= render "daily_log", daily_log: @daily_log, log_entries: @log_entries, date: @date %>
       <% else %>
@@ -52,7 +38,7 @@
           </p>
         <% end %>
 
-        <div class="mt-6" style="opacity: 0.6;" id="day_<%= @date %>_completed">
+        <div class="mt-6" style="opacity: 0.35;" id="day_<%= @date %>_completed">
           <% if @completed_tasks.any? %>
             <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
             <% @completed_tasks.each do |task| %>
@@ -63,12 +49,27 @@
       <% end %>
     </div>
 
-    <div>
-      <%= render "timeline", date: @date, events: @calendar_events, tasks: @tasks %>
-    </div>
+    <% if @active_timer %>
+      <div class="timer-bar" data-controller="timer" data-timer-started-at-value="<%= @active_timer.started_at.iso8601 %>">
+        <div class="timer-bar__task">
+          <div class="timer-bar__task-name">
+            <%= @active_timer.task_assignment&.title || "Tracking time" %>
+          </div>
+          <% if @active_timer.task_assignment&.project_name.present? %>
+            <div class="timer-bar__task-project"><%= @active_timer.task_assignment.source.capitalize %> &middot; <%= @active_timer.task_assignment.project_name %></div>
+          <% end %>
+        </div>
+        <div class="timer-bar__time" data-timer-target="display">0:00:00</div>
+        <div class="timer-bar__controls">
+          <%= button_to timer_session_path(@active_timer), method: :patch, params: { timer_session: { ended_at: Time.current } }, class: "timer-bar__play-btn" do %>
+            &#9632;
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div>
+    <%= render "timeline", date: @date, events: @calendar_events, tasks: @tasks %>
   </div>
 </div>
-
-<% if @active_timer %>
-  <%= render "timer_bar", timer: @active_timer %>
-<% end %>
