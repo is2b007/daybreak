@@ -9,7 +9,7 @@
       <% when 1 %>
         <%= render "morning_step_1", tasks: @yesterday_tasks %>
       <% when 2 %>
-        <%= render "morning_step_2", events: @calendar_events, assignments: @basecamp_assignments %>
+        <%= render "morning_step_2", events: @calendar_events, assignments: @basecamp_assignments, hey_todos: @hey_todos %>
       <% when 3 %>
         <%= render "morning_step_3", tasks: @available_tasks, day_plan: @day_plan %>
       <% when 4 %>

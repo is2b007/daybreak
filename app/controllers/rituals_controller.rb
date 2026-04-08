@@ -86,9 +86,24 @@ class RitualsController < ApplicationController
   end
 
   def load_todays_schedule
-    @calendar_events = [] # TODO: Fetch from APIs
-    @basecamp_assignments = [] # TODO: Fetch from Basecamp
-    @hey_todos = [] # TODO: Fetch from HEY
+    @calendar_events = current_user.calendar_events
+      .for_date(@date)
+      .chronological
+      .map(&:to_view_hash)
+
+    @basecamp_assignments = current_user.task_assignments
+      .basecamp
+      .incomplete
+      .where("created_at > ?", 1.week.ago)
+      .limit(5)
+      .map { |t| { title: t.title, due_on: nil } }
+
+    @hey_todos = current_user.task_assignments
+      .hey
+      .incomplete
+      .where("created_at > ?", 1.week.ago)
+      .limit(5)
+      .map { |t| { title: t.title } }
   end
 
   def load_available_tasks

@@ -1,4 +1,4 @@
-<%# locals: (events:, assignments:) %>
+<%# locals: (events:, assignments:, hey_todos:) %>
 <div class="ritual__step">
   <p class="ritual__prompt">Here's what's already scheduled.</p>
 
@@ -25,6 +25,18 @@
           <% if assignment[:due_on] %>
             <span class="text-xs text-muted">Due <%= assignment[:due_on] %></span>
           <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if hey_todos.any? %>
+    <p class="text-sm font-semibold mb-3 mt-4">HEY todos</p>
+    <div class="ritual__task-list">
+      <% hey_todos.each do |todo| %>
+        <div class="ritual__task-item">
+          <span class="badge badge--hey"></span>
+          <span class="ritual__task-item__title"><%= todo[:title] %></span>
         </div>
       <% end %>
     </div>
