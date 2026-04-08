@@ -41,15 +41,20 @@ class SyncHeyEmailsJob < ApplicationJob
       row = user.hey_emails.find_or_initialize_by(external_id: posting["id"].to_s)
 
       # Never touch dismissed_at / triaged_at during sync — those are local state.
-      row.assign_attributes(
+      attrs = {
         folder: folder,
         sender_name: posting.dig("creator", "name"),
         sender_email: posting.dig("creator", "email_address"),
         subject: posting["name"].presence || "(no subject)",
         snippet: posting["summary"],
-        received_at: parse_time(posting["observed_at"] || posting["updated_at"] || posting["created_at"]),
         hey_url: posting["app_url"]
-      )
+      }
+
+      # parse_time handles bad/missing timestamps gracefully, preserving existing received_at if needed.
+      new_time = parse_time(posting["observed_at"] || posting["updated_at"] || posting["created_at"], row)
+      attrs[:received_at] = new_time if new_time.present?
+
+      row.assign_attributes(attrs)
       row.save! if row.changed?
     end
   end
@@ -58,14 +63,18 @@ class SyncHeyEmailsJob < ApplicationJob
     current_ids = postings.map { |p| p["id"].to_s }
     scope = user.hey_emails
       .where(folder: folder, dismissed_at: nil, triaged_at: nil)
-    scope = scope.where.not(external_id: current_ids) if current_ids.any?
+    # Always apply the exclusion, even if current_ids is empty.
+    # This prevents deleting all rows when a fetch returns [].
+    scope = scope.where.not(external_id: current_ids)
     scope.delete_all
   end
 
-  def parse_time(value)
-    return Time.current if value.blank?
+  def parse_time(value, row = nil)
+    return nil if value.blank?
     Time.parse(value.to_s)
   rescue ArgumentError
-    Time.current
+    # If timestamp is malformed, preserve the row's existing received_at
+    # rather than defaulting to Time.current (which corrupts sort order).
+    row&.received_at.presence
   end
 end

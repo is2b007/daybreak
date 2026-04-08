@@ -2,19 +2,24 @@ class HeyEmailsController < ApplicationController
   before_action :set_email
 
   def triage
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = Date.current.in_time_zone(current_user.timezone).beginning_of_week(:monday)
 
-    current_user.task_assignments.create!(
-      source: :local,
-      title: @email.subject,
-      week_start_date: week_start,
-      week_bucket: "sometime",
-      size: :medium,
-      status: :pending
-    )
-    @email.triage!
+    ActiveRecord::Base.transaction do
+      current_user.task_assignments.create!(
+        source: :local,
+        title: @email.subject,
+        week_start_date: week_start,
+        week_bucket: "sometime",
+        size: :medium,
+        status: :pending
+      )
+      @email.triage!
+    end
 
     respond_removed("Added to this week.")
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
+    Rails.logger.warn("Triage action failed: #{e.message}")
+    render json: { error: "Could not save. Try again?" }, status: :unprocessable_entity
   end
 
   def dismiss
