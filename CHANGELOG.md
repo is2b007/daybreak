@@ -5,6 +5,11 @@ All notable changes to Daybreak will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-04-08
+
+### Fixed
+- **Basecamp/HEY right panel showing no tasks** — Removed the `for_week` filter from the right panel queries. Tasks synced in a prior week had stale `week_start_date` values, causing the current-week filter to return nothing. The panel is an inbox, not a week-scoped list.
+
 ## [0.1.0] - 2026-04-08
 
 ### Added
