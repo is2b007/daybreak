@@ -1,5 +1,5 @@
 class HeyConnectionsController < ApplicationController
-  skip_before_action :require_onboarding!, only: [:create]
+  skip_before_action :require_onboarding!, only: [ :create ]
 
   def new
     redirect_to HeyClient.authorize_url(auth_hey_callback_url), allow_other_host: true
