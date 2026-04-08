@@ -75,9 +75,12 @@
             <span class="settings__connection-status settings__connection-status--connected"></span>
             <span class="text-sm text-muted">Connected</span>
             <%= button_to "Disconnect", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
-          <% else %>
+          <% elsif HeyClient.configured? %>
             <span class="settings__connection-status settings__connection-status--disconnected"></span>
             <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
+          <% else %>
+            <span class="settings__connection-status settings__connection-status--disconnected"></span>
+            <span class="text-sm text-muted">Not available</span>
           <% end %>
         </div>
       </div>

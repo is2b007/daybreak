@@ -2,9 +2,75 @@ require "net/http"
 require "json"
 
 class HeyClient
-  BASE_URL = "https://hey.com/api/v1"
+  BASE_AUTH_URL = "https://launchpad.37signals.com"
+  BASE_API_URL = "https://hey.com/api/v1"
 
   class AuthError < StandardError; end
+
+  # OAuth flow
+
+  def self.authorize_url(redirect_uri)
+    params = {
+      type: "web_server",
+      client_id: credentials[:client_id],
+      redirect_uri: redirect_uri,
+      response_type: "code"
+    }
+    "#{BASE_AUTH_URL}/authorization/new?#{params.to_query}"
+  end
+
+  def self.exchange_code(code, redirect_uri)
+    uri = URI("#{BASE_AUTH_URL}/authorization/token")
+    response = Net::HTTP.post_form(uri, {
+      type: "web_server",
+      client_id: credentials[:client_id],
+      client_secret: credentials[:client_secret],
+      redirect_uri: redirect_uri,
+      code: code
+    })
+
+    raise AuthError, "HEY token exchange failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    JSON.parse(response.body)
+  end
+
+  def self.fetch_identity(access_token)
+    uri = URI("#{BASE_AUTH_URL}/authorization.json")
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Bearer #{access_token}"
+    request["User-Agent"] = user_agent
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    raise AuthError, "HEY identity fetch failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    JSON.parse(response.body)
+  end
+
+  def self.refresh_token(refresh_token)
+    uri = URI("#{BASE_AUTH_URL}/authorization/token")
+    response = Net::HTTP.post_form(uri, {
+      type: "refresh",
+      client_id: credentials[:client_id],
+      client_secret: credentials[:client_secret],
+      refresh_token: refresh_token
+    })
+
+    raise AuthError, "HEY token refresh failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    JSON.parse(response.body)
+  end
+
+  def self.credentials
+    creds = Rails.application.credentials.hey
+    return creds if creds.present?
+
+    { client_id: ENV["HEY_CLIENT_ID"], client_secret: ENV["HEY_CLIENT_SECRET"] }
+  end
+
+  def self.configured?
+    credentials[:client_id].present?
+  end
+
+  def self.user_agent
+    "Daybreak (kosta@daybreak.app)"
+  end
 
   def initialize(user)
     @user = user
@@ -108,7 +174,9 @@ class HeyClient
   end
 
   def request(method, path, body = nil)
-    uri = URI("#{BASE_URL}#{path}")
+    ensure_fresh_token!
+
+    uri = URI("#{BASE_API_URL}#{path}")
 
     case method
     when :get
@@ -126,6 +194,7 @@ class HeyClient
     req["Authorization"] = "Bearer #{@user.hey_access_token}"
     req["Content-Type"] = "application/json"
     req["Accept"] = "application/json"
+    req["User-Agent"] = self.class.user_agent
 
     if body
       req.body = body.to_json
@@ -137,10 +206,30 @@ class HeyClient
     when Net::HTTPSuccess
       JSON.parse(response.body) if response.body.present?
     when Net::HTTPUnauthorized
-      raise AuthError, "HEY token expired. Reconnect in Settings."
+      refresh_and_retry!(method, path, body)
     else
       Rails.logger.error("HEY API error: #{response.code} #{response.body}")
       nil
     end
+  end
+
+  def ensure_fresh_token!
+    return if @user.hey_token_fresh?
+    perform_token_refresh!
+  end
+
+  def perform_token_refresh!
+    data = self.class.refresh_token(@user.hey_refresh_token)
+    @user.update!(
+      hey_access_token: data["access_token"],
+      hey_token_expires_at: 2.weeks.from_now
+    )
+  end
+
+  def refresh_and_retry!(method, path, body)
+    perform_token_refresh!
+    request(method, path, body)
+  rescue AuthError
+    raise AuthError, "HEY session expired. Reconnect from Settings."
   end
 end

@@ -28,6 +28,10 @@ class User < ApplicationRecord
     basecamp_token_expires_at.present? && basecamp_token_expires_at > Time.current
   end
 
+  def hey_token_fresh?
+    hey_token_expires_at.present? && hey_token_expires_at > Time.current
+  end
+
   def greeting_name
     name.split.first
   end
