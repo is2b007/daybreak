@@ -14,8 +14,8 @@ class ApplicationController < ActionController::Base
     return unless logged_in? && current_user&.onboarded?
 
     week_start = Date.current.beginning_of_week(:monday)
-    @rp_bc_tasks = current_user.task_assignments.basecamp.incomplete.for_week(week_start).ordered.limit(20)
-    @rp_hey_tasks = current_user.task_assignments.hey.incomplete.for_week(week_start).ordered.limit(20)
+    @rp_bc_tasks = current_user.task_assignments.basecamp.incomplete.ordered.limit(20)
+    @rp_hey_tasks = current_user.task_assignments.hey.incomplete.ordered.limit(20)
     @rp_goals = current_user.weekly_goals.where(week_start_date: week_start)
   rescue => e
     Rails.logger.warn "Right panel data load failed: #{e.message}"
