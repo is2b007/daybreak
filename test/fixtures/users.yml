@@ -1,39 +1,25 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
-  email: MyString
-  timezone: MyString
-  stamp_choice: MyString
-  work_hours_target: 9.99
-  sundown_time: MyString
-  theme: MyString
+  name: Test One
+  email: one@example.com
+  timezone: America/Los_Angeles
+  stamp_choice: red_done
+  work_hours_target: 8.0
+  sundown_time: "17:00"
+  theme: system
   last_open_date: 2026-04-08
-  basecamp_uid: MyString
-  basecamp_access_token: MyString
-  basecamp_refresh_token: MyString
-  basecamp_token_expires_at: 2026-04-08 12:29:28
-  basecamp_account_id: MyString
-  hey_access_token: MyString
-  hey_refresh_token: MyString
-  hey_token_expires_at: 2026-04-08 12:29:28
-  onboarded: false
+  basecamp_uid: test-uid-one
+  onboarded: true
 
 two:
-  name: MyString
-  email: MyString
-  timezone: MyString
-  stamp_choice: MyString
-  work_hours_target: 9.99
-  sundown_time: MyString
-  theme: MyString
+  name: Test Two
+  email: two@example.com
+  timezone: America/New_York
+  stamp_choice: navy_star
+  work_hours_target: 6.0
+  sundown_time: "17:00"
+  theme: light
   last_open_date: 2026-04-08
-  basecamp_uid: MyString
-  basecamp_access_token: MyString
-  basecamp_refresh_token: MyString
-  basecamp_token_expires_at: 2026-04-08 12:29:28
-  basecamp_account_id: MyString
-  hey_access_token: MyString
-  hey_refresh_token: MyString
-  hey_token_expires_at: 2026-04-08 12:29:28
-  onboarded: false
+  basecamp_uid: test-uid-two
+  onboarded: true

@@ -80,7 +80,7 @@ export default class extends Controller {
         "X-CSRF-Token": csrfToken,
         "Accept": "text/vnd.turbo-stream.html"
       },
-      body: `target_date=${targetDate}&position=${position}`
+      body: `target_date=${targetDate}&position=${position}&source_date=${this.dragSourceDate || ""}`
     })
   }
 
