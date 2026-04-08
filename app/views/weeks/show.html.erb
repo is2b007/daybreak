@@ -16,15 +16,26 @@
     </div>
   </div>
 
+  <% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
+
+  <% if first_run %>
+    <div class="first-run">
+      <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
+      <p class="first-run__body">
+        This is your week. The columns below are days. Tasks from Basecamp
+        will start appearing as you sync. When you're ready,
+        <%= link_to "shape today", ritual_morning_path %> with the morning ritual.
+      </p>
+    </div>
+  <% end %>
+
   <div class="kanban" data-controller="sortable">
     <% @week_dates.each do |date| %>
       <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
     <% end %>
   </div>
 
-  <% if @sometime_tasks.any? %>
-    <%= render "sometime_row", tasks: @sometime_tasks %>
-  <% end %>
+  <%= render "sometime_row", tasks: @sometime_tasks %>
 
   <%= render "weekly_goals", goals: @weekly_goals, week_start: @week_start %>
 </div>

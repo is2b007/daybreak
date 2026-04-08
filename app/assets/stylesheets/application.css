@@ -155,6 +155,30 @@
   --shadow-overlay: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
+[data-theme="light"] {
+  --color-canvas: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-today: #FFF8F0;
+  --color-text: #1D2D35;
+  --color-text-muted: #6B7C85;
+  --color-text-faint: #9AABB5;
+  --color-border: #E6E4DF;
+  --color-border-light: #F0EEEA;
+  --color-accent-light: #FFF3E0;
+  --color-completed: #B8B8A8;
+  --gradient-sunrise-start: #FDF0E2;
+  --gradient-sunrise-end: #FAFAF7;
+  --gradient-sunset-start: #F5E6D8;
+  --gradient-sunset-mid: #EDE0D4;
+  --gradient-sunset-end: #E8D5C8;
+  --color-basecamp: #1D6AE5;
+  --color-hey: #51A74D;
+  --shadow-card: 0 1px 3px rgba(29, 45, 53, 0.06), 0 1px 2px rgba(29, 45, 53, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(29, 45, 53, 0.1);
+  --shadow-overlay: 0 8px 30px rgba(29, 45, 53, 0.15);
+}
+
 /* --------------------------------------------------------------------------
    RESET
    -------------------------------------------------------------------------- */
@@ -1487,6 +1511,80 @@ select.form-input {
 /* Stamp press animation on completing */
 .task-card--completing .task-card__stamp {
   animation: stampPress 0.4s ease-out forwards;
+}
+
+/* --------------------------------------------------------------------------
+   EMPTY STATES
+   -------------------------------------------------------------------------- */
+.first-run {
+  text-align: center;
+  max-width: 480px;
+  margin: var(--space-8) auto var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.first-run__heading {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-3);
+}
+.first-run__body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+}
+
+.kanban__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border-subtle, var(--color-border-light));
+  border-radius: var(--radius-sm);
+  margin: 8px 0;
+}
+.kanban__empty-link {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.kanban__empty-text {
+  opacity: 0.5;
+}
+
+.sometime-row__empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  padding: 12px 16px;
+  font-style: italic;
+}
+
+.weekly-goals__empty {
+  padding: var(--space-3) 0;
+}
+.weekly-goals__empty-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+.weekly-goals__empty-text {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.timeline__hint {
+  position: absolute;
+  top: 50%;
+  left: 56px;
+  right: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------

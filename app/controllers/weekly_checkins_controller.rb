@@ -28,6 +28,6 @@ class WeeklyCheckinsController < ApplicationController
       end
     end
 
-    redirect_to ritual_morning_path, notice: "Goals set. Let's plan Monday."
+    redirect_to ritual_morning_path, notice: "Goals set. Now let's plan Monday."
   end
 end

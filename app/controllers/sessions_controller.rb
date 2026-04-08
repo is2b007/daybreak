@@ -34,11 +34,11 @@ class SessionsController < ApplicationController
       redirect_to onboarding_path
     end
   rescue BasecampClient::AuthError => e
-    redirect_to login_path, alert: "Authentication failed. Please try again."
+    redirect_to login_path, alert: "That didn't go through. Want to try again?"
   end
 
   def destroy
     session.delete(:user_id)
-    redirect_to login_path, notice: "Signed out."
+    redirect_to login_path, notice: "Signed out. See you tomorrow."
   end
 end

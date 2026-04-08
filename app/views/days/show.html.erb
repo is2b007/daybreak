@@ -8,9 +8,9 @@
       <div>
         <h1 class="day-view__date"><%= @date.strftime("%A, %B %-d") %></h1>
         <p class="day-view__subtitle">
-          <%= @pending_tasks.count %> tasks &middot;
+          <%= pluralize(@pending_tasks.count, "task") %> &middot;
           <% total = @tasks.sum(:planned_duration_minutes).to_i %>
-          <% if total > 0 %><%= total / 60 %>h <%= total % 60 %>m planned<% else %>no time planned<% end %>
+          <% if total > 0 %><%= total / 60 %>h <%= total % 60 %>m planned<% else %>nothing planned yet<% end %>
         </p>
       </div>
     </div>
@@ -45,9 +45,9 @@
         <% else %>
           <p class="text-muted text-sm p-6 text-center">
             <% if @completed_tasks.any? %>
-              All done for today. Nice work.
+              Everything's done. That's a good day.
             <% else %>
-              No tasks planned for this day. <%= link_to "Run your morning ritual", ritual_morning_path %> to shape your day.
+              Nothing on the books for this day. <%= link_to "Plan your morning", ritual_morning_path %>.
             <% end %>
           </p>
         <% end %>

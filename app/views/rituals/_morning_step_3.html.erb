@@ -1,7 +1,7 @@
 <%# locals: (tasks:, day_plan:) %>
 <div class="ritual__step">
   <p class="ritual__prompt">What do you want to work on?</p>
-  <p class="text-sm text-muted mb-6">Tap tasks to add them to today. Set rough durations — how much time you <em>want</em> to give each one.</p>
+  <p class="text-sm text-muted mb-6">Pick what you'll work on. Set rough durations — how much time you <em>want</em> to give each one.</p>
 
   <%= form_with url: ritual_morning_path, method: :post do |f| %>
     <%= f.hidden_field :step, value: 3 %>
@@ -25,7 +25,7 @@
       <% end %>
 
       <% if tasks.empty? %>
-        <p class="text-muted">No tasks available. Add something personal in the next step.</p>
+        <p class="text-muted">Nothing waiting. You can add something personal next.</p>
       <% end %>
     </div>
     <div class="mt-8">

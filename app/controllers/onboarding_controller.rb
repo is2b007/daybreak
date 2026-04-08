@@ -30,7 +30,7 @@ class OnboardingController < ApplicationController
 
   def complete
     current_user.update!(onboarded: true)
-    redirect_to root_path, notice: "Welcome to Daybreak, #{current_user.greeting_name}."
+    redirect_to root_path, notice: "Glad you're here, #{current_user.greeting_name}."
   end
 
   private

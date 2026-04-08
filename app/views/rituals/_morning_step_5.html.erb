@@ -4,7 +4,7 @@
 
   <% if overfull %>
     <div class="ritual__warning">
-      That's a full day. You've planned <%= total_planned / 60 %>h <%= total_planned % 60 %>m against <%= current_user.work_hours_target %>h. Sure you want all of it?
+      That's a full day. <%= total_planned / 60 %>h <%= total_planned % 60 %>m against your usual <%= current_user.work_hours_target %>h. Sure?
     </div>
   <% end %>
 
@@ -34,6 +34,6 @@
   </div>
 
   <%= form_with url: ritual_morning_complete_path, method: :post do |f| %>
-    <%= f.submit "Start your day", class: "btn btn--warm" %>
+    <%= f.submit "Begin", class: "btn btn--warm" %>
   <% end %>
 </div>
