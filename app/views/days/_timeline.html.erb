@@ -1,5 +1,10 @@
 <%# locals: (date:, events:, tasks:) %>
 <div class="timeline" id="timeline_<%= date %>" data-controller="timeline" data-timeline-date-value="<%= date %>">
+  <% if events.empty? && tasks.none?(&:timeboxed?) %>
+    <div class="timeline__hint">
+      Drag a task onto the timeline to give it a time.
+    </div>
+  <% end %>
   <% (7..21).each do |hour| %>
     <div class="timeline__hour"
          data-timeline-target="hour"

@@ -17,7 +17,7 @@ module Authentication
 
   def authenticate_user!
     unless logged_in?
-      redirect_to login_path, alert: "Please sign in to continue."
+      redirect_to login_path, alert: "Sign in to pick up where you left off."
     end
   end
 

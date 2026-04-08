@@ -15,7 +15,7 @@ class HeyConnectionsController < ApplicationController
     )
 
     if current_user.onboarded?
-      redirect_to settings_path, notice: "HEY connected."
+      redirect_to settings_path, notice: "HEY is connected."
     else
       redirect_to onboarding_path(step: 4)
     end
@@ -29,6 +29,6 @@ class HeyConnectionsController < ApplicationController
 
   def destroy
     current_user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
-    redirect_to settings_path, notice: "HEY disconnected."
+    redirect_to settings_path, notice: "HEY is disconnected."
   end
 end

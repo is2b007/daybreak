@@ -11,14 +11,14 @@
     <% end %>
 
     <% if log_entries.empty? %>
-      <p class="text-muted text-sm">No entries yet. Start typing below.</p>
+      <p class="text-muted text-sm">Nothing here yet. Add something below.</p>
     <% end %>
   </div>
 
   <div class="daily-log__input">
     <%= form_with url: day_log_path(date), method: (daily_log.persisted? ? :patch : :post), data: { controller: "auto-save" } do |f| %>
       <div class="form-group">
-        <%= f.text_area :content, class: "form-input", placeholder: "Type here...", rows: 3, data: { auto_save_target: "input", action: "input->auto-save#save" } %>
+        <%= f.text_area :content, class: "form-input", placeholder: "What's on your mind?", rows: 3, data: { auto_save_target: "input", action: "input->auto-save#save" } %>
       </div>
       <%= f.submit "Add entry", class: "btn btn--primary btn--small" %>
     <% end %>

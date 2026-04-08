@@ -1,12 +1,7 @@
 <%# locals: (goals:, week_start:) %>
 <div class="weekly-goals">
   <div class="weekly-goals__label">
-    This week's goals
-    <% if goals.empty? %>
-      <% if Date.current.beginning_of_week(:monday) == week_start %>
-        &middot; <%= link_to "Set goals", weekly_checkin_path, class: "text-sm" %>
-      <% end %>
-    <% end %>
+    This week
   </div>
   <% if goals.any? %>
     <div class="weekly-goals__list">
@@ -15,6 +10,14 @@
           <span class="weekly-goal__title"><%= goal.title %></span>
           <span class="weekly-goal__progress"><%= goal.progress_text %></span>
         </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="weekly-goals__empty">
+      <% if Date.current.beginning_of_week(:monday) == week_start %>
+        <%= link_to "What is this week for?", weekly_checkin_path, class: "weekly-goals__empty-link" %>
+      <% else %>
+        <span class="weekly-goals__empty-text">No goals this week.</span>
       <% end %>
     </div>
   <% end %>

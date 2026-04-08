@@ -1,5 +1,5 @@
 <h2 class="onboarding__title">Pick your stamp</h2>
-<p class="onboarding__subtitle">When you complete a task, your stamp marks it done. Like a wax seal or a library date stamp.</p>
+<p class="onboarding__subtitle">When you finish something, your stamp marks it done. Pick the one that feels right.</p>
 
 <%= form_with url: onboarding_path, method: :patch, data: { controller: "stamp-picker" } do |f| %>
   <%= f.hidden_field :step, value: 2 %>

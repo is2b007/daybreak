@@ -1,6 +1,6 @@
 <%# locals: (events:, assignments:, hey_todos:) %>
 <div class="ritual__step">
-  <p class="ritual__prompt">Here's what's already scheduled.</p>
+  <p class="ritual__prompt">Here's what's already on your calendar.</p>
 
   <% if events.any? %>
     <div class="ritual__task-list mb-6">
@@ -12,11 +12,11 @@
       <% end %>
     </div>
   <% else %>
-    <p class="text-muted mb-6">No calendar events today. Wide open.</p>
+    <p class="text-muted mb-6">Nothing on your calendar today. Wide open.</p>
   <% end %>
 
   <% if assignments.any? %>
-    <p class="text-sm font-semibold mb-3">Basecamp assignments</p>
+    <p class="text-sm font-semibold mb-3">Waiting on you in Basecamp</p>
     <div class="ritual__task-list">
       <% assignments.each do |assignment| %>
         <div class="ritual__task-item">

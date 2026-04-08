@@ -11,7 +11,7 @@
     </div>
 
     <div class="settings__section">
-      <div class="settings__section-title">Stamp</div>
+      <div class="settings__section-title">Your stamp</div>
       <div class="stamp-picker">
         <% User::STAMP_OPTIONS.each do |stamp| %>
           <label class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>">
@@ -23,16 +23,16 @@
     </div>
 
     <div class="settings__section">
-      <div class="settings__section-title">Schedule</div>
+      <div class="settings__section-title">Your day</div>
       <div class="form-group">
-        <%= f.label :work_hours_target, "Work hours target", class: "form-label" %>
+        <%= f.label :work_hours_target, "Your work day", class: "form-label" %>
         <%= f.number_field :work_hours_target, class: "form-input", step: 0.5, min: 1, max: 24 %>
-        <p class="text-xs text-muted mt-1">How many hours of planned work before Daybreak warns you.</p>
+        <p class="text-xs text-muted mt-1">Daybreak will gently push back when you plan more than this.</p>
       </div>
       <div class="form-group">
-        <%= f.label :sundown_time, "Sundown time", class: "form-label" %>
+        <%= f.label :sundown_time, "When the day winds down", class: "form-label" %>
         <%= f.time_field :sundown_time, class: "form-input" %>
-        <p class="text-xs text-muted mt-1">When the evening ritual triggers.</p>
+        <p class="text-xs text-muted mt-1">When Daybreak suggests the evening ritual.</p>
       </div>
     </div>
 
@@ -48,10 +48,12 @@
       <div class="form-group">
         <% %w[system light dark].each do |theme| %>
           <label class="flex items-center gap-2 mb-2">
-            <%= f.radio_button :theme, theme %>
+            <%= f.radio_button :theme, theme,
+                  data: { action: "change->dark-mode#applyFromRadio", theme: theme } %>
             <span class="text-sm"><%= theme.capitalize %></span>
           </label>
         <% end %>
+        <p class="text-xs text-muted mt-2">System follows your device. Light and dark stay put.</p>
       </div>
     </div>
 
@@ -74,7 +76,7 @@
           <% if current_user.hey_connected? %>
             <span class="settings__connection-status settings__connection-status--connected"></span>
             <span class="text-sm text-muted">Connected</span>
-            <%= button_to "Disconnect", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
+            <%= button_to "Disconnect HEY", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
           <% elsif HeyClient.configured? %>
             <span class="settings__connection-status settings__connection-status--disconnected"></span>
             <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
@@ -87,7 +89,7 @@
     </div>
 
     <div class="mt-8">
-      <%= f.submit "Save settings", class: "btn btn--primary btn--large" %>
+      <%= f.submit "Save", class: "btn btn--primary btn--large" %>
     </div>
   <% end %>
 </div>

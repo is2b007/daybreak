@@ -37,7 +37,7 @@ class RitualsController < ApplicationController
     @day_plan = current_user.day_plans.find_or_create_by!(date: Date.current)
     @day_plan.update!(morning_ritual_done: true, status: :active)
     current_user.record_open!
-    redirect_to day_path(Date.current), notice: "Your day is set. Let's go."
+    redirect_to day_path(Date.current), notice: "Your day is set."
   end
 
   def evening
