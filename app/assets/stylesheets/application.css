@@ -114,6 +114,11 @@
   --sidebar-collapsed-width: 52px;
   --topbar-height: 46px;
   --rail-width: 36px;
+  /* Right panel content: default width; JS may set this to px (clamped to min/max). */
+  --right-panel-content-width: 15.5rem;
+  --right-panel-content-min: 11rem;
+  --right-panel-content-max: 26rem;
+  --right-panel-resizer: 6px;
   --timer-bar-height: 46px;
   --nav-height: 0px; /* legacy, no top nav */
 
@@ -127,7 +132,7 @@
    RESET
    -------------------------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; height: 100%; }
 body {
   font-family: var(--font-sans);
   font-size: 13px;
@@ -136,6 +141,13 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Logged-in shell: lock document scroll; panes scroll inside (week board, right list, etc.) */
+body:has(.shell) {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 img, svg { display: block; max-width: 100%; }
 a { color: var(--amber); text-decoration: none; }
@@ -167,11 +179,19 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .shell {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr auto;
-  min-height: 100vh;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
   border: 1px solid var(--line);
+}
+
+.shell > .sb,
+.shell > .mid,
+.shell > .right {
+  min-height: 0;
 }
 
 .shell:has(.sb.sb--collapsed) {
@@ -220,28 +240,34 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   transition: width 0.2s ease;
 }
 
+/* Logo row holds the collapse control inside the column so .shell overflow:hidden does not clip a seam tab. */
 .sb-logo {
   padding: 16px 16px 12px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sb-logo-text {
+  display: flex;
   align-items: center;
   gap: 9px;
+  min-width: 0;
 }
 
 .sb-toggle {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  z-index: 910;
-  transform: translate(50%, -50%);
-  width: 18px;
-  height: 40px;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
   padding: 0;
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 0 6px 6px 0;
+  border-radius: 6px;
   background: var(--bg);
   color: var(--muted);
   cursor: pointer;
@@ -263,9 +289,14 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sb.sb--collapsed .sb-logo {
+  flex-direction: column;
   justify-content: center;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 12px 8px;
+  gap: 10px;
+}
+
+.sb.sb--collapsed .sb-logo-text {
+  justify-content: center;
 }
 
 .sb.sb--collapsed .sb-word {
@@ -482,6 +513,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .mid {
   display: flex;
   flex-direction: column;
+  min-height: 0;
   overflow: hidden;
   background: var(--bg);
 }
@@ -490,6 +522,32 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Week home: board grows, “Sometime this week” stays at bottom of view-area */
+.week-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.week-view .first-run {
+  flex-shrink: 0;
+}
+
+.week-view .kanban {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.week-view .sometime-row {
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -498,60 +556,79 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .right {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--rail-width);
+  grid-template-columns: var(--right-panel-resizer) minmax(0, var(--right-panel-content-width)) var(--rail-width);
   border-left: 1px solid var(--line);
   overflow: visible;
   background: var(--bg);
-  min-width: 252px;
-  transition: min-width 0.2s ease;
+  width: calc(var(--right-panel-resizer) + var(--right-panel-content-width) + var(--rail-width));
+  min-width: calc(var(--right-panel-resizer) + var(--right-panel-content-width) + var(--rail-width));
+  max-width: calc(var(--right-panel-resizer) + var(--right-panel-content-width) + var(--rail-width));
+  transition: min-width 0.2s ease, max-width 0.2s ease, width 0.2s ease;
+}
+
+.right.right--resizing {
+  transition: none;
 }
 
 .right.right--collapsed {
-  grid-template-columns: 0 var(--rail-width);
+  grid-template-columns: 0 0 var(--rail-width);
+  width: var(--rail-width);
   min-width: var(--rail-width);
+  max-width: var(--rail-width);
+  /* Clip panel content; overflow:visible let r-content bleed past a 0-width track */
+  overflow: hidden;
 }
 
-.r-panel-toggle {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  z-index: 910;
-  transform: translate(-50%, -50%);
-  width: 18px;
-  height: 40px;
-  padding: 0;
+/* Drag handle between main column and panel content */
+/* Explicit columns so hiding the resizer (display:none) does not re-flow r-content
+   into column 1 and strand the rail in a 0px track. */
+.right__resizer {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 6px 0 0 6px;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-  transition: background 0.1s ease, color 0.1s ease, transform 0.2s ease;
+  padding: 0;
+  border: none;
+  border-right: 1px solid var(--line2);
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 3;
+  color: transparent;
+  border-radius: 0;
 }
 
-.r-panel-toggle:hover {
+.right__resizer:hover,
+.right__resizer:focus-visible {
   background: var(--bg2);
-  color: var(--text);
 }
 
-.r-panel-toggle svg {
-  display: block;
-  transition: transform 0.2s ease;
+.right__resizer:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
 }
 
-.right.right--collapsed .r-panel-toggle svg {
-  transform: rotate(180deg);
+.right.right--collapsed .right__resizer {
+  /* Stay in column 1 for stable grid; display:none drops the item and breaks placement */
+  visibility: hidden;
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
 }
 
 .r-content {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--line);
   min-width: 0;
+  max-width: var(--right-panel-content-width);
   transition: opacity 0.15s ease;
 }
 
@@ -567,12 +644,14 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 
 /* Icon rail */
 .r-rail {
+  grid-column: 3;
   background: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 10px 0;
   gap: 4px;
+  min-width: 0;
 }
 
 .rri {
@@ -594,6 +673,31 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .rri:hover {
   background: var(--bg2);
   color: var(--muted);
+}
+
+/* Panel collapse: same framed control as .sb-toggle (border + surface, not a bare rail icon) */
+.rri.rri--panel-toggle {
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.rri.rri--panel-toggle:hover {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+.rri.rri--panel-toggle .rri--panel-toggle-icon {
+  display: block;
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+}
+
+.right.right--collapsed .rri.rri--panel-toggle .rri--panel-toggle-icon {
+  transform: rotate(180deg);
 }
 
 .rri.on {
@@ -618,6 +722,12 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   display: inline;
   fill: currentColor;
   stroke: none;
+}
+
+/* Panel toggle uses stroked chevron like sidebar toggle. */
+.rri.rri--panel-toggle .rri--panel-toggle-icon {
+  fill: none;
+  stroke: currentColor;
 }
 
 /* Stroke-only rail icons (e.g. Goals rings) */
@@ -698,6 +808,15 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   flex-shrink: 0;
 }
 
+.r-empty--filtered {
+  flex-shrink: 0;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  border-bottom: 1px solid var(--line2);
+}
+
 .r-select {
   flex: 1;
   font-size: 11px;
@@ -734,14 +853,15 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 /* Right panel task list */
 .r-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .r-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--line2);
   cursor: grab;
   transition: background 0.1s;
@@ -766,14 +886,18 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .r-item-body {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .r-item-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .r-item-meta {
@@ -809,6 +933,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   display: none;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -1101,19 +1226,22 @@ select.form-input {
    -------------------------------------------------------------------------- */
 .task-card {
   position: relative;
-  background: var(--bg);
+  background: #fff;
   border: none;
-  border-left: 2px solid var(--amber);
-  border-radius: 5px;
-  padding: 5px 8px 5px 10px;
-  margin-bottom: 3px;
+  border-left: 3px solid var(--amber);
+  border-radius: 10px;
+  padding: 9px 10px 9px 12px;
+  margin-bottom: 8px;
   cursor: grab;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .task-card:hover {
-  background: var(--bg2);
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
 .task-card:active { cursor: grabbing; }
@@ -1125,15 +1253,15 @@ select.form-input {
 
 /* Size variants (week view padding) */
 .task-card--small,
-.card--small { padding-top: 4px; padding-bottom: 4px; }
+.card--small { padding-top: 8px; padding-bottom: 8px; }
 .task-card--medium,
-.card--medium { padding-top: 6px; padding-bottom: 6px; }
+.card--medium { padding-top: 10px; padding-bottom: 10px; }
 .task-card--large,
-.card--large { padding-top: 10px; padding-bottom: 10px; }
+.card--large { padding-top: 14px; padding-bottom: 14px; }
 
 /* Completed */
 .task-card--completed {
-  opacity: 0.35;
+  opacity: 0.5;
   border-left-color: var(--muted2);
 }
 
@@ -1164,10 +1292,10 @@ select.form-input {
 }
 
 .task-card__title {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
-  line-height: 1.3;
+  line-height: 1.35;
   flex: 1;
 }
 
@@ -1176,10 +1304,10 @@ select.form-input {
   cursor: pointer;
   flex: 1;
   text-align: left;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .task-card__complete-button:hover {
@@ -1190,17 +1318,18 @@ select.form-input {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-top: 2px;
+  margin-top: 8px;
 }
 
 .task-card__duration {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
+  font-weight: 600;
 }
 
 .task-card__project {
-  font-size: 9px;
-  color: var(--muted2);
+  font-size: 12px;
+  color: var(--muted);
 }
 
 /* Source badges */
@@ -1259,15 +1388,27 @@ select.form-input {
    -------------------------------------------------------------------------- */
 .kanban {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  flex: 1;
-  overflow-y: auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--bg);
+  align-items: stretch;
+}
+
+/* turbo-frame is the grid cell; stretch so each day column matches row height */
+.kanban > turbo-frame {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 .kanban__column {
-  border-right: 1px solid var(--line2);
+  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
+  flex: 1;
+  background: #f8f9fc;
+  min-width: 0;
+  min-height: 0;
 }
 
 .kanban__column:last-child {
@@ -1275,57 +1416,108 @@ select.form-input {
 }
 
 .kanban__column-header {
-  padding: 12px 8px 8px;
+  padding: 10px 8px 8px;
   text-align: center;
   position: sticky;
   top: 0;
-  background: var(--bg);
+  background: #f8f9fc;
   z-index: 10;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .kanban__column-header--today .kanban__day-name {
   color: var(--amber-text);
 }
 
-.kanban__column-header--today .kanban__day-number {
+/* Today: month + day-in-circle on one row (same header rhythm as other columns) */
+.kanban__day-date--today {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 26px;
+}
+
+.kanban__day-date-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.kanban__day-month {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.kanban__column-header--today .kanban__day-month {
+  color: var(--muted);
+}
+
+.kanban__day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--amber-pill);
   color: #fff;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .kanban__day-name {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--muted2);
+  color: var(--text);
   margin-bottom: 4px;
 }
 
-.kanban__day-number {
-  font-size: 15px;
-  font-weight: 500;
+.kanban__day-date {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 26px;
+  line-height: 1;
 }
 
-.kanban__day-number a {
+.kanban__day-date a {
   color: inherit;
   text-decoration: none;
+  line-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .kanban__tasks {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 5px 5px 8px;
+  padding: 8px 8px 8px;
   transition: background var(--transition-fast);
+  min-height: 0;
 }
 
 .kanban__tasks--dragover {
@@ -1334,13 +1526,15 @@ select.form-input {
 
 .kanban__tasks--completed {
   opacity: 1;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 .kanban__events {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 5px 5px 0;
+  gap: 6px;
+  padding: 10px 10px 0;
 }
 
 /* Calendar event chips */
@@ -1379,42 +1573,43 @@ select.form-input {
 /* Sometime this week */
 .sometime-row {
   border-top: 1px solid var(--line2);
-  padding: 8px 14px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex-shrink: 0;
-  background: var(--bg);
+  background: #f7f8fb;
 }
 
 .sometime-row__label {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--muted2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
   margin-right: 2px;
   white-space: nowrap;
 }
 
 .sometime-row__tasks {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
-  padding: var(--space-1);
+  padding: 2px 0;
 }
 
 .sometime-row__tasks .task-card {
   border-left: none;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 3px 10px;
-  font-size: 10px;
+  border: 1px solid var(--line2);
+  border-radius: 14px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted);
-  background: var(--bg2);
+  background: #fff;
   min-width: auto;
   flex-shrink: 0;
   white-space: nowrap;
   margin-bottom: 0;
+  box-shadow: none;
 }
 
 .sometime-row__tasks .task-card:hover {
@@ -1468,6 +1663,11 @@ select.form-input {
   gap: 8px;
 }
 
+.week-nav .topbar__title {
+  min-width: 120px;
+  text-align: center;
+}
+
 .week-nav__title {
   font-size: 14px;
   font-weight: 600;
@@ -1482,6 +1682,11 @@ select.form-input {
 
 .week-nav__sync {
   margin-left: auto;
+}
+
+.week-nav__sync-form {
+  display: inline;
+  margin: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -2427,27 +2632,47 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
-  font-size: 11px;
-  color: var(--muted2);
-  border: 1px dashed var(--line2);
-  border-radius: var(--radius-sm);
-  margin: 4px 5px;
+  box-sizing: border-box;
+  height: 88px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--muted);
+  border: 1px dashed #d8dce5;
+  border-radius: 12px;
+  margin: 0 0 8px;
+  background: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  overflow: hidden;
 }
 
 .kanban__empty-link {
-  color: var(--amber);
+  color: var(--amber-text);
+  font-weight: 600;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font: inherit;
+  line-height: inherit;
 }
 
 .kanban__empty-text {
-  opacity: 0.5;
+  opacity: 0.8;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sometime-row__empty {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted2);
-  padding: 3px 0;
+  padding: 6px 0;
 }
 
 .weekly-goals__empty {

@@ -24,8 +24,13 @@ class SessionsController < ApplicationController
     )
     user.save!
 
+    begin
+      SyncBasecampAssignmentsJob.perform_now(user.id)
+    rescue StandardError => e
+      Rails.logger.warn("Basecamp assignment sync on login failed: #{e.class}: #{e.message}")
+      SyncBasecampAssignmentsJob.perform_later(user.id)
+    end
     SyncCalendarEventsJob.perform_later(user.id)
-    SyncBasecampAssignmentsJob.perform_later(user.id)
 
     session[:user_id] = user.id
 

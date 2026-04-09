@@ -1,34 +1,51 @@
-<button type="button" class="r-panel-toggle" data-right-panel-target="toggleBtn" data-action="click->right-panel#toggle" aria-expanded="true" aria-label="Collapse side panel" title="Collapse side panel">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-</button>
+<button type="button" class="right__resizer" data-action="pointerdown->right-panel#startResize" aria-label="Resize side panel" title="Drag to resize panel"></button>
 <div class="r-content" data-right-panel-target="content">
   <%# Basecamp tab %>
-  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc">
+  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel">
     <div class="r-head">
       <div class="r-dot r-dot--bc"></div>
       <div class="r-head-title">Basecamp</div>
-      <div class="r-cnt" data-right-panel-target="bcCount"><%= @rp_bc_tasks&.count || 0 %></div>
+      <div class="r-cnt" data-right-panel-target="bcCount" data-bc-inbox-panel-target="count"><%= @rp_bc_tasks&.count || 0 %></div>
     </div>
     <div class="r-filter">
-      <select class="r-select">
-        <option>All projects</option>
+      <select class="r-select" data-bc-inbox-panel-target="projectSelect" data-action="change->bc-inbox-panel#apply" aria-label="Filter by project">
+        <option value="">All projects</option>
+        <% (@rp_bc_project_names || []).each do |name| %>
+          <option value="<%= h(name) %>"><%= h(name) %></option>
+        <% end %>
+        <% if @rp_bc_has_blank_project %>
+          <option value="__empty__">(No project)</option>
+        <% end %>
       </select>
-      <select class="r-sort">
-        <option>Due date</option>
-        <option>Project</option>
-        <option>Size</option>
+      <select class="r-sort" data-bc-inbox-panel-target="sortSelect" data-action="change->bc-inbox-panel#apply" aria-label="Sort tasks">
+        <option value="due_date">Due date</option>
+        <option value="project">Project</option>
+        <option value="size">Size</option>
       </select>
     </div>
-    <div class="r-list">
+    <div class="r-empty r-empty--filtered" hidden data-bc-inbox-panel-target="filteredEmpty">No tasks match this filter.</div>
+    <div class="r-list" data-bc-inbox-panel-target="list">
       <% if @rp_bc_tasks&.any? %>
         <% @rp_bc_tasks.each do |task| %>
-          <div class="r-item" draggable="true">
+          <%
+            pn = task.project_name.to_s.strip
+            size_rank = task.read_attribute_before_type_cast(:size)
+          %>
+          <div
+            class="r-item"
+            draggable="true"
+            data-bc-inbox-panel-target="item"
+            data-project-name="<%= h(pn) %>"
+            data-size-rank="<%= size_rank %>"
+            data-planned-start="<%= task.planned_start_at&.iso8601 %>"
+            data-created-at="<%= task.created_at&.iso8601 %>"
+            data-title="<%= h(task.title) %>">
             <div class="r-stripe r-stripe--bc"></div>
             <div class="r-item-body">
               <div class="r-item-name"><%= task.title %></div>
               <div class="r-item-meta">
                 <span class="r-item-proj">BC<%= " \u00B7 #{task.project_name}" if task.project_name.present? %></span>
-                <span class="r-item-size"><%= task.size.first.upcase %></span>
+                <span class="r-item-size"><%= task.size.to_s.first.upcase %></span>
               </div>
             </div>
           </div>
@@ -95,8 +112,11 @@
   </div>
 </div>
 
-<%# Icon rail %>
+<%# Icon rail — panel toggle lives here so it stays visible (shell overflow would clip a seam-hugging control) %>
 <nav class="r-rail">
+  <button type="button" class="rri rri--panel-toggle" data-right-panel-target="toggleBtn" data-action="click->right-panel#toggle" aria-expanded="true" aria-label="Collapse side panel" title="Collapse side panel">
+    <svg class="rri--panel-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
   <button class="rri on" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.6516 22.453c-4.0328 0-7.575-1.5542-10.244-4.4946a1.11 1.11 0 0 1-.219-1.1338c.7008-1.8884 2.5935-6.2808 5.0205-6.2948h.0125c1.219 0 2.1312.9655 2.8648 1.7412.2192.2324.555.5875.7818.7611.5656-.5587 1.6775-2.4158 2.5422-4.2779.259-.5567.9203-.7985 1.4765-.5402.557.2584.7988.919.5404 1.4762-2.6217 5.6503-4.019 5.6503-4.478 5.6503-1.022 0-1.7628-.7843-2.4791-1.5422-.3208-.339-.9878-1.045-1.2482-1.045h-.0004c-.5665.095-1.8085 2.0531-2.6966 4.2034 2.1925 2.1722 4.9232 3.2726 8.1266 3.2726 4.3955 0 7.683-1.1964 9.0996-3.2953-.4888-5.585-3.5642-13.1634-9.0996-13.1634-4.6855 0-8.2152 3.264-10.4915 9.7007-.205.579-.8416.8828-1.4187.6776-.5789-.2047-.882-.8398-.6776-1.4185 2.624-7.421 6.859-11.1833 12.5878-11.1833 7.4826 0 10.9304 9.5613 11.3458 15.588a1.1154 1.1154 0 0 1-.1456.6314c-1.7407 3.0221-5.7182 4.6864-11.2002 4.6864Z"/></svg>
     <span class="rri-tip">Basecamp</span>
