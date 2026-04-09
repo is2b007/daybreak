@@ -544,8 +544,14 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .week-view .kanban {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+
+.week-view .kanban::-webkit-scrollbar { display: none; }
 
 .week-view .sometime-row {
   margin-top: auto;
@@ -1517,18 +1523,18 @@ select.form-input {
    KANBAN — Week View
    -------------------------------------------------------------------------- */
 .kanban {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  background: var(--bg);
+  display: flex;
+  flex-direction: row;
   align-items: stretch;
+  background: var(--bg);
 }
 
-/* turbo-frame is the grid cell; stretch so each day column matches row height */
 .kanban > turbo-frame {
+  flex: 0 0 268px;
+  min-width: 268px;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  min-height: 0;
+  scroll-snap-align: start;
 }
 
 .kanban__column {
@@ -1538,7 +1544,8 @@ select.form-input {
   flex: 1;
   background: #f8f9fc;
   min-width: 0;
-  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .kanban__column:last-child {
@@ -2603,27 +2610,44 @@ select.form-input {
   border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   width: 90%;
-  max-width: 560px;
-  max-height: 85vh;
+  max-width: 580px;
+  max-height: 88vh;
   overflow-y: auto;
-  padding: var(--space-8);
-}
-
-.modal__header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--space-6);
+  flex-direction: column;
 }
 
-.modal__title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
+/* Task modal variant */
+.modal--task {
+  padding: 0;
 }
+
+/* Top bar: project/channel + close button */
+.modal__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--line2);
+  flex-shrink: 0;
+}
+
+.modal__channel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal__channel-icon { opacity: 0.6; }
 
 .modal__close {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2632,11 +2656,56 @@ select.form-input {
   background: transparent;
   color: var(--muted);
   font-size: var(--font-size-lg);
+  line-height: 1;
 }
 
-.modal__close:hover { background: var(--bg2); }
+.modal__close:hover { background: var(--bg2); color: var(--text); }
 
-.modal__section { margin-bottom: var(--space-6); }
+/* Title row: squarish checkbox icon + title input */
+.modal__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.modal__check-icon {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--muted2);
+}
+
+.modal__check-icon--done { color: var(--hey); }
+
+.modal__title-input {
+  flex: 1;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  line-height: 1.3;
+  width: 100%;
+}
+
+.modal__title-input--done {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.modal__title-input:focus {
+  outline: none;
+}
+
+/* Body: description + meta */
+.modal__body {
+  padding: 0 var(--space-5) var(--space-4);
+  flex: 1;
+}
+
+.modal__section { margin-bottom: var(--space-5); }
 
 .modal__section-label {
   font-size: var(--font-size-xs);
@@ -2647,12 +2716,138 @@ select.form-input {
   margin-bottom: var(--space-2);
 }
 
+.modal__description {
+  resize: vertical;
+  min-height: 64px;
+}
+
+/* Size + planned minutes side by side */
+.modal__meta-row {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.modal__section--size { flex: 1; }
+.modal__section--planned { width: 110px; flex-shrink: 0; }
+
+/* Size pill toggles */
+.modal__size-pills {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.modal__size-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  background: var(--bg);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.modal__size-pill:hover { background: var(--bg2); color: var(--text); }
+
+.modal__size-pill--active {
+  background: var(--amber-bg);
+  border-color: var(--amber);
+  color: var(--amber-text);
+}
+
+.modal__size-radio { display: none; }
+
+.modal__planned-input {
+  width: 100%;
+}
+
+/* Form actions (kept for non-task modals) */
 .modal__actions {
   display: flex;
   gap: var(--space-3);
-  margin-top: var(--space-8);
-  padding-top: var(--space-6);
+  padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--line2);
+  border-bottom: 1px solid var(--line2);
+}
+
+/* Comments section (Basecamp tasks) */
+.modal__comments-section {
+  border-top: 1px solid var(--line2);
+}
+
+.modal__comments-list {
+  padding: var(--space-4) var(--space-5) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modal__comment-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: var(--space-1) var(--space-3);
+}
+
+.modal__comment-item-author {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal__comment-item-time {
+  font-size: var(--font-size-xs);
+  color: var(--muted2);
+  white-space: nowrap;
+  align-self: start;
+}
+
+.modal__comment-item-content {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-sm);
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Comment form */
+.modal__comment-form {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.modal__comment-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.modal__comment-input {
+  flex: 1;
+  resize: none;
+  min-height: 52px;
+  font-size: var(--font-size-sm);
+}
+
+.modal__comment-submit {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+/* Legacy header style (keep for non-task modals) */
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.modal__title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
 }
 
 /* --------------------------------------------------------------------------

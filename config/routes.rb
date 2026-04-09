@@ -48,6 +48,7 @@ Rails.application.routes.draw do
   # Tasks
   resources :task_assignments, only: [ :show, :create, :update, :destroy ] do
     member do
+      post  :comment
       patch :move
       patch :cycle_size
       patch :complete

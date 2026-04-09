@@ -127,6 +127,15 @@ class BasecampClient
     end
   end
 
+  def comments(bucket_id, recording_id)
+    get("/buckets/#{bucket_id}/recordings/#{recording_id}/comments.json")
+  end
+
+  def create_comment(bucket_id, recording_id, content:)
+    post("/buckets/#{bucket_id}/recordings/#{recording_id}/comments.json",
+         { content: content })
+  end
+
   def create_todolist(todoset_id, name:)
     post("/todosets/#{todoset_id}/todolists.json", { name: name })
   end

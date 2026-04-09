@@ -1,7 +1,17 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox ]
+  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment ]
 
   def show
+    @bc_comments = []
+    if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+      begin
+        client = BasecampClient.new(current_user)
+        @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
+      rescue StandardError
+        @bc_comments = []
+      end
+    end
+
     respond_to do |format|
       format.turbo_stream { render :show }
       format.html { render :show }
@@ -31,10 +41,7 @@ class TaskAssignmentsController < ApplicationController
     @task.update!(task_params)
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true }),
-          turbo_stream.update("modal", "")
-        ]
+        render turbo_stream: turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true })
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -199,6 +206,29 @@ class TaskAssignmentsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove("task_#{@task.id}") }
+      format.html { redirect_back fallback_location: root_path }
+    end
+  end
+
+  def comment
+    content = params[:content].to_s.strip
+    return head :unprocessable_entity if content.blank?
+
+    unless @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+      return head :unprocessable_entity
+    end
+
+    client = BasecampClient.new(current_user)
+    client.create_comment(@task.basecamp_bucket_id, @task.external_id, content: content)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "task_comment_#{@task.id}",
+          partial: "task_assignments/comment_form",
+          locals: { task: @task }
+        )
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end
