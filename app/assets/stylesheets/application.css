@@ -2237,6 +2237,78 @@ select.form-input {
   color: var(--muted2);
 }
 
+.daily-log--scratch {
+  background: var(--bg);
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+}
+
+.daily-log--scratch .daily-log__head {
+  border-bottom-color: var(--line);
+  background: transparent;
+}
+
+.daily-log--scratch .daily-log__date {
+  color: var(--text);
+  margin: 0;
+}
+
+.daily-log--scratch .jrnl-dow {
+  color: var(--muted);
+}
+
+.daily-log--scratch .jrnl-status {
+  color: var(--muted);
+}
+
+.daily-log--scratch .jrnl-status[data-state="error"] {
+  color: var(--red);
+}
+
+.daily-log--scratch .daily-log__scratchpad {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 18px 20px;
+  padding-bottom: 120px;
+}
+
+.daily-log--scratch .daily-log__scratchpad:empty::before {
+  color: var(--muted2);
+}
+
+.daily-log--scratch .daily-log__toolbar {
+  position: sticky;
+  bottom: 12px;
+  margin: 0 auto 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f6f5f3;
+  padding: 8px 12px;
+  width: fit-content;
+  max-width: calc(100% - 40px);
+  flex-wrap: wrap;
+  row-gap: 6px;
+  column-gap: 2px;
+  justify-content: center;
+  align-content: center;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.daily-log--scratch .jrnl-btn {
+  color: #6f7784;
+}
+
+.daily-log--scratch .jrnl-btn:hover {
+  color: var(--text);
+  background: #ece9e3;
+}
+
 /* --------------------------------------------------------------------------
    JOURNAL SCRATCHPAD (right panel log tab)
    -------------------------------------------------------------------------- */
@@ -2351,6 +2423,31 @@ select.form-input {
   border-top: 1px solid var(--line2);
   flex-shrink: 0;
   flex-wrap: wrap;
+  row-gap: 6px;
+  align-content: center;
+}
+
+/* Right panel log tab: floating toolbar pill (matches day scratchpad) */
+.r-tab-content[data-tab="log"] .jrnl-toolbar {
+  margin: 0 auto 12px;
+  border-top: none;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f6f5f3;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  flex-wrap: wrap;
+  row-gap: 6px;
+  column-gap: 2px;
+  justify-content: center;
+  position: sticky;
+  bottom: 10px;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.r-tab-content[data-tab="log"] .jrnl-body {
+  padding-bottom: 100px;
 }
 
 .jrnl-btn {

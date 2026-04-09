@@ -10,6 +10,7 @@ class JournalController < ApplicationController
       entry.destroy if entry.persisted?
       head :no_content
     elsif entry.save
+      SyncJournalJob.perform_later(current_user.id, date.to_s) if current_user.hey_connected?
       head :no_content
     else
       head :unprocessable_entity
