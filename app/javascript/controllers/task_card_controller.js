@@ -73,6 +73,13 @@ export default class extends Controller {
     }
 
     fetch(url, options)
+      .then(r => r.text())
+      .then(html => { if (html) Turbo.renderStreamMessage(html) })
+  }
+
+  #isInteractiveClick(event) {
+    const interactive = event.target.closest("button, a, input, select, textarea, label, [role='button']")
+    return !!interactive
   }
 
   #isInteractiveClick(event) {

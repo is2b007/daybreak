@@ -27,6 +27,10 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
     ta = TaskAssignment.where(user_id: user.id, source: :basecamp).last
     assert_equal "Program the flux capacitor", ta.title
     assert_equal "2085958504", ta.basecamp_bucket_id
+<<<<<<< HEAD
     assert_equal "sometime", ta.week_bucket
+=======
+    assert_equal "inbox", ta.week_bucket
+>>>>>>> cursor/collapsible-panels-and-week-topbar
   end
 end

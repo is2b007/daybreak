@@ -1,5 +1,5 @@
 <%# locals: (task:, compact: false) %>
-<div class="task-card task-card--<%= task.source %> <%= task.card_height_class %> <%= 'task-card--completed' if task.completed? %>"
+<div class="task-card task-card--<%= task.source %> card--<%= task.size %> <%= 'task-card--completed' if task.completed? %>"
      id="task_<%= task.id %>"
      draggable="true"
      data-controller="task-card"
@@ -8,16 +8,38 @@
      data-action="click->task-card#openModal dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
-  <div class="task-card__header">
+  <button class="task-card__size-badge"
+          data-action="click->task-card#cycleSize"
+          title="Click to change size">
+    <%= task.size.first.upcase %>
+  </button>
+
+  <%# Title %>
+  <div class="task-card__title"><%= task.title %></div>
+
+  <%# Bottom row: checkbox (left) + project label (right) %>
+  <div class="task-card__bottom">
     <% if task.completed? %>
-      <span class="task-card__title"><%= task.title %></span>
-    <% else %>
-      <button class="task-card__complete-button"
+      <button class="task-card__check task-card__check--done"
               data-action="click->task-card#animateThenComplete"
-              title="Mark done">
-        <%= task.title %>
+              title="Completed"
+              aria-label="Completed">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="8" fill="#16A34A"/>
+          <polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
+    <% else %>
+      <button class="task-card__check"
+              data-action="click->task-card#animateThenComplete"
+              title="Mark done"
+              aria-label="Mark done">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25"/>
+        </svg>
       </button>
     <% end %>
+<<<<<<< HEAD
     <% unless compact %>
       <button class="size-badge"
               data-action="click->task-card#cycleSize"
@@ -26,23 +48,19 @@
       </button>
     <% end %>
   </div>
+=======
+>>>>>>> cursor/collapsible-panels-and-week-topbar
 
-  <% unless compact %>
-    <% if task.description.present? %>
-      <p class="task-card__project"><%= truncate(task.description, length: 80) %></p>
-    <% end %>
-  <% end %>
+    <div class="task-card__obj-dot" aria-hidden="true"></div>
 
-  <% if task.project_name.present? || task.planned_duration_minutes.present? %>
-    <div class="task-card__meta">
-      <% if task.project_name.present? %>
-        <span class="task-card__project"><%= task.source == "local" ? "Personal" : task.source.capitalize %> &middot; <%= task.project_name %></span>
-      <% end %>
-      <% if task.planned_duration_minutes.present? %>
-        <span class="task-card__duration"><%= task.planned_duration_minutes %>m</span>
+    <div class="task-card__project-label">
+      <% if task.hey? %>
+        HEY Email
+      <% elsif task.project_name.present? %>
+        <%= task.project_name %>
       <% end %>
     </div>
-  <% end %>
+  </div>
 
   <% if task.completed? %>
     <div class="task-card__stamp" data-task-card-target="stamp">

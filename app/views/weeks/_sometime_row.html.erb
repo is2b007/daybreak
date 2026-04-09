@@ -1,9 +1,9 @@
 <%# locals: (tasks:) %>
-<div class="sometime-row">
+<div class="sometime-row" id="sometime_row"
+     data-sortable-target="sometimeList"
+     data-action="dragover->sortable#dragover drop->sortable#drop dragenter->sortable#dragenter dragleave->sortable#dragleave">
   <div class="sometime-row__label">Sometime this week</div>
-  <div class="sometime-row__tasks"
-       data-sortable-target="sometimeList"
-       data-action="dragover->sortable#dragover drop->sortable#drop dragenter->sortable#dragenter dragleave->sortable#dragleave">
+  <div class="sometime-row__tasks">
     <% if tasks.any? %>
       <% tasks.each do |task| %>
         <%= render "shared/task_card", task: task, compact: true %>

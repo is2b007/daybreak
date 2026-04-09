@@ -27,8 +27,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
           description: assignment["description"],
           project_name: assignment.dig("bucket", "name"),
           basecamp_bucket_id: assignment.dig("bucket", "id")&.to_s,
-          week_start_date: week_start,
-          week_bucket: "sometime",
+          week_bucket: "inbox",
           size: :medium,
           status: assignment["completed"] ? :completed : :pending
         )

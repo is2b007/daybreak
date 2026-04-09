@@ -12,15 +12,22 @@
       <% end %>
     </div>
     <span class="topbar__sub"><%= @window_start.strftime("%Y") %></span>
+<<<<<<< HEAD
     <div class="week-nav__sync">
       <%= button_to "Sync Basecamp", sync_basecamp_path, method: :post, class: "btn btn--ghost btn--small", form: { class: "week-nav__sync-form" } %>
     </div>
+=======
+>>>>>>> cursor/collapsible-panels-and-week-topbar
   </div>
 <% end %>
 
 <% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
 
+<<<<<<< HEAD
 <div class="week-view">
+=======
+<div class="week-view" data-controller="sortable">
+>>>>>>> cursor/collapsible-panels-and-week-topbar
   <% if first_run %>
     <div class="first-run">
       <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
@@ -32,7 +39,11 @@
     </div>
   <% end %>
 
+<<<<<<< HEAD
   <div class="kanban" data-controller="sortable">
+=======
+  <div class="kanban">
+>>>>>>> cursor/collapsible-panels-and-week-topbar
     <% @window_dates.each do |date| %>
       <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
     <% end %>
