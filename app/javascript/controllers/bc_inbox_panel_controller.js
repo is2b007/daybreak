@@ -36,35 +36,84 @@ export default class extends Controller {
     }
   }
 
+  dragover(event) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "move"
+    this.listTarget.classList.add("r-list--dragover")
+  }
+
+  dragleave(event) {
+    if (!this.listTarget.contains(event.relatedTarget)) {
+      this.listTarget.classList.remove("r-list--dragover")
+    }
+  }
+
+  drop(event) {
+    event.preventDefault()
+    this.listTarget.classList.remove("r-list--dragover")
+
+    const cardId = event.dataTransfer.getData("text/plain")
+    const fromInbox = event.dataTransfer.getData("application/x-dragsource") === "inbox"
+    if (!cardId || fromInbox) return  // ignore inbox-to-inbox drags
+
+    const assignmentId = cardId.replace("task_", "")
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+
+    fetch(`/task_assignments/${assignmentId}/move`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRF-Token": csrfToken,
+        "Accept": "text/vnd.turbo-stream.html"
+      },
+      body: new URLSearchParams({ target_bucket: "inbox" }).toString()
+    }).then(r => r.text()).then(html => {
+      if (html) {
+        const { Turbo } = window
+        if (Turbo) Turbo.renderStreamMessage(html)
+      }
+    })
+  }
+
+  dragstart(event) {
+    const item = event.target.closest(".r-item")
+    if (!item) return
+    const taskId = item.dataset.taskId
+    if (!taskId) return
+    event.dataTransfer.setData("text/plain", `task_${taskId}`)
+    event.dataTransfer.setData("application/x-dragsource", "inbox")
+    event.dataTransfer.effectAllowed = "move"
+    item.classList.add("r-item--dragging")
+    document.body.classList.add("inbox-dragging")
+  }
+
+  dragend(event) {
+    const item = event.target.closest(".r-item")
+    if (item) item.classList.remove("r-item--dragging")
+    document.body.classList.remove("inbox-dragging")
+  }
+
   #compare(a, b, sortKey) {
-    if (sortKey === "project") {
-      const ap = a.dataset.projectName || "\uffff"
-      const bp = b.dataset.projectName || "\uffff"
-      const c = ap.localeCompare(bp, undefined, { sensitivity: "base" })
-      if (c !== 0) return c
+    if (sortKey === "alphabetical") {
       return (a.dataset.title || "").localeCompare(b.dataset.title || "", undefined, { sensitivity: "base" })
     }
 
-    if (sortKey === "size") {
-      const as = Number(a.dataset.sizeRank ?? 0)
-      const bs = Number(b.dataset.sizeRank ?? 0)
-      if (as !== bs) return as - bs
-      return (a.dataset.title || "").localeCompare(b.dataset.title || "", undefined, { sensitivity: "base" })
+    if (sortKey === "recently_created") {
+      const ac = this.#ts(a.dataset.createdAt) || 0
+      const bc = this.#ts(b.dataset.createdAt) || 0
+      return bc - ac  // newest first
     }
 
-    // due_date: planned_start_at then created_at
+    // due_date: planned_start_at (nulls last), then created_at
     const at = this.#ts(a.dataset.plannedStart)
     const bt = this.#ts(b.dataset.plannedStart)
-    if (at !== bt) {
-      if (at == null && bt == null) { /* fall through */ }
-      else if (at == null) return 1
-      else if (bt == null) return -1
-      else if (at !== bt) return at - bt
-    }
+    if (at == null && bt == null) { /* fall through */ }
+    else if (at == null) return 1
+    else if (bt == null) return -1
+    else if (at !== bt) return at - bt
     const ac = this.#ts(a.dataset.createdAt) || 0
     const bc = this.#ts(b.dataset.createdAt) || 0
-    if (ac !== bc) return ac - bc
-    return (a.dataset.title || "").localeCompare(b.dataset.title || "", undefined, { sensitivity: "base" })
+    return ac - bc
   }
 
   #ts(iso) {

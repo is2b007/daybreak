@@ -73,6 +73,8 @@ export default class extends Controller {
     }
 
     fetch(url, options)
+      .then(r => r.text())
+      .then(html => { if (html) Turbo.renderStreamMessage(html) })
   }
 
   #isInteractiveClick(event) {

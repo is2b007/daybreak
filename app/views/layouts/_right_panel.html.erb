@@ -6,6 +6,14 @@
       <div class="r-dot r-dot--bc"></div>
       <div class="r-head-title">Basecamp</div>
       <div class="r-cnt" data-right-panel-target="bcCount" data-bc-inbox-panel-target="count"><%= @rp_bc_tasks&.count || 0 %></div>
+      <div class="r-head-spacer"></div>
+      <%= button_to sync_basecamp_path, method: :post, class: "r-sync-btn", title: "Sync Basecamp", form: { class: "r-sync-form" } do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"/>
+          <polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      <% end %>
     </div>
     <div class="r-filter">
       <select class="r-select" data-bc-inbox-panel-target="projectSelect" data-action="change->bc-inbox-panel#apply" aria-label="Filter by project">
@@ -19,33 +27,45 @@
       </select>
       <select class="r-sort" data-bc-inbox-panel-target="sortSelect" data-action="change->bc-inbox-panel#apply" aria-label="Sort tasks">
         <option value="due_date">Due date</option>
-        <option value="project">Project</option>
-        <option value="size">Size</option>
+        <option value="alphabetical">Alphabetical</option>
+        <option value="recently_created">Recently created</option>
       </select>
     </div>
     <div class="r-empty r-empty--filtered" hidden data-bc-inbox-panel-target="filteredEmpty">No tasks match this filter.</div>
-    <div class="r-list" data-bc-inbox-panel-target="list">
+    <div class="r-list" id="bc-inbox-list" data-bc-inbox-panel-target="list"
+         data-action="dragover->bc-inbox-panel#dragover dragleave->bc-inbox-panel#dragleave drop->bc-inbox-panel#drop">
       <% if @rp_bc_tasks&.any? %>
         <% @rp_bc_tasks.each do |task| %>
           <%
             pn = task.project_name.to_s.strip
-            size_rank = task.read_attribute_before_type_cast(:size)
           %>
           <div
             class="r-item"
+            id="inbox_task_<%= task.id %>"
             draggable="true"
             data-bc-inbox-panel-target="item"
+            data-task-id="<%= task.id %>"
             data-project-name="<%= h(pn) %>"
-            data-size-rank="<%= size_rank %>"
             data-planned-start="<%= task.planned_start_at&.iso8601 %>"
             data-created-at="<%= task.created_at&.iso8601 %>"
-            data-title="<%= h(task.title) %>">
-            <div class="r-stripe r-stripe--bc"></div>
+            data-title="<%= h(task.title) %>"
+            data-action="dragstart->bc-inbox-panel#dragstart dragend->bc-inbox-panel#dragend">
+            <div class="r-item__check">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25"/>
+              </svg>
+            </div>
             <div class="r-item-body">
               <div class="r-item-name"><%= task.title %></div>
-              <div class="r-item-meta">
-                <span class="r-item-proj">BC<%= " \u00B7 #{task.project_name}" if task.project_name.present? %></span>
-                <span class="r-item-size"><%= task.size.to_s.first.upcase %></span>
+              <% if pn.present? %>
+                <div class="r-item-project"><%= pn %></div>
+              <% end %>
+              <div class="r-item-drag-hint">
+                <svg width="12" height="10" viewBox="0 0 12 10" fill="currentColor" aria-hidden="true">
+                  <rect y="0" width="12" height="1.5" rx="0.75"/>
+                  <rect y="4" width="12" height="1.5" rx="0.75"/>
+                  <rect y="8" width="12" height="1.5" rx="0.75"/>
+                </svg>
               </div>
             </div>
           </div>
@@ -66,13 +86,30 @@
     <div class="r-list">
       <% if @rp_hey_tasks&.any? %>
         <% @rp_hey_tasks.each do |task| %>
-          <div class="r-item" draggable="true">
-            <div class="r-stripe r-stripe--hey"></div>
+          <div
+            class="r-item"
+            id="inbox_task_<%= task.id %>"
+            draggable="true"
+            data-task-id="<%= task.id %>"
+            data-project-name=""
+            data-planned-start="<%= task.planned_start_at&.iso8601 %>"
+            data-created-at="<%= task.created_at&.iso8601 %>"
+            data-title="<%= h(task.title) %>"
+            data-action="dragstart->bc-inbox-panel#dragstart dragend->bc-inbox-panel#dragend">
+            <div class="r-item__check">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25"/>
+              </svg>
+            </div>
             <div class="r-item-body">
               <div class="r-item-name"><%= task.title %></div>
-              <div class="r-item-meta">
-                <span class="r-item-proj">HEY<%= " \u00B7 #{task.project_name}" if task.project_name.present? %></span>
-                <span class="r-item-size"><%= task.size.first.upcase %></span>
+              <div class="r-item-project">HEY Email</div>
+              <div class="r-item-drag-hint">
+                <svg width="12" height="10" viewBox="0 0 12 10" fill="currentColor" aria-hidden="true">
+                  <rect y="0" width="12" height="1.5" rx="0.75"/>
+                  <rect y="4" width="12" height="1.5" rx="0.75"/>
+                  <rect y="8" width="12" height="1.5" rx="0.75"/>
+                </svg>
               </div>
             </div>
           </div>
