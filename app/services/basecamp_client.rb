@@ -62,11 +62,32 @@ class BasecampClient
     JSON.parse(response.body)
   end
 
+  def self.credentials
+    creds = Rails.application.credentials.basecamp
+    return creds if creds.present?
+
+    # Fallback to ENV for development/missing credentials
+    {
+      client_id: ENV["BASECAMP_CLIENT_ID"],
+      client_secret: ENV["BASECAMP_CLIENT_SECRET"]
+    }
+  end
+
+  def self.configured?
+    credentials[:client_id].present?
+  end
+
+  def self.user_agent
+    "Daybreak (kosta@daybreak.app)"
+  end
+
   # API methods
 
   def my_assignments
-    # Fetch todos assigned to the current user across all projects
-    get("/people/#{identity_id}/assignments.json")
+    # BC3: GET /my/assignments.json returns { "priorities" => [...], "non_priorities" => [...] } (not a top-level array).
+    # Assignment rows use type "todo" and "content" for the title (see bc3-api sections/my_assignments.md).
+    raw = get("/my/assignments.json")
+    normalize_my_assignments_payload(raw)
   end
 
   def projects
@@ -191,22 +212,29 @@ class BasecampClient
     end
   end
 
-  def self.credentials
-    creds = Rails.application.credentials.basecamp
-    return creds if creds.present?
-
-    # Fallback to ENV for development/missing credentials
-    {
-      client_id: ENV["BASECAMP_CLIENT_ID"],
-      client_secret: ENV["BASECAMP_CLIENT_SECRET"]
-    }
+  def normalize_my_assignments_payload(raw)
+    top_level =
+      case raw
+      when Hash
+        Array(raw["priorities"]) + Array(raw["non_priorities"])
+      when Array
+        raw
+      else
+        []
+      end
+    top_level.flat_map { |a| expand_assignment_with_todo_children(a) }
   end
 
-  def self.configured?
-    credentials[:client_id].present?
-  end
+  def expand_assignment_with_todo_children(assignment)
+    return [] unless assignment.is_a?(Hash)
 
-  def self.user_agent
-    "Daybreak (kosta@daybreak.app)"
+    out = [ assignment ]
+    Array(assignment["children"]).each do |child|
+      next unless child.is_a?(Hash)
+      next unless child["type"].to_s.casecmp?("todo")
+
+      out.concat(expand_assignment_with_todo_children(child))
+    end
+    out
   end
 end

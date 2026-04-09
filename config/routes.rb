@@ -46,7 +46,7 @@ Rails.application.routes.draw do
   patch "days/:date/log", to: "daily_logs#update"
 
   # Tasks
-  resources :task_assignments, only: [ :create, :update, :destroy ] do
+  resources :task_assignments, only: [ :show, :create, :update, :destroy ] do
     member do
       patch :move
       patch :cycle_size

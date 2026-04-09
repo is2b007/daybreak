@@ -5,7 +5,7 @@
      data-controller="task-card"
      data-task-card-id-value="<%= task.id %>"
      data-task-card-completed-value="<%= task.completed? %>"
-     data-action="dragstart->sortable#dragstart dragend->sortable#dragend"
+     data-action="click->task-card#openModal dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
   <div class="task-card__header">
@@ -18,11 +18,13 @@
         <%= task.title %>
       </button>
     <% end %>
-    <button class="size-badge"
-            data-action="click->task-card#cycleSize"
-            title="Click to change size">
-      <%= task.size.first.upcase %>
-    </button>
+    <% unless compact %>
+      <button class="size-badge"
+              data-action="click->task-card#cycleSize"
+              title="Click to change size">
+        <%= task.size.first.upcase %>
+      </button>
+    <% end %>
   </div>
 
   <% unless compact %>

@@ -1,5 +1,12 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox ]
+  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox ]
+
+  def show
+    respond_to do |format|
+      format.turbo_stream { render :show }
+      format.html { render :show }
+    end
+  end
 
   def create
     day_plan = current_user.day_plans.find_or_create_by!(date: params[:date])
@@ -22,7 +29,15 @@ class TaskAssignmentsController < ApplicationController
 
   def update
     @task.update!(task_params)
-    redirect_back fallback_location: root_path
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true }),
+          turbo_stream.update("modal", "")
+        ]
+      end
+      format.html { redirect_back fallback_location: root_path }
+    end
   end
 
   def destroy
