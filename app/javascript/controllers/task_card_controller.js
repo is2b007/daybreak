@@ -1,8 +1,16 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static values = { id: Number, completed: Boolean }
   static targets = ["stamp"]
+
+  openModal(event) {
+    if (this.#isInteractiveClick(event)) return
+    if (event.defaultPrevented) return
+
+    Turbo.visit(`/task_assignments/${this.idValue}`, { frame: "modal" })
+  }
 
   cycleSize(event) {
     event.stopPropagation()
@@ -65,5 +73,10 @@ export default class extends Controller {
     }
 
     fetch(url, options)
+  }
+
+  #isInteractiveClick(event) {
+    const interactive = event.target.closest("button, a, input, select, textarea, label, [role='button']")
+    return !!interactive
   }
 }

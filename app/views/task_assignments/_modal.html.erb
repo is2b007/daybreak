@@ -1,0 +1,45 @@
+<div class="modal-overlay"
+     data-controller="modal"
+     data-action="click->modal#closeIfBackdrop">
+  <div class="modal">
+    <div class="modal__header">
+      <div class="modal__title">Edit task</div>
+      <button type="button"
+              class="modal__close"
+              data-action="click->modal#close"
+              aria-label="Close modal">
+        ×
+      </button>
+    </div>
+
+    <%= form_with model: task, data: { turbo: true } do |f| %>
+      <div class="modal__section">
+        <div class="modal__section-label">Title</div>
+        <%= f.text_field :title, class: "form-input", required: true %>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-label">Description</div>
+        <%= f.text_area :description, class: "form-input", rows: 4 %>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-label">Size</div>
+        <%= f.select :size,
+                     TaskAssignment.sizes.keys.map { |size| [size.capitalize, size] },
+                     {},
+                     class: "form-input" %>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-label">Planned minutes</div>
+        <%= f.number_field :planned_duration_minutes, class: "form-input", min: 0, step: 5 %>
+      </div>
+
+      <div class="modal__actions">
+        <%= f.submit "Save", class: "btn btn--primary" %>
+        <button type="button" class="btn btn--ghost" data-action="click->modal#close">Cancel</button>
+      </div>
+    <% end %>
+  </div>
+</div>

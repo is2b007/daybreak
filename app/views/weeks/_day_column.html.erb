@@ -6,9 +6,12 @@
 
     <div class="kanban__column-header <%= 'kanban__column-header--today' if date == Date.current %>">
       <div class="kanban__day-name"><%= date.strftime("%a") %></div>
-      <div class="kanban__day-number">
-        <%= link_to date.day, day_path(date), style: "color: inherit; text-decoration: none;" %>
+      <div class="kanban__day-date">
+        <%= link_to date.strftime("%b %-d"), day_path(date), style: "color: inherit; text-decoration: none;" %>
       </div>
+      <% if date == Date.current %>
+        <div class="kanban__day-number" aria-hidden="true"><%= date.day %></div>
+      <% end %>
     </div>
 
     <% if events.any? %>
