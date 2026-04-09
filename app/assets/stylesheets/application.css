@@ -111,6 +111,7 @@
 
   /* Layout */
   --sidebar-width: 188px;
+  --sidebar-collapsed-width: 52px;
   --topbar-height: 46px;
   --rail-width: 36px;
   --timer-bar-height: 46px;
@@ -173,6 +174,10 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   border: 1px solid var(--line);
 }
 
+.shell:has(.sb.sb--collapsed) {
+  grid-template-columns: var(--sidebar-collapsed-width) 1fr auto;
+}
+
 /* Grain overlay */
 .shell::after {
   content: '';
@@ -206,11 +211,13 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
    SIDEBAR
    -------------------------------------------------------------------------- */
 .sb {
+  position: relative;
   background: var(--bg);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  transition: width 0.2s ease;
 }
 
 .sb-logo {
@@ -218,6 +225,88 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   display: flex;
   align-items: center;
   gap: 9px;
+}
+
+.sb-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  z-index: 910;
+  transform: translate(50%, -50%);
+  width: 18px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 0 6px 6px 0;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease, transform 0.2s ease;
+}
+
+.sb-toggle:hover {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+.sb-toggle svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.sb.sb--collapsed .sb-toggle svg {
+  transform: rotate(180deg);
+}
+
+.sb.sb--collapsed .sb-logo {
+  justify-content: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.sb.sb--collapsed .sb-word {
+  display: none;
+}
+
+.sb.sb--collapsed .sb-nav {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.sb.sb--collapsed .sbi {
+  justify-content: center;
+  gap: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sb.sb--collapsed .sbi-label {
+  display: none;
+}
+
+.sb.sb--collapsed .sb-div {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.sb.sb--collapsed .sb-sect {
+  display: none;
+}
+
+.sb.sb--collapsed .sb-bot {
+  justify-content: center;
+  padding-left: 8px;
+  padding-right: 8px;
+  gap: 0;
+}
+
+.sb.sb--collapsed .sb-username,
+.sb.sb--collapsed .sb-badge {
+  display: none;
 }
 
 .sb-sun {
@@ -407,12 +496,54 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
    RIGHT PANEL
    -------------------------------------------------------------------------- */
 .right {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr var(--rail-width);
+  grid-template-columns: minmax(0, 1fr) var(--rail-width);
   border-left: 1px solid var(--line);
-  overflow: hidden;
+  overflow: visible;
   background: var(--bg);
   min-width: 252px;
+  transition: min-width 0.2s ease;
+}
+
+.right.right--collapsed {
+  grid-template-columns: 0 var(--rail-width);
+  min-width: var(--rail-width);
+}
+
+.r-panel-toggle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 910;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px 0 0 6px;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease, transform 0.2s ease;
+}
+
+.r-panel-toggle:hover {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+.r-panel-toggle svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.right.right--collapsed .r-panel-toggle svg {
+  transform: rotate(180deg);
 }
 
 .r-content {
@@ -420,6 +551,18 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--line);
+  min-width: 0;
+  transition: opacity 0.15s ease;
+}
+
+.right.right--collapsed .r-content {
+  min-width: 0;
+  max-width: 0;
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  border-right: none;
+  overflow: hidden;
 }
 
 /* Icon rail */
@@ -472,12 +615,18 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .rri svg {
   width: 14px;
   height: 14px;
-  stroke: currentColor;
+  display: inline;
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Stroke-only rail icons (e.g. Goals rings) */
+.rri svg.rri-svg--stroke {
   fill: none;
+  stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-  display: inline;
 }
 
 .rri-tip {

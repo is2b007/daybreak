@@ -12,16 +12,6 @@
       <% end %>
     </div>
     <span class="topbar__sub"><%= @week_start.strftime("%Y") %></span>
-    <div class="topbar__right">
-      <%= button_to sync_basecamp_path, method: :post, class: "btn btn--ghost btn--small", title: "Sync Basecamp" do %>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      <% end %>
-      <% unless @week_start == Date.current.beginning_of_week(:monday) %>
-        <%= link_to "Today", root_path, class: "btn btn--ghost btn--small" %>
-      <% end %>
-      <%= link_to "Wrap up", ritual_evening_path, class: "btn" %>
-      <%= link_to "Start day", ritual_morning_path, class: "btn btn--primary" %>
-    </div>
   </div>
 <% end %>
 

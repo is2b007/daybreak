@@ -1,4 +1,7 @@
-<div class="r-content">
+<button type="button" class="r-panel-toggle" data-right-panel-target="toggleBtn" data-action="click->right-panel#toggle" aria-expanded="true" aria-label="Collapse side panel" title="Collapse side panel">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<div class="r-content" data-right-panel-target="content">
   <%# Basecamp tab %>
   <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc">
     <div class="r-head">
@@ -103,7 +106,7 @@
     <span class="rri-tip">HEY</span>
   </button>
   <button class="rri" data-action="click->right-panel#switchTab" data-tab="goals" data-right-panel-target="railBtn">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" style="fill:currentColor;stroke:none;"/></svg>
+    <svg class="rri-svg--stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" style="fill:currentColor;stroke:none;"/></svg>
     <span class="rri-tip">Goals</span>
   </button>
 </nav>
