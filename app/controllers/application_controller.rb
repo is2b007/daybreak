@@ -20,6 +20,7 @@ class ApplicationController < ActionController::Base
     @rp_bc_has_blank_project = bc_scope.any? { |t| t.project_name.blank? }
     @rp_hey_tasks = current_user.task_assignments.hey.incomplete.where(week_bucket: "inbox").ordered.limit(20)
     @rp_goals = current_user.weekly_goals.where(week_start_date: week_start)
+    @rp_journal = current_user.local_journal_entries.find_by(date: Date.current)
   rescue => e
     Rails.logger.warn "Right panel data load failed: #{e.message}"
     @rp_bc_tasks = []
@@ -27,5 +28,6 @@ class ApplicationController < ActionController::Base
     @rp_bc_has_blank_project = false
     @rp_hey_tasks = []
     @rp_goals = []
+    @rp_journal = nil
   end
 end

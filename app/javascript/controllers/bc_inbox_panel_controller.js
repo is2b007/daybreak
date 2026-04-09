@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 
 const EMPTY_PROJECT = "__empty__"
 
@@ -83,6 +84,7 @@ export default class extends Controller {
     event.dataTransfer.setData("text/plain", `task_${taskId}`)
     event.dataTransfer.setData("application/x-dragsource", "inbox")
     event.dataTransfer.effectAllowed = "move"
+    this.dragging = true
     item.classList.add("r-item--dragging")
     document.body.classList.add("inbox-dragging")
   }
@@ -91,6 +93,19 @@ export default class extends Controller {
     const item = event.target.closest(".r-item")
     if (item) item.classList.remove("r-item--dragging")
     document.body.classList.remove("inbox-dragging")
+    setTimeout(() => { this.dragging = false }, 0)
+  }
+
+  openModal(event) {
+    if (this.dragging) return
+    if (event.defaultPrevented) return
+    if (event.target.closest("button, a, input, select, textarea, label, [role='button']")) return
+
+    const item = event.currentTarget.closest(".r-item")
+    const taskId = item?.dataset.taskId
+    if (!taskId) return
+
+    Turbo.visit(`/task_assignments/${taskId}`, { frame: "modal" })
   }
 
   #compare(a, b, sortKey) {
