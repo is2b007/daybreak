@@ -1,15 +1,26 @@
-<% content_for(:full_screen, true) %>
-<div class="ritual ritual--evening" data-controller="ritual">
-  <div class="ritual__content">
-    <%= turbo_frame_tag "ritual_step" do %>
-      <% case @step %>
-      <% when 1 %>
-        <%= render "evening_step_1", tasks: @completed_tasks %>
-      <% when 2 %>
-        <%= render "evening_step_2", tasks: @remaining_tasks %>
-      <% when 3 %>
-        <%= render "evening_step_3" %>
-      <% end %>
-    <% end %>
-  </div>
+<% if @step == 1 %>
+  <% content_for(:topbar) do %>
+    <span class="topbar__title">Today</span>
+    <span class="topbar__sub">In review</span>
+  <% end %>
+<% elsif @step == 2 %>
+  <% content_for(:topbar) do %>
+    <span class="topbar__title">Sunset</span>
+    <span class="topbar__sub">One line to close the day</span>
+  <% end %>
+<% end %>
+
+<div class="ritual ritual--evening <%= @step == 1 ? 'ritual--sunset-step1' : 'ritual--sunset-step2' %>" data-controller="ritual">
+  <% if @step == 1 %>
+    <%= render "evening_review",
+        completed_tasks: @completed_tasks,
+        remaining_tasks: @remaining_tasks,
+        actual_minutes: @evening_actual_minutes,
+        planned_minutes: @evening_planned_minutes,
+        donut_segments: @donut_segments %>
+  <% else %>
+    <div class="ritual__content ritual__content--reflection">
+      <%= render "evening_reflection" %>
+    </div>
+  <% end %>
 </div>

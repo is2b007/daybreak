@@ -1,0 +1,74 @@
+<%# locals: (date:, tasks:, calendar_events:, plan_mode:, tab:, daily_log: nil, log_entries: nil, tasks_heading: nil, tasks_subtitle: nil, timeline_heading: nil, sunrise_actions: nil) %>
+<div class="day-view"<% if tab != "log" %> data-controller="sortable" data-sortable-view-value="day"<% end %>>
+  <div class="day-view__tasks">
+    <% unless tab == "log" %>
+      <% completed_count = tasks.completed.count %>
+      <% total_count = tasks.count %>
+      <% progress_percent = total_count.positive? ? ((completed_count * 100.0) / total_count).round : 0 %>
+      <div class="day-view__tasks-header">
+        <h2 class="day-view__tasks-title"><%= local_assigns.fetch(:tasks_heading, "Today's tasks") %></h2>
+        <p class="day-view__tasks-subtitle">
+          <% if local_assigns[:tasks_subtitle].present? %>
+            <%= local_assigns[:tasks_subtitle] %>
+          <% else %>
+            <%= completed_count %> of <%= total_count %> completed
+          <% end %>
+        </p>
+        <% if plan_mode && !local_assigns[:sunrise_actions] %>
+          <p class="day-view__plan-hint text-muted text-sm mt-2 mb-0">Drag tasks from the Basecamp or HEY tab on the right into your list.</p>
+        <% end %>
+        <div class="day-view__progress" role="progressbar" aria-label="Today's task completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= progress_percent %>">
+          <div class="day-view__progress-fill" style="width: <%= progress_percent %>%;"></div>
+        </div>
+
+        <%= form_with url: task_assignments_path, method: :post, class: "day-view__quick-add", local: true do |f| %>
+          <%= hidden_field_tag :date, date.to_s %>
+          <%= hidden_field_tag :size, "medium" %>
+          <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
+          <%= f.submit "+", class: "day-view__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="day-view__tasks-list">
+      <% if tab == "log" %>
+        <%= render "days/daily_log", daily_log: daily_log, log_entries: log_entries, date: date %>
+      <% else %>
+        <%= render "days/day_plan_tasks", date: date, tasks: tasks %>
+
+        <div class="mt-6" style="opacity: 0.35;" id="day_<%= date %>_completed">
+          <% completed_tasks = tasks.completed %>
+          <% if completed_tasks.any? %>
+            <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
+            <% completed_tasks.each do |task| %>
+              <%= render "shared/task_card", task: task, compact: false %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <% if local_assigns[:sunrise_actions] %>
+      <div class="sunrise-plan__task-footer">
+        <div class="sunrise-plan__actions">
+          <%= link_to ritual_morning_path(step: 1), class: "topbar__nav-arrow sunrise-plan__back", title: "Back to yesterday" do %>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+          <% end %>
+          <%= form_with url: ritual_morning_path, method: :post, data: { turbo_frame: "_top" }, class: "sunrise-plan__done-form" do |f| %>
+            <%= f.hidden_field :step, value: 2 %>
+            <%= f.submit "Next", class: "btn btn--primary btn--large sunrise-plan__next" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="day-view__timeline-column">
+    <% if local_assigns[:timeline_heading].present? %>
+      <div class="day-view__timeline-column-head">
+        <h2 class="day-view__tasks-title"><%= local_assigns[:timeline_heading] %></h2>
+      </div>
+    <% end %>
+    <%= render "days/timeline", date: date, events: calendar_events, tasks: tasks %>
+  </div>
+</div>

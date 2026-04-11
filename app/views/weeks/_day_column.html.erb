@@ -1,8 +1,7 @@
 <%= turbo_frame_tag "day_#{date}" do %>
   <div class="kanban__column"
        data-sortable-target="column"
-       data-date="<%= date %>"
-       data-action="dragover->sortable#dragover drop->sortable#drop dragenter->sortable#dragenter dragleave->sortable#dragleave">
+       data-date="<%= date %>">
 
     <div class="kanban__column-header <%= 'kanban__column-header--today' if date == Date.current %>">
       <div class="kanban__day-name"><%= date.strftime("%a") %></div>

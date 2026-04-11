@@ -2,41 +2,37 @@ class RitualsController < ApplicationController
   def morning
     @date = Date.current
     @step = (params[:step] || 1).to_i
+    unless [ 1, 2 ].include?(@step)
+      redirect_to ritual_morning_path(step: 1), status: :see_other
+      return
+    end
+
     @day_plan = current_user.day_plans.find_or_create_by!(date: @date)
 
     case @step
-    when 1 then load_yesterdays_loose_ends
-    when 2 then load_todays_schedule
-    when 3 then load_available_tasks
-    when 4 then nil # Free text step
-    when 5 then load_day_summary
+    when 1
+      load_yesterday_review
+    when 2
+      load_today_planning_context
     end
   end
 
   def morning_update
     @date = Date.current
-    @step = params[:step].to_i
-    @day_plan = current_user.day_plans.find_or_create_by!(date: @date)
-
-    case @step
+    case params[:step].to_i
     when 1
-      process_yesterday_decisions
-      redirect_to ritual_morning_path(step: 2)
+      redirect_to ritual_morning_path(step: 2, plan: "1"), status: :see_other
     when 2
-      redirect_to ritual_morning_path(step: 3)
-    when 3
-      process_task_selections
-      redirect_to ritual_morning_path(step: 4)
-    when 4
-      create_personal_task if params[:personal_task].present?
-      redirect_to ritual_morning_path(step: 5)
+      @day_plan = current_user.day_plans.find_or_create_by!(date: @date)
+      @day_plan.update!(morning_ritual_done: true, status: :active)
+      current_user.record_open!
+      redirect_to day_path(Date.current), notice: "You're set. Have a good day."
+    else
+      redirect_to ritual_morning_path(step: 1), status: :see_other
     end
   end
 
   def morning_complete
-    @day_plan = current_user.day_plans.find_or_create_by!(date: Date.current)
-    @day_plan.update!(morning_ritual_done: true, status: :active)
-    current_user.record_open!
     redirect_to day_path(Date.current), notice: "Your day is set."
   end
 
@@ -46,25 +42,26 @@ class RitualsController < ApplicationController
     @day_plan = current_user.day_plans.find_by(date: @date)
 
     case @step
-    when 1 then load_completed_tasks
-    when 2 then load_remaining_tasks
-    when 3 then nil # Reflection step
+    when 1
+      load_evening_dashboard
+    when 2
+      nil # reflection
+    else
+      redirect_to ritual_evening_path(step: 1), status: :see_other
     end
   end
 
   def evening_update
     @date = Date.current
-    @step = params[:step].to_i
-
-    case @step
+    case params[:step].to_i
     when 1
-      redirect_to ritual_evening_path(step: 2)
-    when 2
       process_evening_decisions
-      redirect_to ritual_evening_path(step: 3)
-    when 3
+      redirect_to ritual_evening_path(step: 2), status: :see_other
+    when 2
       save_reflection
-      redirect_to ritual_evening_complete_path
+      redirect_to ritual_evening_complete_path, status: :see_other
+    else
+      redirect_to ritual_evening_path(step: 1), status: :see_other
     end
   end
 
@@ -80,45 +77,51 @@ class RitualsController < ApplicationController
 
   private
 
-  def load_yesterdays_loose_ends
-    yesterday_plan = current_user.day_plans.find_by(date: Date.yesterday)
-    @yesterday_tasks = yesterday_plan ? yesterday_plan.task_assignments.incomplete : TaskAssignment.none
+  def load_yesterday_review
+    load_yesterday_wins
+    @yesterday_tracked_min = yesterday_tracked_minutes
+    @yesterday_scale_min = (current_user.work_hours_target * 60).to_i
   end
 
-  def load_todays_schedule
-    @calendar_events = current_user.calendar_events
-      .for_date(@date)
+  def yesterday_tracked_minutes
+    tz = Time.find_zone(current_user.timezone) || Time.zone
+    day_start = Date.yesterday.in_time_zone(tz).beginning_of_day
+    day_end = Date.yesterday.in_time_zone(tz).end_of_day
+
+    from_timers = current_user.local_timer_sessions
+      .where.not(ended_at: nil)
+      .where(started_at: day_start..day_end)
+      .sum(&:duration_minutes)
+
+    return from_timers if from_timers.positive?
+
+    yesterday_plan = current_user.day_plans.find_by(date: Date.yesterday)
+    return 0 unless yesterday_plan
+
+    yesterday_plan.task_assignments.completed.sum(:actual_duration_minutes).to_i
+  end
+
+  def load_today_planning_context
+    @tasks = @day_plan.task_assignments.ordered
+    @calendar_events = fetch_calendar_events_for_date(@date)
+    @plan_mode = params[:plan].present?
+    @tab = "tasks"
+  end
+
+  def fetch_calendar_events_for_date(date)
+    current_user.calendar_events
+      .for_date(date)
       .chronological
       .map(&:to_view_hash)
-
-    @basecamp_assignments = current_user.task_assignments
-      .basecamp
-      .incomplete
-      .where("created_at > ?", 1.week.ago)
-      .limit(5)
-      .map { |t| { title: t.title, due_on: nil } }
-
-    @hey_todos = current_user.task_assignments
-      .hey
-      .incomplete
-      .where("created_at > ?", 1.week.ago)
-      .limit(5)
-      .map { |t| { title: t.title } }
   end
 
-  def load_available_tasks
-    @available_tasks = current_user.task_assignments
-      .where(day_plan: @day_plan)
-      .or(current_user.task_assignments.sometime.for_week(@date.beginning_of_week(:monday)))
-      .incomplete
-      .ordered
-  end
-
-  def load_day_summary
-    @tasks = @day_plan.task_assignments.ordered
-    @total_planned = @tasks.sum(:planned_duration_minutes).to_i
-    @work_hours = current_user.work_hours_target * 60
-    @overfull = @total_planned > @work_hours
+  def load_yesterday_wins
+    yesterday_plan = current_user.day_plans.find_by(date: Date.yesterday)
+    @yesterday_wins = if yesterday_plan
+      yesterday_plan.task_assignments.completed.order(Arel.sql("COALESCE(completed_at, updated_at) DESC"))
+    else
+      TaskAssignment.none
+    end
   end
 
   def load_completed_tasks
@@ -129,51 +132,56 @@ class RitualsController < ApplicationController
     @remaining_tasks = @day_plan ? @day_plan.task_assignments.incomplete : TaskAssignment.none
   end
 
-  def process_yesterday_decisions
-    return unless params[:tasks].present?
+  def load_evening_dashboard
+    load_completed_tasks
+    load_remaining_tasks
+    @completed_tasks = @completed_tasks.order(Arel.sql("COALESCE(completed_at, updated_at) DESC"))
+    @remaining_tasks = @remaining_tasks.order(:position)
+    @evening_actual_minutes = today_tracked_or_actual_minutes
+    @evening_planned_minutes = today_planned_minutes_total
+    @donut_segments = today_time_by_project_segments
+  end
 
-    params[:tasks].each do |task_id, decision|
-      task = current_user.task_assignments.find_by(id: task_id)
-      next unless task
+  def today_planned_minutes_total
+    return 0 unless @day_plan
 
-      case decision
-      when "done"
-        task.complete!
-      when "today"
-        today_plan = current_user.day_plans.find_or_create_by!(date: Date.current)
-        task.update!(day_plan: today_plan, week_start_date: Date.current.beginning_of_week(:monday))
-      when "let_go"
-        task.update!(status: :deferred, day_plan: nil, week_bucket: "sometime")
+    @day_plan.task_assignments.sum { |t| (t.planned_duration_minutes || 60).to_i }
+  end
+
+  def today_tracked_or_actual_minutes
+    return 0 unless @day_plan
+
+    tz = Time.find_zone(current_user.timezone) || Time.zone
+    range = Date.current.in_time_zone(tz).all_day
+    from_timers = current_user.local_timer_sessions
+      .where.not(ended_at: nil)
+      .where(started_at: range)
+      .sum(&:duration_minutes)
+    return from_timers if from_timers.positive?
+
+    @day_plan.task_assignments.sum { |t| t.actual_duration_minutes.to_i }
+  end
+
+  def today_time_by_project_segments
+    return [] unless @day_plan
+
+    hash = Hash.new(0)
+    @day_plan.task_assignments.each do |t|
+      mins = t.actual_duration_minutes.to_i
+      if mins <= 0 && t.completed?
+        mins = (t.planned_duration_minutes || 60).to_i
       end
+      next if mins <= 0
+
+      label = t.project_name.presence
+      label ||= t.hey? ? "HEY" : (t.local? ? "Local" : t.source.to_s.titleize)
+      hash[label] += mins
     end
-  end
 
-  def process_task_selections
-    return unless params[:selected_tasks].present?
-
-    params[:selected_tasks].each_with_index do |task_id, index|
-      task = current_user.task_assignments.find_by(id: task_id)
-      next unless task
-
-      task.update!(
-        day_plan: @day_plan,
-        position: index,
-        size: params.dig(:sizes, task_id.to_s) || task.size,
-        planned_duration_minutes: params.dig(:durations, task_id.to_s)&.to_i
-      )
+    colors = %w[#7c3aed #a855f7 #c084fc #9333ea #6b21a8 #5b21b6]
+    hash.sort_by { |_k, v| -v }.map.with_index do |(label, minutes), i|
+      { label: label, minutes: minutes, color: colors[i % colors.size] }
     end
-  end
-
-  def create_personal_task
-    today_plan = current_user.day_plans.find_or_create_by!(date: Date.current)
-    current_user.task_assignments.create!(
-      title: params[:personal_task],
-      source: :local,
-      day_plan: today_plan,
-      week_start_date: Date.current.beginning_of_week(:monday),
-      week_bucket: "day",
-      position: today_plan.task_assignments.count
-    )
   end
 
   def process_evening_decisions

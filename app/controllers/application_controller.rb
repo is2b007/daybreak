@@ -6,11 +6,19 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   before_action :require_onboarding!
+  before_action :load_active_timer
   before_action :load_right_panel_data
 
   private
 
+  def load_active_timer
+    return unless logged_in? && current_user&.onboarded?
+
+    @active_timer = current_user.local_timer_sessions.running.first
+  end
+
   def load_right_panel_data
+    return if controller_name == "rituals" && action_name == "evening"
     return unless logged_in? && current_user&.onboarded?
 
     week_start = Date.current.beginning_of_week(:monday)

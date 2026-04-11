@@ -1,0 +1,19 @@
+<%# locals: (date:, tasks:) %>
+<% pending = tasks.reject(&:completed?).sort_by(&:position) %>
+<div id="day_plan_tasks_<%= date %>">
+  <div
+    id="day_pending_list_<%= date %>"
+    class="kanban__tasks day-view__pending-drop"
+    data-sortable-target="taskList"
+    data-date="<%= date %>">
+    <% if pending.any? %>
+      <% pending.each do |task| %>
+        <%= render "shared/task_card", task: task, compact: false %>
+      <% end %>
+    <% else %>
+      <div class="kanban__empty kanban__empty--day">
+        <span class="kanban__empty-text">Drop tasks from the sidebar here</span>
+      </div>
+    <% end %>
+  </div>
+</div>

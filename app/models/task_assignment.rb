@@ -68,4 +68,13 @@ class TaskAssignment < ApplicationRecord
   def duration_hours
     (planned_duration_minutes || 60) / 60.0
   end
+
+  # Web app URL for this todo (API ids match the web UI).
+  def basecamp_web_url
+    return nil unless basecamp?
+    return nil if user&.basecamp_account_id.blank?
+    return nil if basecamp_bucket_id.blank? || external_id.blank?
+
+    "https://3.basecamp.com/#{user.basecamp_account_id}/buckets/#{basecamp_bucket_id}/todos/#{external_id}"
+  end
 end

@@ -14,6 +14,7 @@ export default class extends Controller {
     } catch (_) { /* private mode */ }
     this.#applyStoredWidth()
     this.#syncToggle()
+    this.#expandForSunrisePlan()
   }
 
   toggle() {
@@ -28,12 +29,31 @@ export default class extends Controller {
   }
 
   switchTab(event) {
-    const tabName = event.currentTarget.dataset.tab
+    this.#activateTab(event.currentTarget.dataset.tab)
+  }
 
+  /** After Sunrise “Plan today”, open the panel and focus Basecamp inbox for dragging. */
+  #expandForSunrisePlan() {
+    try {
+      const u = new URL(window.location.href)
+      if (u.searchParams.get("plan") !== "1") return
+
+      this.element.classList.remove("right--collapsed")
+      localStorage.setItem(COLLAPSED_KEY, "0")
+      this.#activateTab("bc")
+      this.#syncToggle()
+
+      u.searchParams.delete("plan")
+      const q = u.searchParams.toString()
+      const next = u.pathname + (q ? `?${q}` : "") + u.hash
+      window.history.replaceState({}, "", next)
+    } catch (_) { /* private mode / invalid URL */ }
+  }
+
+  #activateTab(tabName) {
     this.tabTargets.forEach(t => {
       t.classList.toggle("on", t.dataset.tab === tabName)
     })
-
     this.railBtnTargets.forEach(b => {
       b.classList.toggle("on", b.dataset.tab === tabName)
     })

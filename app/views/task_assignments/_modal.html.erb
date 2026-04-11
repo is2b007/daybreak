@@ -5,6 +5,7 @@
   <div class="modal modal--task">
 
     <%# Top bar: project/channel + close %>
+    <% bc_web_url = task.basecamp_web_url %>
     <div class="modal__topbar">
       <div class="modal__channel">
         <% if task.basecamp? %>
@@ -18,10 +19,26 @@
           <span>Local task</span>
         <% end %>
       </div>
-      <button type="button"
-              class="modal__close"
-              data-action="click->modal#close"
-              aria-label="Close modal">×</button>
+      <div class="modal__topbar-actions">
+        <% if bc_web_url.present? %>
+          <%= link_to bc_web_url,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "modal__ext-link",
+                title: "Open in Basecamp",
+                aria: { label: "Open task in Basecamp" } do %>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          <% end %>
+        <% end %>
+        <button type="button"
+                class="modal__close"
+                data-action="click->modal#close"
+                aria-label="Close modal">×</button>
+      </div>
     </div>
 
     <%# Main form — auto-saves on blur/change, no submit button %>
@@ -42,11 +59,12 @@
             </svg>
           <% end %>
         </div>
-        <%= f.text_field :title,
+        <%= f.text_area :title,
               class: "modal__title-input #{'modal__title-input--done' if task.completed?}",
               required: true,
               placeholder: "Task title",
-              data: { action: "blur->auto-save#save" } %>
+              rows: 1,
+              data: { action: "blur->auto-save#save input->auto-save#resizeTitle" } %>
       </div>
 
       <%# Body %>
