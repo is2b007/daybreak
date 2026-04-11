@@ -1,9 +1,9 @@
-<div class="ritual__step">
+<div class="ritual__step ritual__step--reflection">
   <p class="ritual__prompt">How did today go?</p>
-  <p class="text-sm text-muted mb-6">One line. That's all.</p>
+  <p class="text-sm text-muted mb-6">One line. That&rsquo;s all.</p>
 
-  <%= form_with url: ritual_evening_path, method: :post do |f| %>
-    <%= f.hidden_field :step, value: 3 %>
+  <%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" } do |f| %>
+    <%= f.hidden_field :step, value: 2 %>
     <div class="form-group">
       <%= f.text_field :reflection, class: "form-input form-input--large", placeholder: "Shipped the landing page. Good day.", autofocus: true %>
     </div>

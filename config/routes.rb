@@ -45,9 +45,13 @@ Rails.application.routes.draw do
   post "days/:date/log", to: "daily_logs#create"
   patch "days/:date/log", to: "daily_logs#update"
 
+  # Daily journal scratchpad (right panel)
+  post "journal/:date", to: "journal#upsert", as: :journal_entry
+
   # Tasks
   resources :task_assignments, only: [ :show, :create, :update, :destroy ] do
     member do
+      post  :comment
       patch :move
       patch :cycle_size
       patch :complete

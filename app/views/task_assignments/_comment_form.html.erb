@@ -1,0 +1,15 @@
+<%# locals: (task:) %>
+<div id="task_comment_<%= task.id %>" class="modal__comment-form">
+  <%= form_with url: comment_task_assignment_path(task), method: :post,
+        data: { turbo: true, turbo_stream: true } do |f| %>
+    <div class="modal__comment-row">
+      <%= f.text_area :content,
+            class: "form-input modal__comment-input",
+            rows: 2,
+            placeholder: "Write a comment…" %>
+      <%= f.submit "Post",
+            class: "btn btn--primary modal__comment-submit",
+            data: { disable_with: "…" } %>
+    </div>
+  <% end %>
+</div>

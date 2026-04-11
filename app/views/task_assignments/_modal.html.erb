@@ -1,45 +1,123 @@
+<%# locals: (task:, bc_comments: []) %>
 <div class="modal-overlay"
      data-controller="modal"
      data-action="click->modal#closeIfBackdrop">
-  <div class="modal">
-    <div class="modal__header">
-      <div class="modal__title">Edit task</div>
-      <button type="button"
-              class="modal__close"
-              data-action="click->modal#close"
-              aria-label="Close modal">
-        ×
-      </button>
+  <div class="modal modal--task">
+
+    <%# Top bar: project/channel + close %>
+    <% bc_web_url = task.basecamp_web_url %>
+    <div class="modal__topbar">
+      <div class="modal__channel">
+        <% if task.basecamp? %>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" class="modal__channel-icon">
+            <circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1"/>
+          </svg>
+          <span><%= task.project_name.presence || "Basecamp" %></span>
+        <% elsif task.hey? %>
+          <span>HEY Email</span>
+        <% else %>
+          <span>Local task</span>
+        <% end %>
+      </div>
+      <div class="modal__topbar-actions">
+        <% if bc_web_url.present? %>
+          <%= link_to bc_web_url,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "modal__ext-link",
+                title: "Open in Basecamp",
+                aria: { label: "Open task in Basecamp" } do %>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          <% end %>
+        <% end %>
+        <button type="button"
+                class="modal__close"
+                data-action="click->modal#close"
+                aria-label="Close modal">×</button>
+      </div>
     </div>
 
-    <%= form_with model: task, data: { turbo: true } do |f| %>
-      <div class="modal__section">
-        <div class="modal__section-label">Title</div>
-        <%= f.text_field :title, class: "form-input", required: true %>
+    <%# Main form — auto-saves on blur/change, no submit button %>
+    <%= form_with model: task,
+          data: { controller: "auto-save", turbo: true, turbo_stream: true } do |f| %>
+
+      <%# Title row with squarish checkbox icon %>
+      <div class="modal__title-row">
+        <div class="modal__check-icon <%= 'modal__check-icon--done' if task.completed? %>" aria-hidden="true">
+          <% if task.completed? %>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="1" width="18" height="18" rx="4.5" fill="#16A34A"/>
+              <polyline points="5.5,10.5 8.5,13.5 14.5,7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          <% else %>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="1" width="18" height="18" rx="4.5" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          <% end %>
+        </div>
+        <%= f.text_area :title,
+              class: "modal__title-input #{'modal__title-input--done' if task.completed?}",
+              required: true,
+              placeholder: "Task title",
+              rows: 1,
+              data: { action: "blur->auto-save#save input->auto-save#resizeTitle" } %>
       </div>
 
-      <div class="modal__section">
-        <div class="modal__section-label">Description</div>
-        <%= f.text_area :description, class: "form-input", rows: 4 %>
-      </div>
+      <%# Body %>
+      <div class="modal__body">
+        <div class="modal__section">
+          <div class="modal__section-label">Description</div>
+          <%= f.text_area :description,
+                class: "form-input modal__description",
+                rows: 3,
+                placeholder: task.basecamp? ? "Basecamp description" : "Add a description…",
+                data: { action: "blur->auto-save#save" } %>
+        </div>
 
-      <div class="modal__section">
-        <div class="modal__section-label">Size</div>
-        <%= f.select :size,
-                     TaskAssignment.sizes.keys.map { |size| [size.capitalize, size] },
-                     {},
-                     class: "form-input" %>
-      </div>
-
-      <div class="modal__section">
-        <div class="modal__section-label">Planned minutes</div>
-        <%= f.number_field :planned_duration_minutes, class: "form-input", min: 0, step: 5 %>
-      </div>
-
-      <div class="modal__actions">
-        <%= f.submit "Save", class: "btn btn--primary" %>
-        <button type="button" class="btn btn--ghost" data-action="click->modal#close">Cancel</button>
+        <div class="modal__section modal__section--size">
+          <div class="modal__section-label">Size</div>
+          <div class="modal__size-pills">
+            <% TaskAssignment.sizes.keys.each do |s| %>
+              <label class="modal__size-pill <%= 'modal__size-pill--active' if task.size == s %>">
+                <%= f.radio_button :size, s,
+                      class: "modal__size-radio",
+                      data: { action: "change->auto-save#save" } %>
+                <%= s.capitalize %>
+              </label>
+            <% end %>
+          </div>
+        </div>
       </div>
     <% end %>
+
+    <%# Comments section — Basecamp tasks only %>
+    <% if task.basecamp? %>
+      <div class="modal__comments-section">
+        <% if bc_comments.any? %>
+          <div class="modal__comments-list">
+            <% bc_comments.each do |c| %>
+              <div class="modal__comment-item">
+                <div class="modal__comment-item-author">
+                  <%= c.dig("creator", "name") %>
+                </div>
+                <div class="modal__comment-item-content"><%= c["content"]&.gsub(/<[^>]+>/, "") %></div>
+                <% if c["created_at"].present? %>
+                  <div class="modal__comment-item-time">
+                    <%= time_ago_in_words(Time.parse(c["created_at"])) %> ago
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= render "task_assignments/comment_form", task: task %>
+      </div>
+    <% end %>
+
   </div>
 </div>

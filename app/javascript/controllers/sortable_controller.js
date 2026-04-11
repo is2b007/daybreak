@@ -3,6 +3,28 @@ import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static targets = ["column", "taskList", "sometimeList"]
+  static values = { view: String }
+
+  connect() {
+    // Drop does not bubble in the DOM; listeners on .kanban__tasks never run when the
+    // pointer releases over a child (.task-card, .kanban__empty, etc.). Capture on the
+    // sortable root so inbox → day/week drops always hit this controller.
+    this._captureDrop = (e) => this.drop(e)
+    this._captureDragOver = (e) => this.dragover(e)
+    this._captureDragEnter = (e) => this.dragenter(e)
+    this._captureDragLeave = (e) => this.dragleave(e)
+    this.element.addEventListener("drop", this._captureDrop, true)
+    this.element.addEventListener("dragover", this._captureDragOver, true)
+    this.element.addEventListener("dragenter", this._captureDragEnter, true)
+    this.element.addEventListener("dragleave", this._captureDragLeave, true)
+  }
+
+  disconnect() {
+    this.element.removeEventListener("drop", this._captureDrop, true)
+    this.element.removeEventListener("dragover", this._captureDragOver, true)
+    this.element.removeEventListener("dragenter", this._captureDragEnter, true)
+    this.element.removeEventListener("dragleave", this._captureDragLeave, true)
+  }
 
   dragstart(event) {
     const card = event.target.closest(".task-card")
@@ -23,6 +45,8 @@ export default class extends Controller {
   }
 
   dragover(event) {
+    const taskList = event.target.closest(".kanban__tasks, .sometime-row")
+    if (!taskList) return
     event.preventDefault()
     event.dataTransfer.dropEffect = "move"
   }
@@ -40,18 +64,20 @@ export default class extends Controller {
   }
 
   drop(event) {
-    event.preventDefault()
-    this.clearDragoverStates()
+    const targetList = event.target.closest(".kanban__tasks, .sometime-row")
+    if (!targetList) return
 
     const cardId = event.dataTransfer.getData("text/plain")   // "task_123"
     const fromInbox = event.dataTransfer.getData("application/x-dragsource") === "inbox"
-    const card = document.getElementById(cardId)
+    if (!cardId) return
 
-    // If not from inbox and card not found, bail
+    const card = document.getElementById(cardId)
+    // Inbox rows use id inbox_task_*; dataTransfer still uses task_<id>
     if (!fromInbox && !card) return
 
-    const targetList = event.target.closest(".kanban__tasks, .sometime-row")
-    if (!targetList) return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    this.clearDragoverStates()
 
     const isSometime = targetList.classList.contains("sometime-row")
     const targetDate = isSometime ? null : targetList.dataset.date
@@ -97,6 +123,10 @@ export default class extends Controller {
       body.set("target_bucket", "day")
     }
 
+    if (this.hasViewValue && this.viewValue === "day") {
+      body.set("view", "day")
+    }
+
     fetch(`/task_assignments/${assignmentId}/move`, {
       method: "PATCH",
       headers: {
@@ -107,7 +137,7 @@ export default class extends Controller {
       body: body.toString()
     }).then(r => r.text()).then(html => {
       if (html) Turbo.renderStreamMessage(html)
-    })
+    }).catch((err) => console.error("sortable move failed", err))
   }
 
   clearDragoverStates() {

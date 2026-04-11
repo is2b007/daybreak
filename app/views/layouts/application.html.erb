@@ -23,13 +23,19 @@
         </template>
       <% end %>
 
-      <div class="shell">
+      <% hide_inbox_panel = controller_name == "rituals" && action_name == "evening" %>
+      <div class="shell<%= " shell--no-right" if hide_inbox_panel %>">
         <%= render "layouts/sidebar" %>
 
         <main class="mid">
           <div class="topbar">
             <%= yield(:topbar) %>
           </div>
+          <% if @active_timer %>
+            <div class="mid__timer">
+              <%= render "layouts/active_timer_bar", timer: @active_timer %>
+            </div>
+          <% end %>
           <div class="view-area">
             <% if flash[:notice] %>
               <div class="flash flash--notice" data-controller="flash"><%= flash[:notice] %></div>
@@ -41,9 +47,11 @@
           </div>
         </main>
 
-        <div class="right" data-controller="right-panel">
-          <%= render "layouts/right_panel" %>
-        </div>
+        <% unless hide_inbox_panel %>
+          <div class="right" data-controller="right-panel">
+            <%= render "layouts/right_panel" %>
+          </div>
+        <% end %>
       </div>
     <% else %>
       <% if logged_in? %>

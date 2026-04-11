@@ -1,7 +1,17 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox ]
+  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment ]
 
   def show
+    @bc_comments = []
+    if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+      begin
+        client = BasecampClient.new(current_user)
+        @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
+      rescue StandardError
+        @bc_comments = []
+      end
+    end
+
     respond_to do |format|
       format.turbo_stream { render :show }
       format.html { render :show }
@@ -31,10 +41,7 @@ class TaskAssignmentsController < ApplicationController
     @task.update!(task_params)
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true }),
-          turbo_stream.update("modal", "")
-        ]
+        render turbo_stream: turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true })
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -51,8 +58,10 @@ class TaskAssignmentsController < ApplicationController
   def move
     from_inbox = params[:from_inbox] == "1"
     week_start = Date.current.beginning_of_week(:monday)
+    day_ctx = day_view_stream_context?
 
     if params[:target_bucket] == "inbox"
+      previous_date = @task.day_plan&.date
       source_date = params[:source_date].present? ? Date.parse(params[:source_date]) : nil
       @task.update!(day_plan: nil, week_start_date: nil, week_bucket: "inbox", position: 0)
 
@@ -60,24 +69,29 @@ class TaskAssignmentsController < ApplicationController
         format.turbo_stream do
           streams = [ turbo_stream.remove("task_#{@task.id}") ]
 
-          if source_date
-            source_plan = current_user.day_plans.find_by(date: source_date)
-            streams << turbo_stream.replace("day_#{source_date}",
-              partial: "weeks/day_column",
-              locals: {
-                date: source_date,
-                tasks: current_user.task_assignments
-                         .for_week(source_date.beginning_of_week(:monday))
-                         .where(day_plan: source_plan)
-                         .ordered,
-                events: []
-              })
-          end
+          if day_ctx
+            refresh_date = source_date || previous_date
+            streams << stream_replace_day_plan_tasks(refresh_date) if refresh_date
+          else
+            if source_date
+              source_plan = current_user.day_plans.find_by(date: source_date)
+              streams << turbo_stream.replace("day_#{source_date}",
+                partial: "weeks/day_column",
+                locals: {
+                  date: source_date,
+                  tasks: current_user.task_assignments
+                           .for_week(source_date.beginning_of_week(:monday))
+                           .where(day_plan: source_plan)
+                           .ordered,
+                  events: []
+                })
+            end
 
-          streams << turbo_stream.replace("sometime_row",
-            partial: "weeks/sometime_row",
-            locals: { tasks: current_user.task_assignments
-              .where(week_bucket: "sometime", week_start_date: week_start).ordered })
+            streams << turbo_stream.replace("sometime_row",
+              partial: "weeks/sometime_row",
+              locals: { tasks: current_user.task_assignments
+                .where(week_bucket: "sometime", week_start_date: week_start).ordered })
+          end
 
           streams << turbo_stream.prepend("bc-inbox-list",
             partial: "layouts/inbox_item",
@@ -102,11 +116,10 @@ class TaskAssignmentsController < ApplicationController
 
       respond_to do |format|
         format.turbo_stream do
-          streams = [
-            turbo_stream.replace("sometime_row",
-              partial: "weeks/sometime_row",
-              locals: { tasks: sometime_tasks })
-          ]
+          streams = []
+          streams << turbo_stream.replace("sometime_row",
+            partial: "weeks/sometime_row",
+            locals: { tasks: sometime_tasks }) unless day_ctx
           streams << turbo_stream.remove("inbox_task_#{@task.id}") if from_inbox
           render turbo_stream: streams
         end
@@ -125,8 +138,18 @@ class TaskAssignmentsController < ApplicationController
 
       respond_to do |format|
         format.turbo_stream do
-          streams = [
-            turbo_stream.replace("day_#{target_date}",
+          streams = []
+
+          if day_ctx
+            streams << turbo_stream.remove("inbox_task_#{@task.id}") if from_inbox
+            streams << stream_replace_day_plan_tasks(target_date)
+
+            if params[:source_date].present?
+              source_date = Date.parse(params[:source_date])
+              streams << stream_replace_day_plan_tasks(source_date) if source_date != target_date
+            end
+          else
+            streams << turbo_stream.replace("day_#{target_date}",
               partial: "weeks/day_column",
               locals: {
                 date: target_date,
@@ -136,26 +159,27 @@ class TaskAssignmentsController < ApplicationController
                          .ordered,
                 events: []
               })
-          ]
 
-          if params[:source_date].present?
-            source_date = Date.parse(params[:source_date])
-            if source_date != target_date
-              source_plan = current_user.day_plans.find_by(date: source_date)
-              streams << turbo_stream.replace("day_#{source_date}",
-                partial: "weeks/day_column",
-                locals: {
-                  date: source_date,
-                  tasks: current_user.task_assignments
-                           .for_week(source_date.beginning_of_week(:monday))
-                           .where(day_plan: source_plan)
-                           .ordered,
-                  events: []
-                })
+            if params[:source_date].present?
+              source_date = Date.parse(params[:source_date])
+              if source_date != target_date
+                source_plan = current_user.day_plans.find_by(date: source_date)
+                streams << turbo_stream.replace("day_#{source_date}",
+                  partial: "weeks/day_column",
+                  locals: {
+                    date: source_date,
+                    tasks: current_user.task_assignments
+                             .for_week(source_date.beginning_of_week(:monday))
+                             .where(day_plan: source_plan)
+                             .ordered,
+                    events: []
+                  })
+              end
             end
+
+            streams << turbo_stream.remove("inbox_task_#{@task.id}") if from_inbox
           end
 
-          streams << turbo_stream.remove("inbox_task_#{@task.id}") if from_inbox
           render turbo_stream: streams
         end
         format.html { redirect_back fallback_location: root_path }
@@ -173,17 +197,27 @@ class TaskAssignmentsController < ApplicationController
 
   def complete
     rotation = params[:rotation]&.to_i
+    plan = @task.day_plan
     @task.complete!(rotation: rotation)
     WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey?
 
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: [
+        streams = [
           turbo_stream.remove("task_#{@task.id}"),
-          turbo_stream.append("day_#{@task.day_plan&.date}_completed",
+          turbo_stream.append("day_#{plan&.date}_completed",
             partial: "shared/task_card",
             locals: { task: @task, compact: true })
         ]
+        if plan
+          tasks = current_user.task_assignments.where(day_plan: plan).ordered
+          streams << turbo_stream.replace(
+            "day_plan_tasks_#{plan.date}",
+            partial: "days/day_plan_tasks",
+            locals: { date: plan.date, tasks: tasks }
+          )
+        end
+        render turbo_stream: streams
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -199,6 +233,29 @@ class TaskAssignmentsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove("task_#{@task.id}") }
+      format.html { redirect_back fallback_location: root_path }
+    end
+  end
+
+  def comment
+    content = params[:content].to_s.strip
+    return head :unprocessable_entity if content.blank?
+
+    unless @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+      return head :unprocessable_entity
+    end
+
+    client = BasecampClient.new(current_user)
+    client.create_comment(@task.basecamp_bucket_id, @task.external_id, content: content)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "task_comment_#{@task.id}",
+          partial: "task_assignments/comment_form",
+          locals: { task: @task }
+        )
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end
@@ -239,6 +296,28 @@ class TaskAssignmentsController < ApplicationController
   end
 
   private
+
+  # Day view has no turbo-frame#day_* or #sometime_row; only #day_plan_tasks_DATE.
+  def day_view_stream_context?
+    return true if params[:view].to_s == "day"
+
+    ref = request.referer.to_s
+    return false if ref.blank?
+
+    URI.parse(ref).path.match?(%r{/days/\d{4}-\d{2}-\d{2}})
+  rescue URI::InvalidURIError
+    false
+  end
+
+  def stream_replace_day_plan_tasks(date)
+    plan = current_user.day_plans.find_by(date: date)
+    tasks = plan ? current_user.task_assignments.where(day_plan: plan).ordered : TaskAssignment.none
+    turbo_stream.replace(
+      "day_plan_tasks_#{date}",
+      partial: "days/day_plan_tasks",
+      locals: { date: date, tasks: tasks }
+    )
+  end
 
   def set_task
     @task = current_user.task_assignments.find(params[:id])

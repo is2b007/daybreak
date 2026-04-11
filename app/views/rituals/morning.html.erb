@@ -1,23 +1,25 @@
-<% content_for(:full_screen, true) %>
-<div class="ritual ritual--morning" data-controller="ritual">
-  <div class="ritual__content">
-    <% if @step == 1 %>
-      <h1 class="ritual__greeting"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>
-    <% end %>
+<% if @step == 1 %>
+  <% content_for(:topbar) do %>
+    <span class="topbar__title">Yesterday</span>
+    <span class="topbar__sub">In review</span>
+  <% end %>
+<% elsif @step == 2 %>
+  <% content_for(:topbar) do %>
+    <span class="topbar__title">Plan today</span>
+    <span class="topbar__sub">Tasks · Calendar · Inbox</span>
+  <% end %>
+<% end %>
 
-    <%= turbo_frame_tag "ritual_step" do %>
-      <% case @step %>
-      <% when 1 %>
-        <%= render "morning_step_1", tasks: @yesterday_tasks %>
-      <% when 2 %>
-        <%= render "morning_step_2", events: @calendar_events, assignments: @basecamp_assignments, hey_todos: @hey_todos %>
-      <% when 3 %>
-        <%= render "morning_step_3", tasks: @available_tasks, day_plan: @day_plan %>
-      <% when 4 %>
-        <%= render "morning_step_4" %>
-      <% when 5 %>
-        <%= render "morning_step_5", tasks: @tasks, total_planned: @total_planned, work_hours: @work_hours, overfull: @overfull %>
-      <% end %>
-    <% end %>
-  </div>
+<div class="ritual ritual--morning <%= @step == 2 ? "ritual--sunrise-step2" : "ritual--sunrise-step1" %>" data-controller="ritual">
+  <% if @step == 1 %>
+    <div class="ritual__content ritual__content--sunrise-review">
+      <h1 class="ritual__greeting ritual__greeting--sunrise"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>
+      <%= render "morning_yesterday_review",
+          wins: @yesterday_wins,
+          tracked_min: @yesterday_tracked_min,
+          scale_min: @yesterday_scale_min %>
+    </div>
+  <% else %>
+    <%= render "morning_step_2_plan_today" %>
+  <% end %>
 </div>

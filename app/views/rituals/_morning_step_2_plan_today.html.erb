@@ -1,0 +1,13 @@
+<%# Main area: planning heading + task list | calendar. Inbox is the shell right panel. %>
+<div class="sunrise-plan">
+  <%= render "days/tasks_and_timeline",
+      date: @date,
+      tasks: @tasks,
+      calendar_events: @calendar_events,
+      plan_mode: @plan_mode,
+      tab: @tab,
+      tasks_heading: "What do you want to get done today?",
+      tasks_subtitle: "Drag tasks from the inbox on the right onto your list or the calendar.",
+      timeline_heading: "Calendar",
+      sunrise_actions: true %>
+</div>

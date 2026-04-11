@@ -1,9 +1,9 @@
 <% content_for(:topbar) do %>
-  <%= link_to day_path(@date - 1.day), class: "topbar__nav-arrow" do %>
+  <%= link_to day_path(@date - 1.day, tab: @tab), class: "topbar__nav-arrow" do %>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
   <% end %>
   <span class="topbar__title"><%= @date.strftime("%A, %B %-d") %></span>
-  <%= link_to day_path(@date + 1.day), class: "topbar__nav-arrow" do %>
+  <%= link_to day_path(@date + 1.day, tab: @tab), class: "topbar__nav-arrow" do %>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
   <% end %>
   <span class="topbar__sub">
@@ -18,58 +18,11 @@
   </div>
 <% end %>
 
-<div class="day-view">
-  <div class="day-view__tasks">
-    <div class="day-view__tasks-list">
-      <% if @tab == "log" %>
-        <%= render "daily_log", daily_log: @daily_log, log_entries: @log_entries, date: @date %>
-      <% else %>
-        <% if @pending_tasks.any? %>
-          <% @pending_tasks.each do |task| %>
-            <%= render "shared/task_card", task: task, compact: false %>
-          <% end %>
-        <% else %>
-          <p class="text-muted text-sm p-6 text-center">
-            <% if @completed_tasks.any? %>
-              Everything's done. That's a good day.
-            <% else %>
-              Nothing on the books for this day. <%= link_to "Plan your morning", ritual_morning_path %>.
-            <% end %>
-          </p>
-        <% end %>
-
-        <div class="mt-6" style="opacity: 0.35;" id="day_<%= @date %>_completed">
-          <% if @completed_tasks.any? %>
-            <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
-            <% @completed_tasks.each do |task| %>
-              <%= render "shared/task_card", task: task, compact: false %>
-            <% end %>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-
-    <% if @active_timer %>
-      <div class="timer-bar" data-controller="timer" data-timer-started-at-value="<%= @active_timer.started_at.iso8601 %>">
-        <div class="timer-bar__task">
-          <div class="timer-bar__task-name">
-            <%= @active_timer.task_assignment&.title || "Tracking time" %>
-          </div>
-          <% if @active_timer.task_assignment&.project_name.present? %>
-            <div class="timer-bar__task-project"><%= @active_timer.task_assignment.source.capitalize %> &middot; <%= @active_timer.task_assignment.project_name %></div>
-          <% end %>
-        </div>
-        <div class="timer-bar__time" data-timer-target="display">0:00:00</div>
-        <div class="timer-bar__controls">
-          <%= button_to timer_session_path(@active_timer), method: :patch, params: { timer_session: { ended_at: Time.current } }, class: "timer-bar__play-btn" do %>
-            &#9632;
-          <% end %>
-        </div>
-      </div>
-    <% end %>
-  </div>
-
-  <div>
-    <%= render "timeline", date: @date, events: @calendar_events, tasks: @tasks %>
-  </div>
-</div>
+<%= render "days/tasks_and_timeline",
+    date: @date,
+    tasks: @tasks,
+    calendar_events: @calendar_events,
+    plan_mode: @plan_mode,
+    tab: @tab,
+    daily_log: @daily_log,
+    log_entries: @log_entries %>

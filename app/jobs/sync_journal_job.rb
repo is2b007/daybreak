@@ -19,7 +19,8 @@ class SyncJournalJob < ApplicationJob
     end
 
     if journal_entry
-      content_parts << "\n---\nReflection: #{journal_entry.content}"
+      reflection = journal_entry.plain_text_for_hey
+      content_parts << "\n---\nReflection: #{reflection}" if reflection.present?
     end
 
     return if content_parts.empty?
