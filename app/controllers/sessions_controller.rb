@@ -24,6 +24,8 @@ class SessionsController < ApplicationController
     )
     user.save!
 
+    user.sync_basecamp_avatar_url_from_api!
+
     begin
       SyncBasecampAssignmentsJob.perform_now(user.id)
     rescue StandardError => e

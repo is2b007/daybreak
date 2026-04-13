@@ -1,4 +1,5 @@
 <%# locals: (task:, bc_comments: []) %>
+<% hey_from_email = task.hey_app_url.present? %>
 <div class="modal-overlay"
      data-controller="modal"
      data-action="click->modal#closeIfBackdrop">
@@ -13,13 +14,37 @@
             <circle cx="5" cy="5" r="4.5" stroke="currentColor" stroke-width="1"/>
           </svg>
           <span><%= task.project_name.presence || "Basecamp" %></span>
-        <% elsif task.hey? %>
+        <% elsif task.hey? || task.hey_app_url.present? %>
           <span>HEY Email</span>
         <% else %>
           <span>Local task</span>
         <% end %>
       </div>
       <div class="modal__topbar-actions">
+        <details class="modal__menu">
+          <summary class="modal__menu-btn" aria-label="Task options">•••</summary>
+          <div class="modal__menu-pop">
+            <%= button_to "Delete",
+                  task_assignment_path(task),
+                  method: :delete,
+                  form: { data: { turbo_confirm: "Delete this task?" } },
+                  class: "modal__menu-item modal__menu-item--danger" %>
+          </div>
+        </details>
+        <% if task.hey_app_url.present? %>
+          <%= link_to task.hey_app_url,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "modal__ext-link",
+                title: "Open in HEY",
+                aria: { label: "Open email in HEY" } do %>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          <% end %>
+        <% end %>
         <% if bc_web_url.present? %>
           <%= link_to bc_web_url,
                 target: "_blank",
@@ -64,20 +89,28 @@
               required: true,
               placeholder: "Task title",
               rows: 1,
-              data: { action: "blur->auto-save#save input->auto-save#resizeTitle" } %>
+              readonly: hey_from_email,
+              data: hey_from_email ? {} : { action: "blur->auto-save#save input->auto-save#resizeTitle" } %>
       </div>
 
       <%# Body %>
       <div class="modal__body">
+        <% if hey_from_email && @hey_email_body.present? %>
+          <div class="modal__section">
+            <div class="modal__section-label">HEY body</div>
+            <textarea class="form-input modal__description" rows="4" readonly><%= @hey_email_body %></textarea>
+          </div>
+        <% end %>
         <div class="modal__section">
           <div class="modal__section-label">Description</div>
           <%= f.text_area :description,
                 class: "form-input modal__description",
                 rows: 3,
-                placeholder: task.basecamp? ? "Basecamp description" : "Add a description…",
+                placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Basecamp description" : "Add a description…"),
                 data: { action: "blur->auto-save#save" } %>
         </div>
 
+        <% unless hey_from_email %>
         <div class="modal__section modal__section--size">
           <div class="modal__section-label">Size</div>
           <div class="modal__size-pills">
@@ -91,6 +124,7 @@
             <% end %>
           </div>
         </div>
+        <% end %>
       </div>
     <% end %>
 

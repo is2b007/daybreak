@@ -52,7 +52,9 @@ export default class extends Controller {
 
   #activateTab(tabName) {
     this.tabTargets.forEach(t => {
-      t.classList.toggle("on", t.dataset.tab === tabName)
+      const active = t.dataset.tab === tabName
+      t.classList.toggle("on", active)
+      if (active) t.dispatchEvent(new CustomEvent("panel:activated", { bubbles: false }))
     })
     this.railBtnTargets.forEach(b => {
       b.classList.toggle("on", b.dataset.tab === tabName)

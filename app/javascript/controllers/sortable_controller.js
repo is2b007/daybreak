@@ -67,9 +67,53 @@ export default class extends Controller {
     const targetList = event.target.closest(".kanban__tasks, .sometime-row")
     if (!targetList) return
 
-    const cardId = event.dataTransfer.getData("text/plain")   // "task_123"
-    const fromInbox = event.dataTransfer.getData("application/x-dragsource") === "inbox"
+    const cardId    = event.dataTransfer.getData("text/plain")
+    const dragsrc   = event.dataTransfer.getData("application/x-dragsource")
+    const fromInbox = dragsrc === "inbox"
     if (!cardId) return
+
+    // ── HEY email drag branch ────────────────────────────────────────────────
+    if (dragsrc === "hey-email" || cardId.startsWith("hey_email_")) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      this.clearDragoverStates()
+
+      const emailId = cardId.replace("hey_email_", "")
+      const isSometime = targetList.classList.contains("sometime-row")
+      const cardContainer = isSometime
+        ? (targetList.querySelector(".sometime-row__tasks") || targetList)
+        : targetList
+      const existingCards = Array.from(cardContainer.querySelectorAll(".task-card"))
+      let position = existingCards.length
+      for (let i = 0; i < existingCards.length; i++) {
+        const r = existingCards[i].getBoundingClientRect()
+        if (event.clientY < r.top + r.height / 2) { position = i; break }
+      }
+
+      const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+      const body = new URLSearchParams({ position: String(position) })
+      if (isSometime) {
+        body.set("target_bucket", "sometime")
+      } else {
+        body.set("target_date", targetList.dataset.date)
+        body.set("target_bucket", "day")
+      }
+      if (this.hasViewValue && this.viewValue === "day") body.set("view", "day")
+
+      fetch(`/hey_emails/${emailId}/plan`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRF-Token": csrfToken,
+          "Accept": "text/vnd.turbo-stream.html"
+        },
+        body: body.toString()
+      }).then(r => r.text()).then(html => {
+        if (html) Turbo.renderStreamMessage(html)
+      }).catch(err => console.error("hey plan failed", err))
+      return
+    }
+    // ── end HEY email branch ─────────────────────────────────────────────────
 
     const card = document.getElementById(cardId)
     // Inbox rows use id inbox_task_*; dataTransfer still uses task_<id>

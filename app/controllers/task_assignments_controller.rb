@@ -1,8 +1,9 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment ]
+  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment, :restore_hey_email ]
 
   def show
     @bc_comments = []
+    @hey_email_body = nil
     if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
       begin
         client = BasecampClient.new(current_user)
@@ -10,6 +11,9 @@ class TaskAssignmentsController < ApplicationController
       rescue StandardError
         @bc_comments = []
       end
+    end
+    if @task.hey_app_url.present?
+      @hey_email_body = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)&.snippet
     end
 
     respond_to do |format|
@@ -38,7 +42,9 @@ class TaskAssignmentsController < ApplicationController
   end
 
   def update
-    @task.update!(task_params)
+    permitted = task_params
+    permitted = permitted.except(:title) if @task.hey_app_url.present?
+    @task.update!(permitted)
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: turbo_stream.replace("task_#{@task.id}", partial: "shared/task_card", locals: { task: @task, compact: true })
@@ -48,9 +54,41 @@ class TaskAssignmentsController < ApplicationController
   end
 
   def destroy
+    plan_date = @task.day_plan&.date
+    week_start = Date.current.beginning_of_week(:monday)
+    was_sometime = @task.week_bucket == "sometime"
+    day_ctx = day_view_stream_context?
+
     @task.destroy!
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.remove("task_#{@task.id}") }
+      format.turbo_stream do
+        streams = [ turbo_stream.remove("task_#{@task.id}") ]
+
+        if plan_date
+          if day_ctx
+            streams << stream_replace_day_plan_tasks(plan_date)
+          else
+            plan = current_user.day_plans.find_by(date: plan_date)
+            streams << turbo_stream.replace("day_#{plan_date}",
+              partial: "weeks/day_column",
+              locals: {
+                date: plan_date,
+                tasks: current_user.task_assignments
+                         .for_week(plan_date.beginning_of_week(:monday))
+                         .where(day_plan: plan)
+                         .ordered,
+                events: []
+              })
+          end
+        elsif was_sometime
+          streams << turbo_stream.replace("sometime_row",
+            partial: "weeks/sometime_row",
+            locals: { tasks: current_user.task_assignments
+              .where(week_bucket: "sometime", week_start_date: week_start).ordered })
+        end
+
+        render turbo_stream: streams
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end
@@ -63,7 +101,8 @@ class TaskAssignmentsController < ApplicationController
     if params[:target_bucket] == "inbox"
       previous_date = @task.day_plan&.date
       source_date = params[:source_date].present? ? Date.parse(params[:source_date]) : nil
-      @task.update!(day_plan: nil, week_start_date: nil, week_bucket: "inbox", position: 0)
+      clear_hey_mirrored_todo_if_present!
+      @task.update!(day_plan: nil, week_start_date: nil, week_bucket: "inbox", position: 0, hey_mirrored_todo_id: nil)
 
       respond_to do |format|
         format.turbo_stream do
@@ -110,6 +149,10 @@ class TaskAssignmentsController < ApplicationController
         position: params[:position].to_i
       )
 
+      if from_inbox && @task.hey_app_url.present? && current_user.hey_connected? && !Rails.env.test?
+        SyncInboxSometimeTodoToHeyJob.perform_later(@task.id)
+      end
+
       sometime_tasks = current_user.task_assignments
         .where(week_bucket: "sometime", week_start_date: week_start)
         .ordered
@@ -129,11 +172,14 @@ class TaskAssignmentsController < ApplicationController
       target_date = Date.parse(params[:target_date])
       target_plan = current_user.day_plans.find_or_create_by!(date: target_date)
 
+      clear_hey_mirrored_todo_if_present! if @task.week_bucket == "sometime"
+
       @task.update!(
         day_plan: target_plan,
         week_start_date: target_date.beginning_of_week(:monday),
         week_bucket: "day",
-        position: params[:position].to_i
+        position: params[:position].to_i,
+        hey_mirrored_todo_id: nil
       )
 
       respond_to do |format|
@@ -199,7 +245,7 @@ class TaskAssignmentsController < ApplicationController
     rotation = params[:rotation]&.to_i
     plan = @task.day_plan
     @task.complete!(rotation: rotation)
-    WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey?
+    WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey? || @task.hey_mirrored_todo_id.present?
 
     respond_to do |format|
       format.turbo_stream do
@@ -260,6 +306,62 @@ class TaskAssignmentsController < ApplicationController
     end
   end
 
+  # Drag HEY-promoted task back to the HEY panel: restore inbox row, remove task.
+  def restore_hey_email
+    return head :unprocessable_entity unless @task.hey_app_url.present?
+
+    email = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)
+    return head :not_found unless email
+
+    week_start = Date.current.beginning_of_week(:monday)
+    day_ctx    = day_view_stream_context?
+    prev_date  = @task.day_plan&.date
+    was_sometime = @task.week_bucket == "sometime"
+    task_id = @task.id
+
+    ActiveRecord::Base.transaction do
+      email.update!(triaged_at: nil)
+      @task.destroy!
+    end
+
+    respond_to do |format|
+      format.turbo_stream do
+        streams = [ turbo_stream.remove("task_#{task_id}") ]
+
+        if prev_date
+          if day_ctx
+            streams << stream_replace_day_plan_tasks(prev_date)
+          else
+            plan = current_user.day_plans.find_by(date: prev_date)
+            streams << turbo_stream.replace("day_#{prev_date}",
+              partial: "weeks/day_column",
+              locals: {
+                date: prev_date,
+                tasks: current_user.task_assignments
+                         .for_week(prev_date.beginning_of_week(:monday))
+                         .where(day_plan: plan)
+                         .ordered,
+                events: []
+              })
+          end
+        elsif was_sometime
+          streams << turbo_stream.replace("sometime_row",
+            partial: "weeks/sometime_row",
+            locals: { tasks: current_user.task_assignments
+              .where(week_bucket: "sometime", week_start_date: week_start)
+              .ordered })
+        end
+
+        streams << turbo_stream.prepend("hey-inbox-list",
+          partial: "layouts/hey_inbox_row",
+          locals: { email: email.reload })
+
+        render turbo_stream: streams
+      end
+      format.html { redirect_back fallback_location: root_path }
+    end
+  end
+
   def timebox
     date = Date.parse(params[:date])
     hour = params[:hour].to_i
@@ -277,6 +379,12 @@ class TaskAssignmentsController < ApplicationController
     SyncTimeboxToHeyJob.perform_later(@task.id) if current_user.hey_connected?
 
     day_plan = current_user.day_plans.find_by(date: date)
+    tz = current_user.timezone
+    timeline_events = current_user.calendar_events
+      .for_date(date)
+      .chronological
+      .map { |e| e.to_timeline_hash(tz) }
+      .compact
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: turbo_stream.replace(
@@ -284,10 +392,11 @@ class TaskAssignmentsController < ApplicationController
           partial: "days/timeline",
           locals: {
             date: date,
-            events: [],
+            events: timeline_events,
             tasks: current_user.task_assignments
                      .where(day_plan: day_plan)
-                     .ordered
+                     .ordered,
+            timezone: tz
           }
         )
       end
@@ -296,6 +405,13 @@ class TaskAssignmentsController < ApplicationController
   end
 
   private
+
+  def clear_hey_mirrored_todo_if_present!
+    return if @task.hey_mirrored_todo_id.blank?
+    return unless current_user.hey_connected?
+
+    DeleteHeyMirroredTodoJob.perform_later(current_user.id, @task.hey_mirrored_todo_id)
+  end
 
   # Day view has no turbo-frame#day_* or #sometime_row; only #day_plan_tasks_DATE.
   def day_view_stream_context?

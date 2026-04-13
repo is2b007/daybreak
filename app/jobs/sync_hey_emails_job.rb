@@ -1,34 +1,51 @@
 class SyncHeyEmailsJob < ApplicationJob
   queue_as :sync
 
-  PER_FOLDER_CAP = 25
+  PER_FOLDER_CAP = 200
 
   FOLDER_FETCHERS = {
     imbox: :imbox,
     reply_later: :reply_later,
-    set_aside: :set_aside
+    set_aside: :set_aside,
+    feed: :feed,
+    paper_trail: :paper_trail
   }.freeze
 
-  def perform(user_id)
+  # folder: (optional String/Symbol) — when given, syncs only that one folder.
+  # Omit or pass nil to sync all folders (used by the scheduled background job).
+  def perform(user_id, folder: nil)
     user = User.find(user_id)
     return unless user.hey_connected?
 
     client = HeyClient.new(user)
+    fetchers = folder_fetchers_for(folder)
 
-    FOLDER_FETCHERS.each do |folder, method|
+    fetchers.each do |box_folder, method|
       postings = client.public_send(method)
       next unless postings.is_a?(Array)
 
       postings = postings.select { |p| triagable?(p) }.first(PER_FOLDER_CAP)
 
-      upsert(user, folder, postings)
-      prune_stale(user, folder, postings)
+      upsert(user, box_folder, postings)
+      prune_stale(user, box_folder, postings)
     end
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY email sync failed for user #{user_id}: #{e.message}")
   end
 
   private
+
+  # Returns the subset of FOLDER_FETCHERS to run.
+  # When +folder+ names a known folder, returns just that one pair.
+  # Otherwise returns all fetchers (full sync).
+  def folder_fetchers_for(folder)
+    key = folder.to_s.to_sym
+    if folder.present? && FOLDER_FETCHERS.key?(key)
+      { key => FOLDER_FETCHERS[key] }
+    else
+      FOLDER_FETCHERS
+    end
+  end
 
   # Only topics and bundles surface at the box level for triage.
   # Individual entries are replies within a thread and shouldn't appear here.
@@ -47,7 +64,8 @@ class SyncHeyEmailsJob < ApplicationJob
         sender_email: posting.dig("creator", "email_address"),
         subject: posting["name"].presence || "(no subject)",
         snippet: posting["summary"],
-        hey_url: posting["app_url"]
+        hey_url: posting["app_url"],
+        label: posting["label"] || posting.dig("creator", "label")
       }
 
       # parse_time handles bad/missing timestamps gracefully, preserving existing received_at if needed.

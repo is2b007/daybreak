@@ -1,5 +1,14 @@
 class SettingsController < ApplicationController
   def show
+    @hey_calendars = []
+    return unless current_user.hey_connected?
+
+    begin
+      data = HeyClient.new(current_user).calendars
+      @hey_calendars = data if data.is_a?(Array)
+    rescue HeyClient::AuthError
+      @hey_calendars = []
+    end
   end
 
   def update
@@ -19,6 +28,9 @@ class SettingsController < ApplicationController
   private
 
   def settings_params
-    params.require(:user).permit(:name, :stamp_choice, :timezone, :work_hours_target, :sundown_time, :theme)
+    params.require(:user).permit(
+      :name, :stamp_choice, :timezone, :work_hours_target, :sundown_time, :theme,
+      :hey_default_calendar_id
+    )
   end
 end

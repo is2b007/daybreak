@@ -15,6 +15,8 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     def imbox = @imbox_data
     def reply_later = @later_data
     def set_aside = @aside_data
+    def feed = []
+    def paper_trail = []
   end
 
   setup do
@@ -166,6 +168,8 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     def flaky.imbox; nil; end
     def flaky.reply_later; nil; end
     def flaky.set_aside; nil; end
+    def flaky.feed; nil; end
+    def flaky.paper_trail; nil; end
 
     with_hey_client(flaky) do
       SyncHeyEmailsJob.perform_now(@user.id)
@@ -210,5 +214,60 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     end
 
     assert_equal 0, @user.hey_emails.count
+  end
+
+  test "folder-scoped sync only fetches the requested folder" do
+    calls = []
+    imbox_posting = posting(501, subject: "Scoped imbox")
+    scoped = Object.new
+    %i[imbox reply_later set_aside feed paper_trail].each do |f|
+      local_f = f
+      scoped.define_singleton_method(f) do
+        calls << local_f
+        local_f == :imbox ? [ imbox_posting ] : []
+      end
+    end
+
+    with_hey_client(scoped) do
+      SyncHeyEmailsJob.perform_now(@user.id, folder: "imbox")
+    end
+
+    assert_equal [ :imbox ], calls, "should only call imbox, not other folders"
+    assert_equal 1, @user.hey_emails.imbox.count
+    assert_equal 0, @user.hey_emails.reply_later.count
+  end
+
+  test "folder-scoped sync with unknown folder falls back to full sync" do
+    calls = []
+    stub = StubHeyClient.new(
+      imbox: [ posting(601, subject: "Full sync imbox") ],
+      later: [ posting(602, subject: "Full sync later") ],
+      aside: []
+    )
+    original_imbox = stub.method(:imbox)
+    original_later = stub.method(:reply_later)
+    stub.define_singleton_method(:imbox) { calls << :imbox; original_imbox.call }
+    stub.define_singleton_method(:reply_later) { calls << :reply_later; original_later.call }
+
+    with_hey_client(stub) do
+      SyncHeyEmailsJob.perform_now(@user.id, folder: "nonexistent_folder")
+    end
+
+    assert_includes calls, :imbox
+    assert_includes calls, :reply_later
+  end
+
+  test "folder-scoped sync with nil folder performs full sync" do
+    calls = []
+    scoped = Object.new
+    %i[imbox reply_later set_aside feed paper_trail].each do |f|
+      scoped.define_singleton_method(f) { calls << f; [] }
+    end
+
+    with_hey_client(scoped) do
+      SyncHeyEmailsJob.perform_now(@user.id, folder: nil)
+    end
+
+    assert_equal SyncHeyEmailsJob::FOLDER_FETCHERS.keys.sort, calls.sort
   end
 end

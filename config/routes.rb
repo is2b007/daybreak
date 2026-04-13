@@ -13,17 +13,21 @@ Rails.application.routes.draw do
   get  "auth/basecamp/callback",  to: "sessions#create",  as: :auth_basecamp_callback
   delete "logout",                to: "sessions#destroy",  as: :logout
 
-  # HEY OAuth
-  get  "auth/hey",                to: "hey_connections#new",    as: :auth_hey
-  get  "auth/hey/callback",       to: "hey_connections#create", as: :auth_hey_callback
-  delete "auth/hey",              to: "hey_connections#destroy", as: :disconnect_hey
+  # HEY connection (token-based; PKCE OAuth kept as callback for potential future use)
+  get    "auth/hey",          to: "hey_connections#new",      as: :auth_hey
+  post   "auth/hey",          to: "hey_connections#create",   as: :connect_hey
+  get    "auth/hey/callback", to: "hey_connections#callback", as: :auth_hey_callback
+  delete "auth/hey",          to: "hey_connections#destroy",  as: :disconnect_hey
 
-  # HEY email triage
-  resource :triage, only: [ :show ], controller: "triage"
+  # HEY email actions (triage/dismiss from the right panel, plan via drag)
   resources :hey_emails, only: [] do
+    collection do
+      get :more
+    end
     member do
       patch :triage
       patch :dismiss
+      post  :plan
     end
   end
 
@@ -32,8 +36,10 @@ Rails.application.routes.draw do
     post :complete
   end
 
-  # Manual Basecamp sync
+  # Manual Basecamp sync + inbox pagination
   post "sync/basecamp", to: "sync#basecamp", as: :sync_basecamp
+  get  "sync/basecamp/more", to: "sync#basecamp_more", as: :sync_basecamp_more
+  post "sync/hey", to: "sync#hey", as: :sync_hey
 
   # Week view (home)
   root "weeks#show"
@@ -57,6 +63,14 @@ Rails.application.routes.draw do
       patch :complete
       patch :defer
       patch :timebox
+      patch :restore_hey_email
+    end
+  end
+
+  # HEY (and future) calendar events shown on the day timeline
+  resources :calendar_events, only: [ :update, :destroy ] do
+    member do
+      patch :slot
     end
   end
 
@@ -79,4 +93,7 @@ Rails.application.routes.draw do
 
   # Settings
   resource :settings, only: [ :show, :update ], controller: "settings"
+
+  # Proxies Basecamp profile photo (API requires Bearer token; <img> cannot send it).
+  get "profile/basecamp_avatar", to: "basecamp_avatars#show", as: :basecamp_avatar
 end

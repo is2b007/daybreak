@@ -1,10 +1,11 @@
 <%# locals: (task:, compact: false) %>
-<div class="task-card task-card--<%= task.source %> card--<%= task.size %> <%= 'task-card--completed' if task.completed? %>"
+<div class="task-card task-card--<%= task.hey_app_url.present? ? 'hey' : task.source %> card--<%= task.size %> <%= 'task-card--completed' if task.completed? %>"
      id="task_<%= task.id %>"
      draggable="true"
      data-controller="task-card"
      data-task-card-id-value="<%= task.id %>"
      data-task-card-completed-value="<%= task.completed? %>"
+     data-hey-email-task="<%= task.hey_app_url.present? %>"
      data-action="click->task-card#openModal dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
@@ -14,10 +15,8 @@
     <%= task.size.first.upcase %>
   </button>
 
-  <%# Title %>
   <div class="task-card__title"><%= task.title %></div>
 
-  <%# Bottom row: checkbox (left) + project label (right) %>
   <div class="task-card__bottom">
     <% if task.completed? %>
       <button class="task-card__check task-card__check--done"
@@ -39,22 +38,11 @@
         </svg>
       </button>
     <% end %>
-<<<<<<< HEAD
-    <% unless compact %>
-      <button class="size-badge"
-              data-action="click->task-card#cycleSize"
-              title="Click to change size">
-        <%= task.size.first.upcase %>
-      </button>
-    <% end %>
-  </div>
-=======
->>>>>>> cursor/collapsible-panels-and-week-topbar
 
     <div class="task-card__obj-dot" aria-hidden="true"></div>
 
     <div class="task-card__project-label">
-      <% if task.hey? %>
+      <% if task.hey? || task.hey_app_url.present? %>
         HEY Email
       <% elsif task.project_name.present? %>
         <%= task.project_name %>

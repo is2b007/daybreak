@@ -1,0 +1,155 @@
+<% content_for :title, "Connect HEY" %>
+<% content_for :full_screen, true %>
+
+<div class="onboarding">
+  <div class="connect-hey">
+    <div class="connect-hey__header">
+      <div class="connect-hey__logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </div>
+      <h1 class="connect-hey__title">Connect HEY</h1>
+      <p class="connect-hey__subtitle">
+        Install the official <code>hey</code> CLI once, grab a token, paste it here.
+        You need <strong>Go 1.26 or newer</strong> on your machine for every install path below.
+      </p>
+    </div>
+
+    <% if flash[:alert] %>
+      <div class="flash flash--alert connect-hey__flash"><%= flash[:alert] %></div>
+    <% end %>
+
+    <ol class="connect-hey__steps" data-controller="clipboard">
+
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">1</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Install the HEY CLI <span class="connect-hey__step-note">(skip if <code>hey</code> already works)</span></div>
+          <p class="connect-hey__step-hint connect-hey__step-hint--lead">
+            The old Homebrew formula (<code>brew install basecamp/hey/hey</code>) is dead — the tap repo was removed. HEY’s CLI is Go-based; you need <strong>Go 1.26+</strong>. Pick one path:
+          </p>
+
+          <div class="connect-hey__install-label">Recommended — macOS + Homebrew</div>
+          <div class="connect-hey__cmd-row connect-hey__cmd-row--multiline">
+            <code class="connect-hey__cmd connect-hey__cmd--multiline" id="cmd-macos-quick">brew install go
+go version   # must be 1.26+
+go install github.com/basecamp/hey-cli/cmd/hey@latest
+export PATH="$(go env GOPATH)/bin:$PATH"
+hey version</code>
+            <button type="button" class="connect-hey__copy-btn connect-hey__copy-btn--top" data-action="clipboard#copy" data-clipboard-source-param="cmd-macos-quick" title="Copy">
+              <span class="connect-hey__copy-icon" data-clipboard-target="icon" data-id="cmd-macos-quick">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="9" height="11" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/></svg>
+              </span>
+              <span class="connect-hey__copy-text" data-clipboard-target="label" data-id="cmd-macos-quick">Copy</span>
+            </button>
+          </div>
+          <p class="connect-hey__step-hint">Add the <code>export PATH=…</code> line to <code>~/.zshrc</code> so new terminals find <code>hey</code>.</p>
+
+          <div class="connect-hey__install-label">Already have Go 1.26+?</div>
+          <div class="connect-hey__cmd-row">
+            <code class="connect-hey__cmd" id="cmd-go-install">go install github.com/basecamp/hey-cli/cmd/hey@latest</code>
+            <button type="button" class="connect-hey__copy-btn" data-action="clipboard#copy" data-clipboard-source-param="cmd-go-install" title="Copy">
+              <span class="connect-hey__copy-icon" data-clipboard-target="icon" data-id="cmd-go-install">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="9" height="11" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/></svg>
+              </span>
+              <span class="connect-hey__copy-text" data-clipboard-target="label" data-id="cmd-go-install">Copy</span>
+            </button>
+          </div>
+          <p class="connect-hey__step-hint">Then <code>export PATH="$(go env GOPATH)/bin:$PATH"</code>. No Go? <a href="https://go.dev/dl/" class="connect-hey__link" target="_blank" rel="noopener">go.dev/dl</a>.</p>
+
+          <div class="connect-hey__install-label">No mise, no sudo — build in the repo folder</div>
+          <div class="connect-hey__cmd-row connect-hey__cmd-row--multiline">
+            <code class="connect-hey__cmd connect-hey__cmd--multiline" id="cmd-install-src">git clone https://github.com/basecamp/hey-cli.git
+cd hey-cli
+go build -o ./hey ./cmd/hey
+./hey version</code>
+            <button type="button" class="connect-hey__copy-btn connect-hey__copy-btn--top" data-action="clipboard#copy" data-clipboard-source-param="cmd-install-src" title="Copy">
+              <span class="connect-hey__copy-icon" data-clipboard-target="icon" data-id="cmd-install-src">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="9" height="11" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/></svg>
+              </span>
+              <span class="connect-hey__copy-text" data-clipboard-target="label" data-id="cmd-install-src">Copy</span>
+            </button>
+          </div>
+          <p class="connect-hey__step-hint">Use <code>./hey auth login</code> and <code>./hey auth token</code> from that directory, or move <code>./hey</code> onto your PATH.</p>
+
+          <details class="connect-hey__details">
+            <summary class="connect-hey__details-summary">Stuck? Common errors</summary>
+            <ul class="connect-hey__details-list">
+              <li><code>command not found: go</code> — Install Go from <a href="https://go.dev/dl/" class="connect-hey__link" target="_blank" rel="noopener">go.dev/dl</a> or run <code>brew install go</code>.</li>
+              <li><code>go.mod requires Go ≥1.26</code> — Upgrade Go (<code>brew upgrade go</code> or a newer installer).</li>
+              <li><code>hey: command not found</code> after <code>go install</code> — Run <code>export PATH="$(go env GOPATH)/bin:$PATH"</code> or use the <code>./hey</code> build path above.</li>
+              <li><code>command not found: mise</code> — Skip mise; use the blocks above instead.</li>
+            </ul>
+          </details>
+
+          <p class="connect-hey__step-hint">
+            <a href="https://github.com/basecamp/hey-cli#install" class="connect-hey__link" target="_blank" rel="noopener">hey-cli README</a> (upstream)
+          </p>
+        </div>
+      </li>
+
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">2</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Log in to your HEY account</div>
+          <div class="connect-hey__cmd-row">
+            <code class="connect-hey__cmd" id="cmd-login">hey auth login</code>
+            <button type="button" class="connect-hey__copy-btn" data-action="clipboard#copy" data-clipboard-source-param="cmd-login" title="Copy">
+              <span class="connect-hey__copy-icon" data-clipboard-target="icon" data-id="cmd-login">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="9" height="11" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/></svg>
+              </span>
+              <span class="connect-hey__copy-text" data-clipboard-target="label" data-id="cmd-login">Copy</span>
+            </button>
+          </div>
+          <p class="connect-hey__step-hint">Opens your browser — sign in with HEY. If you only built <code>./hey</code> in step 1, run <code>./hey auth login</code> from that folder instead.</p>
+        </div>
+      </li>
+
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">3</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Copy your token to the clipboard</div>
+          <div class="connect-hey__cmd-row">
+            <code class="connect-hey__cmd" id="cmd-token">hey auth token | pbcopy</code>
+            <button type="button" class="connect-hey__copy-btn" data-action="clipboard#copy" data-clipboard-source-param="cmd-token" title="Copy">
+              <span class="connect-hey__copy-icon" data-clipboard-target="icon" data-id="cmd-token">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="9" height="11" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/></svg>
+              </span>
+              <span class="connect-hey__copy-text" data-clipboard-target="label" data-id="cmd-token">Copy</span>
+            </button>
+          </div>
+          <p class="connect-hey__step-hint">On Linux use <code>hey auth token | xclip -selection clipboard</code>. With a local <code>./hey</code> binary: <code>./hey auth token | pbcopy</code>.</p>
+        </div>
+      </li>
+
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">4</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Paste your token here</div>
+          <%= form_with url: connect_hey_path, method: :post do |f| %>
+            <div class="connect-hey__paste-row">
+              <%= f.password_field :token,
+                    placeholder: "Paste token…",
+                    class: "form-input connect-hey__token-input",
+                    autocomplete: "off",
+                    required: true %>
+              <%= f.submit "Connect HEY",
+                    class: "btn btn--primary connect-hey__submit" %>
+            </div>
+          <% end %>
+        </div>
+      </li>
+
+    </ol>
+
+    <div class="connect-hey__footer">
+      <% if current_user.onboarded? %>
+        <%= link_to "← Back to settings", settings_path, class: "connect-hey__back" %>
+      <% else %>
+        <%= link_to "Skip for now →", onboarding_path, class: "connect-hey__back" %>
+      <% end %>
+    </div>
+  </div>
+</div>

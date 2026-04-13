@@ -27,20 +27,15 @@
 <%= form_with url: onboarding_path, method: :patch do |f| %>
   <%= f.hidden_field :step, value: 3 %>
   <div class="flex flex-col gap-3">
-    <% if HeyClient.configured? %>
-      <% if current_user.hey_connected? %>
-        <div class="text-center mb-2">
-          <span class="settings__connection-status settings__connection-status--connected"></span>
-          <span class="text-sm text-muted">HEY connected</span>
-        </div>
-        <%= f.submit "Continue", name: "connect_hey", value: "true", class: "btn btn--primary btn--large" %>
-      <% else %>
-        <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--primary btn--large" %>
-        <%= f.submit "Skip for now", name: "connect_hey", value: "false", class: "btn btn--ghost btn--large" %>
-      <% end %>
+    <% if current_user.hey_connected? %>
+      <div class="text-center mb-2">
+        <span class="settings__connection-status settings__connection-status--connected"></span>
+        <span class="text-sm text-muted">HEY connected</span>
+      </div>
+      <%= f.submit "Continue", name: "connect_hey", value: "true", class: "btn btn--primary btn--large" %>
     <% else %>
-      <%= f.submit "Skip for now", name: "connect_hey", value: "false", class: "btn btn--primary btn--large" %>
-      <p class="text-xs text-muted text-center">HEY support is on the way. You'll be able to connect from Settings.</p>
+      <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--primary btn--large" %>
+      <%= f.submit "Skip for now", name: "connect_hey", value: "false", class: "btn btn--ghost btn--large" %>
     <% end %>
   </div>
 <% end %>

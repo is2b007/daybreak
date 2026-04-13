@@ -5,7 +5,18 @@
      data-journal-editor-csrf-value="<%= form_authenticity_token %>">
   <div class="daily-log__head">
     <h2 class="daily-log__date"><%= date.strftime("%B %-d") %> <span class="jrnl-dow"><%= date.strftime("%a") %></span></h2>
-    <span class="jrnl-status" data-journal-editor-target="status"></span>
+    <div class="daily-log__head-meta">
+      <% if current_user.hey_connected? %>
+        <% if @journal_hey_synced %>
+          <span class="jrnl-hey-badge jrnl-hey-badge--synced" title="Last save matched HEY Journal">HEY Journal</span>
+        <% elsif @journal_entry.present? %>
+          <span class="jrnl-hey-badge jrnl-hey-badge--pending" title="Syncing to HEY or local edits not yet pushed">HEY Journal…</span>
+        <% else %>
+          <span class="jrnl-hey-badge jrnl-hey-badge--idle" title="HEY connected; journal syncs when you add an entry">HEY Journal</span>
+        <% end %>
+      <% end %>
+      <span class="jrnl-status" data-journal-editor-target="status"></span>
+    </div>
   </div>
 
   <div class="jrnl-body daily-log__scratchpad"

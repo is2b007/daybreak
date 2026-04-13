@@ -4,6 +4,8 @@ require "json"
 class BasecampClient
   BASE_AUTH_URL = "https://launchpad.37signals.com"
   BASE_API_URL = "https://3.basecampapi.com"
+  # Avatar GET may 302 to arbitrary CDNs; Bearer auth is only for these API hosts.
+  API_HOSTS_WITH_BEARER = %w[3.basecampapi.com 3.basecamp.com].freeze
 
   class AuthError < StandardError; end
   class RateLimitError < StandardError; end
@@ -110,6 +112,18 @@ class BasecampClient
     get("/schedules/#{schedule_id}/entries.json")
   end
 
+  def my_profile
+    get("/my/profile.json")
+  end
+
+  # Binary image for +url_string+ from +my_profile+ ["avatar_url"] (browser cannot send Bearer token).
+  def fetch_avatar_binary(url_string)
+    validate_basecamp_avatar_url!(url_string)
+    ensure_fresh_token!
+    uri = URI.parse(url_string)
+    fetch_avatar_http(uri, retrying: false)
+  end
+
   # Discovers schedule IDs from the user's projects via the project "dock".
   # Returns [{ project_id:, project_name:, schedule_id: }, ...]
   def schedules
@@ -145,6 +159,87 @@ class BasecampClient
   end
 
   private
+
+  def validate_basecamp_avatar_url!(url_string)
+    raise ArgumentError, "blank avatar URL" if url_string.blank?
+
+    uri = URI.parse(url_string)
+    path = uri.path.to_s.sub(%r{/\z}, "")
+    unless uri.scheme == "https" && API_HOSTS_WITH_BEARER.include?(uri.host) && path.match?(%r{/people/.+/avatar\z})
+      raise ArgumentError, "unsafe avatar URL"
+    end
+  end
+
+  # Avatars often 302 to a CDN (S3, CloudFront, etc.); only the API hop uses Bearer auth.
+  def fetch_avatar_http(uri, retrying: false, redirect_count: 0)
+    raise "Avatar redirect limit exceeded" if redirect_count > 5
+
+    req = Net::HTTP::Get.new(uri)
+    req["Authorization"] = "Bearer #{@user.basecamp_access_token}" if API_HOSTS_WITH_BEARER.include?(uri.host)
+    req["User-Agent"] = self.class.user_agent
+
+    # Match #request — Net::HTTP.new(uri.host) can mishandle TLS compared to Net::HTTP.start.
+    response = Net::HTTP.start(
+      uri.hostname,
+      uri.port,
+      use_ssl: uri.scheme == "https",
+      open_timeout: 10,
+      read_timeout: 30
+    ) { |http| http.request(req) }
+    code = response.code.to_i
+
+    if code >= 200 && code < 300
+      body = response.body
+      raise "empty avatar body" if body.blank?
+
+      body = body.dup.force_encoding(Encoding::BINARY)
+      ct = response["Content-Type"].to_s.split(";").first.strip.presence || "image/jpeg"
+      if ct.present? && !ct.downcase.start_with?("image/")
+        Rails.logger.warn("Basecamp avatar unexpected Content-Type: #{ct} (bytes=#{body.bytesize})")
+      end
+      [ body, ct ]
+    elsif code == 401
+      raise AuthError, "Session expired" if retrying
+      unless API_HOSTS_WITH_BEARER.include?(uri.host)
+        raise "Avatar fetch failed: 401 on #{uri.host}"
+      end
+
+      perform_token_refresh!
+      fetch_avatar_http(uri, retrying: true, redirect_count: redirect_count)
+    elsif avatar_redirect_code?(code)
+      loc = response["location"]
+      raise "avatar redirect without Location" if loc.blank?
+
+      next_uri = URI.join(uri.to_s, loc)
+      validate_avatar_redirect_uri!(next_uri)
+      fetch_avatar_http(next_uri, retrying: retrying, redirect_count: redirect_count + 1)
+    else
+      raise "Avatar fetch failed: #{response.code}"
+    end
+  end
+
+  def avatar_redirect_code?(code)
+    code >= 300 && code < 400 && code != 304 && code != 305
+  end
+
+  # Any https host except obvious SSRF targets (CDN hostnames vary by region).
+  def validate_avatar_redirect_uri!(uri)
+    unless uri.scheme == "https" && uri.host.present?
+      raise ArgumentError, "unsafe avatar redirect"
+    end
+
+    if blocked_avatar_redirect_host?(uri.host)
+      raise ArgumentError, "unsafe avatar redirect host: #{uri.host}"
+    end
+  end
+
+  def blocked_avatar_redirect_host?(host)
+    h = host.downcase
+    return true if %w[localhost].include?(h) || h.end_with?(".local") || h.end_with?(".localhost")
+    return true if h.match?(/\A127\.\d+\.\d+\.\d+\z/) || h.match?(/\A0\.\d+\.\d+\.\d+\z/)
+
+    false
+  end
 
   def get(path, params = {})
     request(:get, path, params)

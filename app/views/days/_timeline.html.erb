@@ -1,5 +1,9 @@
-<%# locals: (date:, events:, tasks:) %>
-<div class="timeline" id="timeline_<%= date %>" data-controller="timeline" data-timeline-date-value="<%= date %>">
+<%# locals: (date:, events:, tasks:, timezone: nil) %>
+<% tz = timezone.presence || current_user.timezone %>
+<% px = TimelineLayout::PX_PER_HOUR %>
+<% h0 = TimelineLayout::HOUR_START %>
+<% h1 = TimelineLayout::HOUR_END + 1 %>
+<div class="timeline" id="timeline_<%= date %>" data-controller="timeline" data-timeline-date-value="<%= date %>" style="--timeline-hour: <%= px %>px;">
   <% if events.empty? && tasks.none?(&:timeboxed?) %>
     <div class="timeline__hint">
       Drag a task onto the timeline to give it a time.
@@ -11,26 +15,51 @@
          data-hour="<%= hour %>"
          data-action="dragover->timeline#dragover drop->timeline#drop dragenter->timeline#dragenter dragleave->timeline#dragleave">
       <span class="timeline__hour-label"><%= hour < 12 ? "#{hour}am" : (hour == 12 ? "12pm" : "#{hour - 12}pm") %></span>
+      <div class="timeline__hour-content" aria-hidden="true"></div>
     </div>
   <% end %>
 
-  <%# Render calendar events as positioned blocks %>
   <% events.each do |event| %>
-    <% if event[:start_hour] %>
-      <div class="timeline__block timeline__block--<%= event[:source] || 'calendar' %>"
-           style="top: <%= (event[:start_hour] - 7) * 60 %>px; height: <%= (event[:duration_hours] || 1) * 60 %>px;">
+    <% next unless event[:top_px] && event[:height_px] %>
+    <% hey_timeline = event[:source].to_s == "hey" && event[:id].present? %>
+    <div class="timeline__block timeline__block--<%= event[:source] || 'calendar' %> <%= 'timeline__block--allday' if event[:all_day] %>"
+         style="top: <%= event[:top_px] %>px; height: <%= event[:height_px] %>px;"
+         <% if hey_timeline %>
+         data-controller="hey-timeline-event"
+         data-hey-timeline-event-update-url-value="<%= calendar_event_path(event[:id]) %>"
+         data-hey-timeline-event-starts-at-value="<%= event[:starts_at_iso] %>"
+         data-hey-timeline-event-ends-at-value="<%= event[:ends_at_iso] %>"
+         <% if !event[:all_day] %>
+         data-action="pointerdown->hey-timeline-event#pointerdown"
+         <% end %>
+         <% end %>>
+      <% if hey_timeline %>
+        <div class="hey-timeline-event__row">
+          <div class="hey-timeline-event__body">
+            <strong><%= event[:title] %></strong>
+            <span class="text-xs"><%= event[:time] %></span>
+          </div>
+          <button type="button" class="hey-timeline-event__delete" data-action="hey-timeline-event#delete" aria-label="Remove HEY event">×</button>
+        </div>
+      <% else %>
         <strong><%= event[:title] %></strong>
         <span class="text-xs"><%= event[:time] %></span>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
   <% end %>
 
-  <%# Render timeboxed tasks %>
   <% tasks.select(&:timeboxed?).each do |task| %>
-    <% start = task.start_hour_in(current_user.timezone) %>
-    <% next if start.nil? || start < 7 || start > 21 %>
+    <% start_dec = task.start_hour_in(tz) %>
+    <% next if start_dec.nil? %>
+    <% end_dec = start_dec + task.duration_hours %>
+    <% next if end_dec <= h0 || start_dec >= h1 %>
+    <% top_dec = [ [ start_dec, h0 ].max, h1 ].min %>
+    <% bottom_dec = [ [ end_dec, h0 ].max, h1 ].min %>
+    <% bottom_dec = [ bottom_dec, top_dec + 0.25 ].max %>
+    <% top_px = ((top_dec - h0) * px).round %>
+    <% height_px = [ ((bottom_dec - top_dec) * px).round, (px / 4.0).round ].max %>
     <div class="timeline__block timeline__block--task <%= 'timeline__block--completed' if task.completed? %>"
-         style="top: <%= (start - 7) * 60 %>px; height: <%= task.duration_hours * 60 %>px;">
+         style="top: <%= top_px %>px; height: <%= height_px %>px;">
       <strong><%= task.title %></strong>
       <span class="text-xs"><%= task.planned_duration_minutes || 60 %>m</span>
     </div>

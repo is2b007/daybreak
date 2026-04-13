@@ -104,15 +104,18 @@ class RitualsController < ApplicationController
   def load_today_planning_context
     @tasks = @day_plan.task_assignments.ordered
     @calendar_events = fetch_calendar_events_for_date(@date)
+    @calendar_chips = current_user.calendar_events.for_date(@date).chronological.map(&:to_view_hash)
     @plan_mode = params[:plan].present?
     @tab = "tasks"
   end
 
   def fetch_calendar_events_for_date(date)
+    tz = current_user.timezone
     current_user.calendar_events
       .for_date(date)
       .chronological
-      .map(&:to_view_hash)
+      .map { |e| e.to_timeline_hash(tz) }
+      .compact
   end
 
   def load_yesterday_wins

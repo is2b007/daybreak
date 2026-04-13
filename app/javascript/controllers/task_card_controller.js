@@ -81,9 +81,4 @@ export default class extends Controller {
     const interactive = event.target.closest("button, a, input, select, textarea, label, [role='button']")
     return !!interactive
   }
-
-  #isInteractiveClick(event) {
-    const interactive = event.target.closest("button, a, input, select, textarea, label, [role='button']")
-    return !!interactive
-  }
 }

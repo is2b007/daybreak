@@ -1,0 +1,4 @@
+<%# locals: (tasks:) %>
+<% tasks.each do |task| %>
+  <%= render "layouts/inbox_item", task: task %>
+<% end %>

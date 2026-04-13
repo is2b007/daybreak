@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_180000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
     t.text "description"
     t.datetime "ends_at"
     t.string "external_id", null: false
+    t.string "hey_calendar_id"
     t.string "location"
     t.integer "source", null: false
     t.datetime "starts_at", null: false
@@ -56,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
     t.string "external_id", null: false
     t.integer "folder", null: false
     t.string "hey_url"
+    t.string "label"
     t.datetime "received_at", null: false
     t.string "sender_email"
     t.string "sender_name"
@@ -74,6 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.date "date", null: false
+    t.string "last_pushed_to_hey_digest"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["user_id", "date"], name: "index_local_journal_entries_on_user_id_and_date", unique: true
@@ -117,7 +120,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
     t.integer "day_plan_id"
     t.text "description"
     t.string "external_id"
+    t.string "hey_app_url"
     t.string "hey_calendar_event_id"
+    t.string "hey_mirrored_todo_id"
     t.integer "planned_duration_minutes"
     t.datetime "planned_start_at"
     t.integer "position"
@@ -133,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
     t.date "week_start_date"
     t.index ["day_plan_id"], name: "index_task_assignments_on_day_plan_id"
     t.index ["external_id", "source"], name: "index_task_assignments_on_external_id_and_source"
+    t.index ["hey_mirrored_todo_id"], name: "index_task_assignments_on_hey_mirrored_todo_id"
     t.index ["user_id", "day_plan_id"], name: "index_task_assignments_on_user_id_and_day_plan_id"
     t.index ["user_id", "planned_start_at"], name: "index_task_assignments_on_user_id_and_planned_start_at"
     t.index ["user_id", "week_start_date"], name: "index_task_assignments_on_user_id_and_week_start_date"
@@ -142,12 +148,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_09_071423) do
   create_table "users", force: :cascade do |t|
     t.string "basecamp_access_token"
     t.string "basecamp_account_id"
+    t.string "basecamp_avatar_url"
     t.string "basecamp_refresh_token"
     t.datetime "basecamp_token_expires_at"
     t.string "basecamp_uid", null: false
     t.datetime "created_at", null: false
     t.string "email"
     t.string "hey_access_token"
+    t.string "hey_default_calendar_id"
     t.string "hey_refresh_token"
     t.datetime "hey_token_expires_at"
     t.date "last_open_date"

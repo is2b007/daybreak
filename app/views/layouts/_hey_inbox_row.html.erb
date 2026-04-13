@@ -1,0 +1,22 @@
+<%# locals: (email:) %>
+<div class="r-item hey-r-item"
+     id="hey_email_<%= email.id %>"
+     draggable="true"
+     data-hey-inbox-panel-target="item"
+     data-hey-email-id="<%= email.id %>"
+     data-folder="<%= email.folder %>"
+     data-label="<%= h(email.label.to_s) %>"
+     data-action="dragstart->hey-inbox-panel#dragstart dragend->hey-inbox-panel#dragend"
+     title="Drag to plan">
+  <div class="r-item-body">
+    <div class="r-item-name"><%= truncate(email.subject, length: 72) %></div>
+    <div class="r-item-project"><%= email.sender_name.presence || email.sender_email || "Unknown sender" %></div>
+    <div class="r-item-drag-hint">
+      <svg width="12" height="10" viewBox="0 0 12 10" fill="currentColor" aria-hidden="true">
+        <rect y="0" width="12" height="1.5" rx="0.75"/>
+        <rect y="4" width="12" height="1.5" rx="0.75"/>
+        <rect y="8" width="12" height="1.5" rx="0.75"/>
+      </svg>
+    </div>
+  </div>
+</div>

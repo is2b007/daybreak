@@ -1,5 +1,9 @@
 <%# locals: (event:) %>
-<div class="calendar-event calendar-event--<%= event[:source] || 'basecamp' %>">
+<% chip_payload = { id: event[:id], source: event[:source].to_s, all_day: event[:all_day], starts_at_iso: event[:starts_at_iso], ends_at_iso: event[:ends_at_iso] }.compact.to_json %>
+<div class="calendar-event calendar-event--<%= event[:source] || 'basecamp' %>"
+     draggable="true"
+     data-controller="calendar-event-chip"
+     data-calendar-event-chip-payload-value="<%= ERB::Util.html_escape(chip_payload) %>">
   <span class="calendar-event__time"><%= event[:time] %></span>
   <span><%= event[:title] %></span>
 </div>

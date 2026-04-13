@@ -4,6 +4,10 @@ class LocalJournalEntry < ApplicationRecord
   validates :date, presence: true, uniqueness: { scope: :user_id }
   validates :content, presence: true
 
+  def content_digest
+    Digest::SHA256.hexdigest(content.to_s)
+  end
+
   # HEY journal API expects plain text. Rich-text HTML from the scratchpad editor
   # and plain text from rituals both pass through here before sync.
   def plain_text_for_hey
@@ -27,5 +31,15 @@ class LocalJournalEntry < ApplicationRecord
       .gsub(/\n[ \t\f\v]+/, "\n")
       .gsub(/\n{3,}/, "\n\n")
       .strip
+  end
+
+  # HEY journal is plain text; map into simple HTML for the contenteditable scratchpad.
+  def self.html_from_plain_text(plain)
+    str = plain.to_s.strip
+    return "" if str.blank?
+
+    escaped = ERB::Util.html_escape(str)
+    parts = escaped.split(/\n{2,}/)
+    parts.map { |p| "<p>#{p.gsub("\n", '<br>')}</p>" }.join
   end
 end
