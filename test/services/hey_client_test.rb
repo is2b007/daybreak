@@ -28,7 +28,6 @@ class HeyClientTest < ActiveSupport::TestCase
       captured[:body]
     )
   end
-
   test "calendars returns [] for nil API response" do
     client = HeyClient.new(@user)
     client.define_singleton_method(:get) { |_path| nil }
