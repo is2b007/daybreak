@@ -69,6 +69,11 @@
         <h2 class="day-view__tasks-title"><%= local_assigns[:timeline_heading] %></h2>
       </div>
     <% end %>
+    <% if current_user.hey_connected? && current_user.hey_default_calendar_id.blank? && tab != "log" %>
+      <div class="day-view__timeline-notice" role="status">
+        Pick a <strong>default HEY calendar</strong> in <%= link_to "Settings", settings_path %> so timeboxed tasks sync to HEY Calendar.
+      </div>
+    <% end %>
     <% chips = local_assigns[:calendar_chips] || [] %>
     <% if tab != "log" && chips.any? %>
       <div class="day-view__calendar-chips" aria-label="Calendar events for this day">

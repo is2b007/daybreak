@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_180001) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
+    t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.text "description"
     t.datetime "ends_at"

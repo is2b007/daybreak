@@ -6,6 +6,8 @@ class BasecampClient
   BASE_API_URL = "https://3.basecampapi.com"
   # Avatar GET may 302 to arbitrary CDNs; Bearer auth is only for these API hosts.
   API_HOSTS_WITH_BEARER = %w[3.basecampapi.com 3.basecamp.com].freeze
+  # my/profile sometimes returns a direct CDN URL (no API hop); still same /people/…/avatar path shape.
+  BASECAMP_AVATAR_STATIC_HOST_SUFFIX = ".basecamp-static.com".freeze
 
   class AuthError < StandardError; end
   class RateLimitError < StandardError; end
@@ -165,7 +167,10 @@ class BasecampClient
 
     uri = URI.parse(url_string)
     path = uri.path.to_s.sub(%r{/\z}, "")
-    unless uri.scheme == "https" && API_HOSTS_WITH_BEARER.include?(uri.host) && path.match?(%r{/people/.+/avatar\z})
+    host = uri.host.to_s
+    allowed_host = API_HOSTS_WITH_BEARER.include?(host) ||
+      host.downcase.end_with?(BASECAMP_AVATAR_STATIC_HOST_SUFFIX)
+    unless uri.scheme == "https" && allowed_host && path.match?(%r{/people/.+/avatar\z})
       raise ArgumentError, "unsafe avatar URL"
     end
   end

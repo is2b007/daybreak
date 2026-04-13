@@ -5,7 +5,7 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
     @user = users(:one)
   end
 
-  test "to_timeline_hash all_day has small strip at top" do
+  test "to_timeline_hash all_day has strip metadata without fractional hours" do
     e = CalendarEvent.new(
       user: @user,
       external_id: "a1",
@@ -17,10 +17,41 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
     )
     h = e.to_timeline_hash("America/Los_Angeles")
     assert h[:all_day]
-    assert h[:top_px] < 10
-    assert h[:height_px].positive?
+    refute h.key?(:top_offset_hours)
     assert h.key?(:id)
     assert h.key?(:starts_at_iso)
+  end
+
+  test "to_timeline_hash returns fractional hours for timed events" do
+    la = Time.find_zone("America/Los_Angeles")
+    e = CalendarEvent.new(
+      user: @user,
+      external_id: "a3",
+      source: :hey,
+      title: "Lunch",
+      starts_at: la.parse("2026-04-13 12:30"),
+      ends_at: la.parse("2026-04-13 13:30"),
+      all_day: false
+    )
+    h = e.to_timeline_hash("America/Los_Angeles")
+    assert h[:top_offset_hours].positive?
+    assert h[:height_hours].positive?
+  end
+
+  test "to_timeline_hash marks completed HEY events" do
+    la = Time.find_zone("America/Los_Angeles")
+    e = CalendarEvent.new(
+      user: @user,
+      external_id: "a4",
+      source: :hey,
+      title: "Done",
+      starts_at: la.parse("2026-04-13 12:00"),
+      ends_at: la.parse("2026-04-13 13:00"),
+      all_day: false,
+      completed_at: la.parse("2026-04-13 11:00")
+    )
+    h = e.to_timeline_hash("America/Los_Angeles")
+    assert h[:completed]
   end
 
   test "to_timeline_hash returns nil for events entirely before timeline" do

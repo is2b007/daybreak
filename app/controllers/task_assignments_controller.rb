@@ -58,6 +58,7 @@ class TaskAssignmentsController < ApplicationController
     week_start = Date.current.beginning_of_week(:monday)
     was_sometime = @task.week_bucket == "sometime"
     day_ctx = day_view_stream_context?
+    had_timebox = @task.timeboxed?
 
     @task.destroy!
     respond_to do |format|
@@ -67,6 +68,7 @@ class TaskAssignmentsController < ApplicationController
         if plan_date
           if day_ctx
             streams << stream_replace_day_plan_tasks(plan_date)
+            streams << stream_replace_day_timeline(plan_date) if had_timebox
           else
             plan = current_user.day_plans.find_by(date: plan_date)
             streams << turbo_stream.replace("day_#{plan_date}",
@@ -189,10 +191,14 @@ class TaskAssignmentsController < ApplicationController
           if day_ctx
             streams << turbo_stream.remove("inbox_task_#{@task.id}") if from_inbox
             streams << stream_replace_day_plan_tasks(target_date)
+            streams << stream_replace_day_timeline(target_date)
 
             if params[:source_date].present?
               source_date = Date.parse(params[:source_date])
-              streams << stream_replace_day_plan_tasks(source_date) if source_date != target_date
+              if source_date != target_date
+                streams << stream_replace_day_plan_tasks(source_date)
+                streams << stream_replace_day_timeline(source_date)
+              end
             end
           else
             streams << turbo_stream.replace("day_#{target_date}",
@@ -262,6 +268,7 @@ class TaskAssignmentsController < ApplicationController
             partial: "days/day_plan_tasks",
             locals: { date: plan.date, tasks: tasks }
           )
+          streams << stream_replace_day_timeline(plan.date) if day_view_stream_context?
         end
         render turbo_stream: streams
       end
@@ -270,6 +277,8 @@ class TaskAssignmentsController < ApplicationController
   end
 
   def defer
+    prev_date = @task.day_plan&.date
+    was_timeboxed = @task.timeboxed?
     case params[:defer_to]
     when "tomorrow"
       @task.defer_to_tomorrow!
@@ -278,7 +287,13 @@ class TaskAssignmentsController < ApplicationController
     end
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.remove("task_#{@task.id}") }
+      format.turbo_stream do
+        streams = [ turbo_stream.remove("task_#{@task.id}") ]
+        if prev_date && was_timeboxed && day_view_stream_context?
+          streams << stream_replace_day_timeline(prev_date)
+        end
+        render turbo_stream: streams
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end
@@ -317,6 +332,7 @@ class TaskAssignmentsController < ApplicationController
     day_ctx    = day_view_stream_context?
     prev_date  = @task.day_plan&.date
     was_sometime = @task.week_bucket == "sometime"
+    had_timebox = @task.timeboxed?
     task_id = @task.id
 
     ActiveRecord::Base.transaction do
@@ -331,6 +347,7 @@ class TaskAssignmentsController < ApplicationController
         if prev_date
           if day_ctx
             streams << stream_replace_day_plan_tasks(prev_date)
+            streams << stream_replace_day_timeline(prev_date) if had_timebox
           else
             plan = current_user.day_plans.find_by(date: prev_date)
             streams << turbo_stream.replace("day_#{prev_date}",
@@ -364,20 +381,63 @@ class TaskAssignmentsController < ApplicationController
 
   def timebox
     date = Date.parse(params[:date])
+
+    if ActiveModel::Type::Boolean.new.cast(params[:clear])
+      clear_timebox_for!(date)
+      return
+    end
+
     hour = params[:hour].to_i
     minute = params[:minute].to_i
 
     starts_at = ActiveSupport::TimeZone[current_user.timezone].local(
       date.year, date.month, date.day, hour, minute
     )
+    starts_at = TimelineLayout.snap_zoned_time_to_grid(starts_at, current_user.timezone)
+
+    duration = TimelineLayout.snap_duration_minutes(
+      params[:duration_minutes].presence&.to_i || @task.planned_duration_minutes || 60
+    )
 
     @task.update!(
       planned_start_at: starts_at,
-      planned_duration_minutes: @task.planned_duration_minutes || 60
+      planned_duration_minutes: duration
     )
 
     SyncTimeboxToHeyJob.perform_later(@task.id) if current_user.hey_connected?
 
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: stream_replace_day_timeline(date) }
+      format.html { redirect_to day_path(date) }
+    end
+  end
+
+  private
+
+  def clear_timebox_for!(date)
+    if current_user.hey_connected? && @task.hey_calendar_event_id.present?
+      cid = current_user.hey_default_calendar_id.presence
+      if cid.present?
+        begin
+          HeyClient.new(current_user).delete_calendar_event(
+            calendar_id: cid,
+            event_id: @task.hey_calendar_event_id
+          )
+        rescue StandardError => e
+          Rails.logger.warn("clear timebox HEY delete failed: #{e.message}")
+        end
+      end
+    end
+
+    @task.update!(planned_start_at: nil, hey_calendar_event_id: nil)
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: stream_replace_day_timeline(date) }
+      format.html { redirect_to day_path(date) }
+    end
+  end
+
+  def stream_replace_day_timeline(date)
     day_plan = current_user.day_plans.find_by(date: date)
     tz = current_user.timezone
     timeline_events = current_user.calendar_events
@@ -385,26 +445,17 @@ class TaskAssignmentsController < ApplicationController
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.replace(
-          "timeline_#{date}",
-          partial: "days/timeline",
-          locals: {
-            date: date,
-            events: timeline_events,
-            tasks: current_user.task_assignments
-                     .where(day_plan: day_plan)
-                     .ordered,
-            timezone: tz
-          }
-        )
-      end
-      format.html { redirect_to day_path(date) }
-    end
+    turbo_stream.replace(
+      "timeline_#{date}",
+      partial: "days/timeline",
+      locals: {
+        date: date,
+        events: timeline_events,
+        tasks: day_plan ? day_plan.task_assignments.ordered : [],
+        timezone: tz
+      }
+    )
   end
-
-  private
 
   def clear_hey_mirrored_todo_if_present!
     return if @task.hey_mirrored_todo_id.blank?

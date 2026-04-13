@@ -84,11 +84,14 @@ class SyncCalendarEventsJob < ApplicationJob
       external_id: evt["id"].to_s,
       source: :hey
     )
+    completed_raw = evt["completed_at"] || evt["completedAt"]
+
     attrs = {
       title: evt["title"] || evt["summary"] || evt["name"] || "(untitled)",
       starts_at: starts_at,
       ends_at: ends_raw.present? ? Time.parse(ends_raw.to_s) : nil,
-      all_day: all_day
+      all_day: all_day,
+      completed_at: completed_raw.present? ? Time.zone.parse(completed_raw.to_s) : nil
     }
     attrs[:hey_calendar_id] = evt["hey_calendar_id"].to_s if evt["hey_calendar_id"].present?
     event.update!(attrs)

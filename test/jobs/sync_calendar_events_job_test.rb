@@ -61,4 +61,31 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
     assert_equal "Standup", ev.title
     assert_equal "owner-7", ev.hey_calendar_id
   end
+
+  test "upserts hey events with completed_at from flattened recordings" do
+    client = Object.new
+    client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
+      [
+        {
+          "id" => "9001",
+          "hey_calendar_id" => "owner-99",
+          "title" => "From recordings",
+          "starts_at" => "2026-04-14T17:00:00Z",
+          "ends_at" => "2026-04-14T18:00:00Z",
+          "all_day" => false,
+          "completed_at" => "2026-04-14T16:00:00Z"
+        }
+      ]
+    end
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    ev = @user.calendar_events.find_by(external_id: "9001", source: :hey)
+    assert ev
+    assert_equal "From recordings", ev.title
+    assert_equal "owner-99", ev.hey_calendar_id
+    assert ev.completed_at.present?
+  end
 end

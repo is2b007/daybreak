@@ -97,23 +97,26 @@ class HeyClient
     get("/calendars.json")
   end
 
-  def calendar_recordings(calendar_id)
-    get("/calendars/#{calendar_id}/recordings.json")
+  def calendar_recordings(calendar_id, starts_on: nil, ends_on: nil)
+    query = if starts_on.present? && ends_on.present?
+      "?#{URI.encode_www_form(starts_on: starts_on, ends_on: ends_on)}"
+    else
+      ""
+    end
+    get("/calendars/#{calendar_id}/recordings.json#{query}")
   end
 
-  # Returns calendar events from all of the user's calendars within a date window.
+  # Returns timed calendar recordings from all calendars in a date window.
+  # Uses GET /calendars/:id/recordings.json (same as hey-cli GetCalendarRecordings), not events.json.
   # `starts_on` / `ends_on` should be ISO8601 date strings (e.g. "2026-04-08").
   def calendar_events(starts_on:, ends_on:)
     calendars_data = calendars
     return [] unless calendars_data.is_a?(Array)
 
     calendars_data.flat_map do |cal|
-      query = URI.encode_www_form(starts_on: starts_on, ends_on: ends_on)
-      events = get("/calendars/#{cal['id']}/events.json?#{query}")
-      next [] unless events.is_a?(Array)
-
       cid = cal["id"].to_s
-      events.map { |e| e.is_a?(Hash) ? e.merge("hey_calendar_id" => cid) : e }
+      raw = calendar_recordings(cid, starts_on: starts_on, ends_on: ends_on)
+      flatten_calendar_recordings(raw, calendar_id: cid)
     end
   end
 
@@ -148,7 +151,42 @@ class HeyClient
     delete("/calendar/todos/#{todo_id}/completions.json")
   end
 
-  # Calendar events — read via /calendars/:id/events.json (Daybreak sync).
+  # Normalizes GetCalendarRecordings JSON (map of type => arrays) into flat event-like hashes.
+  def flatten_calendar_recordings(raw, calendar_id:)
+    rows = []
+    return rows if raw.blank?
+
+    append_recordings = lambda do |list|
+      return unless list.is_a?(Array)
+
+      list.each do |rec|
+        next unless rec.is_a?(Hash)
+
+        rec = rec.stringify_keys
+        starts = rec["starts_at"] || rec["startsAt"]
+        next if starts.blank?
+
+        rid = rec["id"]
+        next if rid.blank?
+
+        rows << rec.merge(
+          "id" => rid.to_s,
+          "hey_calendar_id" => calendar_id
+        )
+      end
+    end
+
+    case raw
+    when Hash
+      raw.each_value { |list| append_recordings.call(list) }
+    when Array
+      append_recordings.call(raw)
+    end
+
+    rows.uniq { |r| [ r["hey_calendar_id"], r["id"] ] }
+  end
+
+  # Calendar events — mutations use /calendars/:id/events/:id.json (HEY web app shape).
   # hey-sdk OpenAPI exposes ListCalendars + GetCalendarRecordings, not event PATCH/DELETE;
   # these mutations use the same /calendars/:id/events/:id.json shape as the HEY web app.
   def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil)

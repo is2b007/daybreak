@@ -1616,6 +1616,20 @@ select.form-input {
   margin-bottom: 4px;
 }
 
+.task-card__dedicated {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+  line-height: 1.35;
+  padding-right: 34px;
+  margin-top: -2px;
+  margin-bottom: 4px;
+}
+
+.task-card--completed .task-card__dedicated {
+  color: var(--muted);
+}
+
 /* Bottom row: checkbox left, project label right */
 .task-card__bottom {
   display: flex;
@@ -2317,19 +2331,23 @@ select.form-input {
    -------------------------------------------------------------------------- */
 .timeline {
   --timeline-hour: 52px;
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   background: var(--bg);
   position: relative;
   border-left: none;
   padding-left: 0;
-  min-height: calc(var(--timeline-hour) * 15);
 }
 
 .timeline__hour {
   display: grid;
   grid-template-columns: 38px 1fr;
-  min-height: var(--timeline-hour);
+  flex: 1 1 0;
+  min-height: 0;
   position: relative;
 }
 
@@ -2409,7 +2427,11 @@ select.form-input {
 }
 
 .timeline__block--completed {
-  opacity: 0.35;
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.timeline__block--completed strong {
   text-decoration: line-through;
 }
 
@@ -2453,6 +2475,98 @@ select.form-input {
 
 .hey-timeline-event__delete:hover {
   background: rgba(255, 255, 255, 0.35);
+}
+
+.hey-timeline-event__row--main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Resizable events: padding lives on the inner row so resize hits sit on the card’s true top/bottom edge */
+.timeline__block:has(> .hey-timeline-event__resize) {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.timeline__block:has(> .hey-timeline-event__resize) .hey-timeline-event__row--main {
+  padding: 10px 10px 10px;
+  box-sizing: border-box;
+}
+
+/* Resize targets: flush to top/bottom of the block; hairline = that border; show on hover / drag only */
+.timeline__block--hey .hey-timeline-event__resize,
+.timeline__block--task .hey-timeline-event__resize {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  cursor: ns-resize;
+  background: transparent;
+  color: inherit;
+  font-size: 0;
+  z-index: 2;
+}
+
+.hey-timeline-event__resize--top {
+  top: 0;
+}
+
+.hey-timeline-event__resize--bottom {
+  bottom: 0;
+}
+
+.hey-timeline-event__resize::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.hey-timeline-event__resize--top::after {
+  top: 0;
+}
+
+.hey-timeline-event__resize--bottom::after {
+  bottom: 0;
+}
+
+.timeline__block--hey:hover .hey-timeline-event__resize::after,
+.timeline__block--task:hover .hey-timeline-event__resize::after,
+.timeline__block--hey:focus-within .hey-timeline-event__resize::after,
+.timeline__block--task:focus-within .hey-timeline-event__resize::after,
+.timeline__block--dragging .hey-timeline-event__resize::after {
+  opacity: 0.22;
+}
+
+.hey-timeline-event__resize:hover::after,
+.hey-timeline-event__resize:focus-visible::after {
+  opacity: 0.5;
+}
+
+.day-view__timeline-notice {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--hey-bg);
+  color: var(--hey-text);
+}
+
+.day-view__timeline-notice a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
 }
 
 /* Current time indicator */

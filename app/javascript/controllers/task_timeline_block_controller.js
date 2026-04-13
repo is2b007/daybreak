@@ -1,26 +1,25 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 import {
   snapMinutesFromMidnight,
   snapDurationMinutes,
-  MIN_DURATION_MINUTES,
-  wallFromMinutesSinceMidnight
+  MIN_DURATION_MINUTES
 } from "timeline_snap"
 
 const HOUR_START = 7
 
 export default class extends Controller {
   static values = {
-    updateUrl: String,
-    startsAt: String,
-    endsAt: String,
-    date: String
+    assignmentId: Number,
+    date: String,
+    duration: { type: Number, default: 60 }
   }
 
   connect() {
     this._onMove = this._move.bind(this)
     this._onUpDoc = this._finishPointer.bind(this)
     this._dragging = false
-    this._mode = null // "move" | "resize-top" | "resize-bottom"
+    this._mode = null
     this.element.style.touchAction = "none"
   }
 
@@ -31,8 +30,7 @@ export default class extends Controller {
   pointerdown(event) {
     if (event.target.closest(".hey-timeline-event__delete")) return
     if (event.target.closest(".hey-timeline-event__resize")) return
-    if (this.element.classList.contains("timeline__block--allday")) return
-
+    if (event.target.closest(".task-timeline-block__clear")) return
     event.preventDefault()
     this._beginDrag(event, "move")
   }
@@ -58,9 +56,6 @@ export default class extends Controller {
 
     this._initialTopRel = blockRect.top - tlRect.top
     this._initialHeight = blockRect.height
-
-    this._startStartMs = Date.parse(this.startsAtValue)
-    this._startEndMs = Date.parse(this.endsAtValue)
 
     this.element.style.top = `${this._initialTopRel}px`
     this.element.style.height = `${this._initialHeight}px`
@@ -126,59 +121,47 @@ export default class extends Controller {
     const startDec = HOUR_START + relTop / pxPerHour
     const endDec = HOUR_START + (relTop + relH) / pxPerHour
 
-    const dateStr = this.dateValue || this._dateFromStartsAt()
-    if (!dateStr || Number.isNaN(this._startStartMs) || Number.isNaN(this._startEndMs)) {
-      this._revertLayout()
-      return
-    }
-
     let startMinFromMidnight = snapMinutesFromMidnight(Math.round(startDec * 60))
     let endMinFromMidnight = snapMinutesFromMidnight(Math.round(endDec * 60))
     if (endMinFromMidnight <= startMinFromMidnight) {
       endMinFromMidnight = startMinFromMidnight + MIN_DURATION_MINUTES
     }
-    const dur = snapDurationMinutes(endMinFromMidnight - startMinFromMidnight)
-    endMinFromMidnight = startMinFromMidnight + dur
 
-    const [y, m, d] = dateStr.split("-").map(Number)
-    const newStart = wallFromMinutesSinceMidnight(y, m, d, startMinFromMidnight)
-    const newEnd = wallFromMinutesSinceMidnight(y, m, d, endMinFromMidnight)
+    const durationMinutes = snapDurationMinutes(endMinFromMidnight - startMinFromMidnight)
+    endMinFromMidnight = startMinFromMidnight + durationMinutes
 
-    if (!newStart || !newEnd || newEnd <= newStart) {
-      this._revertLayout()
-      return
-    }
+    const hour = Math.floor(startMinFromMidnight / 60) % 24
+    const minute = startMinFromMidnight % 60
 
-    const token = document.querySelector("meta[name='csrf-token']")?.content
-    const res = await fetch(this.updateUrlValue, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "X-CSRF-Token": token || ""
-      },
-      body: JSON.stringify({
-        starts_at: newStart.toISOString(),
-        ends_at: newEnd.toISOString()
-      })
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+    const body = new URLSearchParams({
+      date: this.dateValue,
+      hour: String(hour),
+      minute: String(minute),
+      duration_minutes: String(durationMinutes)
     })
 
-    if (!res.ok) this._revertLayout()
+    const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
+      method: "PATCH",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "text/vnd.turbo-stream.html"
+      },
+      body
+    })
+
+    if (res.ok) {
+      const html = await res.text()
+      if (html) Turbo.renderStreamMessage(html)
+    } else {
+      this._revertLayout()
+    }
   }
 
   _revertLayout() {
     this.element.style.top = ""
     this.element.style.height = ""
-  }
-
-  _dateFromStartsAt() {
-    const s = Date.parse(this.startsAtValue)
-    if (Number.isNaN(s)) return ""
-    const dt = new Date(s)
-    const y = dt.getFullYear()
-    const mo = String(dt.getMonth() + 1).padStart(2, "0")
-    const da = String(dt.getDate()).padStart(2, "0")
-    return `${y}-${mo}-${da}`
   }
 
   _readPxPerHour(timelineEl) {
@@ -192,22 +175,29 @@ export default class extends Controller {
     document.removeEventListener("pointercancel", this._onUpDoc)
   }
 
-  async delete(event) {
+  async clear(event) {
     event.preventDefault()
     event.stopPropagation()
-    if (!window.confirm("Remove this calendar event from HEY and Daybreak?")) return
+    if (!window.confirm("Remove this time from the timeline?")) return
 
-    const token = document.querySelector("meta[name='csrf-token']")?.content
-    const res = await fetch(this.updateUrlValue, {
-      method: "DELETE",
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
+    const body = new URLSearchParams({ date: this.dateValue, clear: "1" })
+
+    const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
+      method: "PATCH",
       headers: {
-        Accept: "application/json",
-        "X-CSRF-Token": token || ""
-      }
+        "X-CSRF-Token": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "text/vnd.turbo-stream.html"
+      },
+      body
     })
 
-    if (!res.ok) {
-      window.alert("Could not delete the event. Try again.")
+    if (res.ok) {
+      const html = await res.text()
+      if (html) Turbo.renderStreamMessage(html)
+    } else {
+      window.alert("Could not clear the timebox.")
     }
   }
 }

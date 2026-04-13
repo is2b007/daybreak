@@ -16,6 +16,9 @@
   </button>
 
   <div class="task-card__title"><%= task.title %></div>
+  <% if task.timeboxed? %>
+    <div class="task-card__dedicated"><%= TimelineLayout.format_duration_hm(task.planned_duration_minutes || 60) %> on timeline</div>
+  <% end %>
 
   <div class="task-card__bottom">
     <% if task.completed? %>

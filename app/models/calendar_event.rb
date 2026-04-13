@@ -41,17 +41,16 @@ class CalendarEvent < ApplicationRecord
 
   # Attributes for the day timeline (positioned blocks). Returns nil when the event
   # does not overlap the rendered window (7am–after 9pm column).
+  # Positions use hours × var(--timeline-hour) so the grid can stretch with the column.
   def to_timeline_hash(tz = user.timezone)
-    px = TimelineLayout::PX_PER_HOUR
     h0 = TimelineLayout::HOUR_START
     h1 = TimelineLayout::HOUR_END + 1 # end of 9pm slot (22:00)
 
-    base = { source: source, title: title, time: time_label, all_day: all_day }
+    completed_flag = hey? && completed_at.present?
+    base = { source: source, title: title, time: time_label, all_day: all_day, completed: completed_flag }
 
     if all_day
       return base.merge(
-        top_px: 2,
-        height_px: (px / 2.0).round,
         id: id,
         external_id: external_id,
         hey_calendar_id: hey_calendar_id,
@@ -71,12 +70,19 @@ class CalendarEvent < ApplicationRecord
     bottom_dec = [ [ end_dec, h0 ].max, h1 ].min
     bottom_dec = [ bottom_dec, top_dec + 0.25 ].max
 
-    top_px = ((top_dec - h0) * px).round
-    height_px = [ ((bottom_dec - top_dec) * px).round, (px / 4.0).round ].max
+    top_offset_hours = (top_dec - h0).round(4)
+    height_hours = [ (bottom_dec - top_dec).round(4), 0.25 ].max
+
+    dur_mins = if ends_at
+      ((ends_at - starts_at) / 1.minute).round.clamp(1, 24 * 60)
+    else
+      60
+    end
 
     base.merge(
-      top_px: top_px,
-      height_px: height_px,
+      top_offset_hours: top_offset_hours,
+      height_hours: height_hours,
+      duration_label: TimelineLayout.format_duration_hm(dur_mins),
       id: id,
       external_id: external_id,
       hey_calendar_id: hey_calendar_id,

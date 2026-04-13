@@ -54,6 +54,9 @@ class SyncTimeboxToHeyJob < ApplicationJob
     return if new_id.blank?
 
     task.update!(hey_calendar_event_id: new_id)
+
+    d = task.planned_start_at.in_time_zone(user.timezone).to_date
+    TimelineBroadcaster.replace_for_day!(user, d)
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY timebox sync failed for task #{task_assignment_id}: #{e.message}")
   end

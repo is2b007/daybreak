@@ -61,6 +61,10 @@ class CalendarEventsController < ApplicationController
   private
 
   def apply_hey_calendar_update!(starts:, ends:, title:)
+    starts = TimelineLayout.snap_zoned_time_to_grid(starts, current_user.timezone)
+    ends = TimelineLayout.snap_zoned_time_to_grid(ends, current_user.timezone)
+    ends = starts + 15.minutes if ends <= starts
+
     cid = @event.hey_calendar_id.presence || current_user.hey_default_calendar_id
     return head :unprocessable_entity if cid.blank?
 
