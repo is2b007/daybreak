@@ -101,7 +101,7 @@ class HeyEmailsController < ApplicationController
     end
 
     if params[:target_bucket] == "sometime" && current_user.hey_connected? && !Rails.env.test?
-      SyncInboxSometimeTodoToHeyJob.perform_later(task.id)
+      SyncSometimeTodoToHeyJob.perform_later(task.id)
     end
 
     respond_to do |format|
@@ -131,7 +131,7 @@ class HeyEmailsController < ApplicationController
                          .for_week(target_date.beginning_of_week(:monday))
                          .where(day_plan: task.day_plan)
                          .ordered,
-                events: []
+                events: day_column_calendar_events_for(current_user, target_date)
               })
           end
         end

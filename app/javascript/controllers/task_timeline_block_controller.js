@@ -47,14 +47,17 @@ export default class extends Controller {
     const tl = this.element.closest(".timeline")
     if (!tl) return
 
+    this._preDragStyleAttr = this.element.getAttribute("style") || ""
+
     const tlRect = tl.getBoundingClientRect()
     const blockRect = this.element.getBoundingClientRect()
     this._mode = mode
     this._dragging = true
+    this._pointerMoves = 0
     this._pointerStartY = event.clientY
     this._pxPerHour = this._readPxPerHour(tl)
 
-    this._initialTopRel = blockRect.top - tlRect.top
+    this._initialTopRel = tl.scrollTop + (blockRect.top - tlRect.top)
     this._initialHeight = blockRect.height
 
     this.element.style.top = `${this._initialTopRel}px`
@@ -68,6 +71,7 @@ export default class extends Controller {
 
   _move(event) {
     if (!this._dragging) return
+    this._pointerMoves += 1
     const dy = event.clientY - this._pointerStartY
     const minH = Math.max(this._pxPerHour * 0.25, 12)
 
@@ -109,13 +113,20 @@ export default class extends Controller {
     this.element.classList.remove("timeline__block--dragging")
     document.removeEventListener("pointermove", this._onMove)
 
+    const residualDy =
+      event && event.clientY != null ? Math.abs(event.clientY - this._pointerStartY) : 0
+    if (this._pointerMoves === 0 && residualDy < 5) {
+      this._revertLayout()
+      return
+    }
+
     const tl = this.element.closest(".timeline")
     if (!tl) return
 
     const pxPerHour = this._readPxPerHour(tl)
     const tlRect = tl.getBoundingClientRect()
     const br = this.element.getBoundingClientRect()
-    const relTop = br.top - tlRect.top
+    const relTop = tl.scrollTop + (br.top - tlRect.top)
     const relH = br.height
 
     const startDec = HOUR_START + relTop / pxPerHour
@@ -160,8 +171,12 @@ export default class extends Controller {
   }
 
   _revertLayout() {
-    this.element.style.top = ""
-    this.element.style.height = ""
+    if (this._preDragStyleAttr != null) {
+      this.element.setAttribute("style", this._preDragStyleAttr)
+    } else {
+      this.element.style.top = ""
+      this.element.style.height = ""
+    }
   }
 
   _readPxPerHour(timelineEl) {

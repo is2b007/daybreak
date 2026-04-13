@@ -19,7 +19,7 @@ class SyncJournalJobTest < ActiveJob::TestCase
     HeyClient.define_singleton_method(:new, original)
   end
 
-  test "writes scratchpad plain text first then day log section" do
+  test "writes scratchpad HTML first then day log section as HTML" do
     @user.local_journal_entries.create!(
       date: @date,
       content: "<p>Scratch <strong>line</strong></p>"
@@ -41,7 +41,11 @@ class SyncJournalJobTest < ActiveJob::TestCase
 
     assert captured
     assert_equal @date.to_s, captured[0]
-    assert_match(/\AScratch line\n\n---\nDay log\n\n/m, captured[1])
+    body = captured[1]
+    assert_includes body, "Scratch <strong>line</strong>"
+    assert_includes body, "Day log"
+    assert_includes body, "Logged item"
+    assert_includes body, "<p>"
 
     row = @user.local_journal_entries.find_by(date: @date)
     assert_equal row.content_digest, row.reload.last_pushed_to_hey_digest

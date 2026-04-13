@@ -106,7 +106,7 @@
           <%= f.text_area :description,
                 class: "form-input modal__description",
                 rows: 3,
-                placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Basecamp description" : "Add a description…"),
+                placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Add notes, links, or anything people should know…" : "Add a description…"),
                 data: { action: "blur->auto-save#save" } %>
         </div>
 

@@ -1,15 +1,41 @@
 class CalendarEvent < ApplicationRecord
   belongs_to :user
 
-  enum :source, { basecamp: 0, hey: 1 }
+  # daybreak = timed block mirrored in Daybreak only when HEY OAuth cannot create a remote calendar event.
+  enum :source, { basecamp: 0, hey: 1, daybreak: 2 }
+
+  def self.daybreak_timebox_external_id(task_assignment_id)
+    "daybreak-tbox-#{task_assignment_id}"
+  end
+
+  def self.destroy_daybreak_timebox_mirror!(user, task_assignment_id)
+    user.calendar_events.find_by(
+      external_id: daybreak_timebox_external_id(task_assignment_id),
+      source: :daybreak
+    )&.destroy!
+  end
+
+  def timeline_block?
+    hey? || daybreak?
+  end
 
   validates :external_id, :title, :starts_at, presence: true
 
   scope :for_date, ->(date) { where(starts_at: date.beginning_of_day..date.end_of_day) }
+  # Daybreak = local timebox mirror only; it already renders on the hourly timeline, not the chip row.
+  scope :for_day_chip_strip, -> { where.not(source: :daybreak) }
+
+  # Top chip row: hide redundant HEY all-day pills when a timed HEY/daybreak block exists with the same title.
+  def self.day_view_chip_records(user, date)
+    day = user.calendar_events.for_date(date).for_day_chip_strip.chronological.to_a
+    timed_titles = user.calendar_events.for_date(date).where(all_day: false, source: [ :hey, :daybreak ]).map { |e| e.title.to_s.strip.downcase }.to_set
+    day.reject { |e| e.all_day && e.hey? && timed_titles.include?(e.title.to_s.strip.downcase) }
+  end
   scope :for_week, ->(week_start) {
     where(starts_at: week_start.beginning_of_day..(week_start + 6.days).end_of_day)
   }
   scope :chronological, -> { order(:starts_at) }
+  scope :pinned_to_week_board, -> { where(show_on_week_board: true) }
 
   def time_label
     return "All day" if all_day
@@ -34,6 +60,7 @@ class CalendarEvent < ApplicationRecord
       all_day: all_day,
       start_hour: start_hour,
       duration_hours: duration_hours,
+      external_id: external_id,
       starts_at_iso: starts_at.iso8601,
       ends_at_iso: (ends_at || (starts_at + 1.hour)).iso8601
     }
@@ -54,6 +81,7 @@ class CalendarEvent < ApplicationRecord
         id: id,
         external_id: external_id,
         hey_calendar_id: hey_calendar_id,
+        source: source,
         starts_at_iso: starts_at.iso8601,
         ends_at_iso: (ends_at || starts_at.end_of_day).iso8601
       )
@@ -86,6 +114,7 @@ class CalendarEvent < ApplicationRecord
       id: id,
       external_id: external_id,
       hey_calendar_id: hey_calendar_id,
+      source: source,
       starts_at_iso: starts_at.iso8601,
       ends_at_iso: (ends_at || (starts_at + 1.hour)).iso8601
     )

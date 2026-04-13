@@ -1608,7 +1608,7 @@ select.form-input {
 /* Title — right-pad so text never slides under the badge */
 .task-card__title {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text);
   line-height: 1.4;
   word-break: break-word;
@@ -1960,15 +1960,50 @@ select.form-input {
 
 /* Calendar event chips */
 .calendar-event {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 9px;
   font-weight: 600;
+  border-left: none;
+  min-width: 0;
+}
+
+.calendar-event__title {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-left: none;
+}
+
+.calendar-event__pin {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.calendar-event__pin:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.calendar-event.is-pinned-to-week .calendar-event__pin {
+  opacity: 0.55;
+}
+
+.timeline__block .calendar-event__pin {
+  margin-left: 2px;
 }
 
 .calendar-event--basecamp {
@@ -1976,7 +2011,8 @@ select.form-input {
   color: var(--bc-text);
 }
 
-.calendar-event--hey {
+.calendar-event--hey,
+.calendar-event--daybreak {
   background: var(--hey-bg);
   color: var(--hey-text);
 }
@@ -2060,7 +2096,7 @@ select.form-input {
 .sometime-row__tasks .task-card__title {
   order: 2;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2171,7 +2207,6 @@ select.form-input {
 
 .day-view__tasks-header {
   padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 
@@ -2411,7 +2446,8 @@ select.form-input {
   z-index: 1;
 }
 
-.timeline__block--hey {
+.timeline__block--hey,
+.timeline__block--daybreak {
   background: var(--hey-bg);
   color: var(--hey-text);
   border-left: 3px solid var(--hey);
@@ -2496,6 +2532,7 @@ select.form-input {
 
 /* Resize targets: flush to top/bottom of the block; hairline = that border; show on hover / drag only */
 .timeline__block--hey .hey-timeline-event__resize,
+.timeline__block--daybreak .hey-timeline-event__resize,
 .timeline__block--task .hey-timeline-event__resize {
   position: absolute;
   left: 0;
@@ -2541,8 +2578,10 @@ select.form-input {
 }
 
 .timeline__block--hey:hover .hey-timeline-event__resize::after,
+.timeline__block--daybreak:hover .hey-timeline-event__resize::after,
 .timeline__block--task:hover .hey-timeline-event__resize::after,
 .timeline__block--hey:focus-within .hey-timeline-event__resize::after,
+.timeline__block--daybreak:focus-within .hey-timeline-event__resize::after,
 .timeline__block--task:focus-within .hey-timeline-event__resize::after,
 .timeline__block--dragging .hey-timeline-event__resize::after {
   opacity: 0.22;
@@ -4126,6 +4165,25 @@ select.form-input {
   padding: var(--space-3) 0;
 }
 
+.settings__row--stacked {
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.settings__row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings__row-body .settings__connection {
+  align-self: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .settings__row-label {
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -4340,7 +4398,7 @@ select.form-input {
   cursor: pointer;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
@@ -4349,6 +4407,11 @@ select.form-input {
   font-weight: 700;
   line-height: 1;
   user-select: none;
+}
+
+.modal__menu-btn:focus,
+.modal__menu-btn:focus-visible {
+  outline: none;
 }
 
 .modal__menu-btn::-webkit-details-marker {

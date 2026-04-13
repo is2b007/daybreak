@@ -1,9 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 import {
   snapMinutesFromMidnight,
   snapDurationMinutes,
-  MIN_DURATION_MINUTES,
-  wallFromMinutesSinceMidnight
+  MIN_DURATION_MINUTES
 } from "timeline_snap"
 
 const HOUR_START = 7
@@ -49,14 +49,18 @@ export default class extends Controller {
     const tl = this.element.closest(".timeline")
     if (!tl) return
 
+    this._preDragStyleAttr = this.element.getAttribute("style") || ""
+
     const tlRect = tl.getBoundingClientRect()
     const blockRect = this.element.getBoundingClientRect()
     this._mode = mode
     this._dragging = true
+    this._pointerMoves = 0
     this._pointerStartY = event.clientY
     this._pxPerHour = this._readPxPerHour(tl)
 
-    this._initialTopRel = blockRect.top - tlRect.top
+    // Content-space Y: viewport delta misses scrollTop on overflow-y timelines.
+    this._initialTopRel = tl.scrollTop + (blockRect.top - tlRect.top)
     this._initialHeight = blockRect.height
 
     this._startStartMs = Date.parse(this.startsAtValue)
@@ -73,6 +77,7 @@ export default class extends Controller {
 
   _move(event) {
     if (!this._dragging) return
+    this._pointerMoves += 1
     const dy = event.clientY - this._pointerStartY
     const minH = Math.max(this._pxPerHour * 0.25, 12)
 
@@ -114,13 +119,21 @@ export default class extends Controller {
     this.element.classList.remove("timeline__block--dragging")
     document.removeEventListener("pointermove", this._onMove)
 
+    const residualDy =
+      event && event.clientY != null ? Math.abs(event.clientY - this._pointerStartY) : 0
+    if (this._pointerMoves === 0 && residualDy < 5) {
+      this._revertLayout()
+      return
+    }
+
     const tl = this.element.closest(".timeline")
     if (!tl) return
 
     const pxPerHour = this._readPxPerHour(tl)
     const tlRect = tl.getBoundingClientRect()
     const br = this.element.getBoundingClientRect()
-    const relTop = br.top - tlRect.top
+    const relTopViewport = br.top - tlRect.top
+    const relTop = tl.scrollTop + relTopViewport
     const relH = br.height
 
     const startDec = HOUR_START + relTop / pxPerHour
@@ -137,38 +150,40 @@ export default class extends Controller {
     if (endMinFromMidnight <= startMinFromMidnight) {
       endMinFromMidnight = startMinFromMidnight + MIN_DURATION_MINUTES
     }
-    const dur = snapDurationMinutes(endMinFromMidnight - startMinFromMidnight)
-    endMinFromMidnight = startMinFromMidnight + dur
-
-    const [y, m, d] = dateStr.split("-").map(Number)
-    const newStart = wallFromMinutesSinceMidnight(y, m, d, startMinFromMidnight)
-    const newEnd = wallFromMinutesSinceMidnight(y, m, d, endMinFromMidnight)
-
-    if (!newStart || !newEnd || newEnd <= newStart) {
-      this._revertLayout()
-      return
-    }
+    const durationMinutes = snapDurationMinutes(endMinFromMidnight - startMinFromMidnight)
+    endMinFromMidnight = startMinFromMidnight + durationMinutes
 
     const token = document.querySelector("meta[name='csrf-token']")?.content
     const res = await fetch(this.updateUrlValue, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+        Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
         "X-CSRF-Token": token || ""
       },
       body: JSON.stringify({
-        starts_at: newStart.toISOString(),
-        ends_at: newEnd.toISOString()
+        date: dateStr,
+        start_minutes_from_midnight: startMinFromMidnight,
+        duration_minutes: durationMinutes
       })
     })
 
-    if (!res.ok) this._revertLayout()
+    const txt = await res.text()
+
+    if (res.ok) {
+      if (txt) Turbo.renderStreamMessage(txt)
+      return
+    }
+    this._revertLayout()
   }
 
   _revertLayout() {
-    this.element.style.top = ""
-    this.element.style.height = ""
+    if (this._preDragStyleAttr != null) {
+      this.element.setAttribute("style", this._preDragStyleAttr)
+    } else {
+      this.element.style.top = ""
+      this.element.style.height = ""
+    }
   }
 
   _dateFromStartsAt() {
@@ -201,12 +216,15 @@ export default class extends Controller {
     const res = await fetch(this.updateUrlValue, {
       method: "DELETE",
       headers: {
-        Accept: "application/json",
+        Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
         "X-CSRF-Token": token || ""
       }
     })
 
-    if (!res.ok) {
+    const txt = await res.text()
+    if (res.ok) {
+      if (txt) Turbo.renderStreamMessage(txt)
+    } else {
       window.alert("Could not delete the event. Try again.")
     }
   }

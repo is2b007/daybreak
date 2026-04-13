@@ -6,7 +6,7 @@ class DaysController < ApplicationController
     @completed_tasks = @tasks.completed
     @pending_tasks = @tasks.incomplete
     @calendar_events = fetch_calendar_events
-    @calendar_chips = current_user.calendar_events.for_date(@date).chronological.map(&:to_view_hash)
+    @calendar_chips = CalendarEvent.day_view_chip_records(current_user, @date).map(&:to_view_hash)
     @daily_log = current_user.daily_logs.find_or_initialize_by(date: @date)
     @log_entries = @daily_log.persisted? ? @daily_log.log_entries.order(:logged_at) : []
     @journal_entry = current_user.local_journal_entries.find_by(date: @date)
@@ -39,5 +39,6 @@ class DaysController < ApplicationController
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact
+      .reject { |h| h[:all_day] }
   end
 end

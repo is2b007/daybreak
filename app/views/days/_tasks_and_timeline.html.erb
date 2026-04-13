@@ -67,11 +67,10 @@
     <% if local_assigns[:timeline_heading].present? %>
       <div class="day-view__timeline-column-head">
         <h2 class="day-view__tasks-title"><%= local_assigns[:timeline_heading] %></h2>
-      </div>
-    <% end %>
-    <% if current_user.hey_connected? && current_user.hey_default_calendar_id.blank? && tab != "log" %>
-      <div class="day-view__timeline-notice" role="status">
-        Pick a <strong>default HEY calendar</strong> in <%= link_to "Settings", settings_path %> so timeboxed tasks sync to HEY Calendar.
+        <% if local_assigns[:sunrise_actions] && tab != "log" %>
+          <% sp = local_assigns[:sunrise_plan_param] %>
+          <%= button_to "Add calendar to this week", ritual_morning_add_week_events_path, method: :post, params: (sp.present? ? { plan: sp } : {}), class: "btn btn--secondary btn--small mt-2", form: { data: { turbo_frame: "_top" } } %>
+        <% end %>
       </div>
     <% end %>
     <% chips = local_assigns[:calendar_chips] || [] %>

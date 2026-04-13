@@ -1,6 +1,6 @@
 require "test_helper"
 
-class SyncInboxSometimeTodoToHeyJobTest < ActiveJob::TestCase
+class SyncSometimeTodoToHeyJobTest < ActiveJob::TestCase
   parallelize(workers: 1)
 
   setup do
@@ -13,8 +13,7 @@ class SyncInboxSometimeTodoToHeyJobTest < ActiveJob::TestCase
     week_start = Date.new(2026, 4, 13).beginning_of_week(:monday)
     @task = @user.task_assignments.create!(
       source: :local,
-      title: "From inbox",
-      hey_app_url: "https://app.hey.com/threads/1",
+      title: "Sometime task",
       week_start_date: week_start,
       week_bucket: "sometime",
       size: :medium,
@@ -38,7 +37,7 @@ class SyncInboxSometimeTodoToHeyJobTest < ActiveJob::TestCase
     end
 
     with_hey_client(client) do
-      SyncInboxSometimeTodoToHeyJob.perform_now(@task.id)
+      SyncSometimeTodoToHeyJob.perform_now(@task.id)
     end
 
     assert_equal "todo-remote-1", @task.reload.hey_mirrored_todo_id
@@ -52,23 +51,29 @@ class SyncInboxSometimeTodoToHeyJobTest < ActiveJob::TestCase
     client.define_singleton_method(:create_todo) { |**_| called = true }
 
     with_hey_client(client) do
-      SyncInboxSometimeTodoToHeyJob.perform_now(@task.id)
+      SyncSometimeTodoToHeyJob.perform_now(@task.id)
     end
 
     assert_equal false, called
   end
 
-  test "skips without hey_app_url" do
+  test "creates todo without hey_app_url using week end anchor date" do
     @task.update_column(:hey_app_url, nil)
 
-    called = false
+    captured = nil
     client = Object.new
-    client.define_singleton_method(:create_todo) { |**_| called = true }
-
-    with_hey_client(client) do
-      SyncInboxSometimeTodoToHeyJob.perform_now(@task.id)
+    client.define_singleton_method(:create_todo) do |**kw|
+      captured = kw
+      { "id" => "todo-remote-2" }
     end
 
-    assert_equal false, called
+    with_hey_client(client) do
+      SyncSometimeTodoToHeyJob.perform_now(@task.id)
+    end
+
+    assert captured
+    assert_equal "Sometime task", captured[:title]
+    assert_equal "2026-04-19", captured[:starts_at]
+    assert_equal "todo-remote-2", @task.reload.hey_mirrored_todo_id
   end
 end

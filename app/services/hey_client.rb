@@ -93,8 +93,10 @@ class HeyClient
 
   # Calendar
 
+  # HEY returns CalendarListPayload: { "calendars" => [ { "calendar" => { "id", "name", ... } } ] }
+  # (same shape hey-cli unwraps in internal/cmd/sdk.go). Bare arrays are still accepted for tests.
   def calendars
-    get("/calendars.json")
+    normalize_calendars_list(get("/calendars.json"))
   end
 
   def calendar_recordings(calendar_id, starts_on: nil, ends_on: nil)
@@ -120,12 +122,35 @@ class HeyClient
     end
   end
 
-  # Todos — aligned with hey-sdk CalendarTodosService.Create:
-  # POST /calendar/todos.json, body { "calendar_todo" => { "title", "starts_at" } }.
-  # Generated hey-sdk client has no calendar_id on Create; reschedule is delete + create.
+  # HEY calendar id for timed events (timebox mirror, HEY event PATCH): explicit default in Settings,
+  # else personal calendar (hey-cli findPersonalCalendarID).
+  def calendar_id_for_timed_writes
+    return @__calendar_id_timed if instance_variable_defined?(:@__calendar_id_timed)
+
+    explicit = @user.hey_default_calendar_id.presence
+    return @__calendar_id_timed = explicit if explicit.present?
+
+    list = calendars
+    @__calendar_id_timed = personal_calendar_id(list)&.to_s.presence
+  end
+
+  # Todos — list path matches hey-cli (`hey todo list`): personal calendar recordings, type Calendar::Todo.
+  # POST /calendar/todos.json is for create (see #create_todo); not used for listing.
 
   def todos
-    get("/calendar/todos.json")
+    cals = calendars
+    return [] unless cals.is_a?(Array)
+
+    cal_id = personal_calendar_id(cals)
+    if cal_id.blank?
+      Rails.logger.warn("HeyClient#todos: no personal calendar in HEY list for user #{@user.id}")
+      return []
+    end
+
+    starts_on = 2.years.ago.to_date.iso8601
+    ends_on = 1.year.from_now.to_date.iso8601
+    raw = calendar_recordings(cal_id.to_s, starts_on: starts_on, ends_on: ends_on)
+    recordings_calendar_todos(raw)
   end
 
   # +starts_at+ may be Time or Date; serialized as ISO8601 (hey-sdk OpenAPI: date or time string).
@@ -186,9 +211,9 @@ class HeyClient
     rows.uniq { |r| [ r["hey_calendar_id"], r["id"] ] }
   end
 
-  # Calendar events — mutations use /calendars/:id/events/:id.json (HEY web app shape).
-  # hey-sdk OpenAPI exposes ListCalendars + GetCalendarRecordings, not event PATCH/DELETE;
-  # these mutations use the same /calendars/:id/events/:id.json shape as the HEY web app.
+  # Synced HEY calendar rows (drag/resize/delete in Daybreak): JSON under /calendars/:id/events…
+  # hey-sdk OpenAPI documents Bearer calendar *writes* for todos (`POST /calendar/todos.json`);
+  # session-only form routes like `POST /calendar/events` return 404 for OAuth clients (see debug H6).
   def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil)
     attrs = {}.tap do |h|
       h[:title] = title if title.present?
@@ -213,6 +238,49 @@ class HeyClient
       all_day: all_day
     }
     post("/calendars/#{calendar_id}/events.json", { "calendar_event" => attrs })
+  end
+
+  # Timed HEY calendar mirror: try hey-sdk browser form first, then JSON create (runtime: OAuth gets 404 on form — debug H7).
+  # Form matches go/pkg/hey/calendar_events.go; JSON matches #create_calendar_event for Bearer.
+  def create_timed_calendar_event_form(calendar_id:, title:, local_start:, local_end:, time_zone:)
+    tz = time_zone.to_s.presence || "UTC"
+    ls = local_start
+    le = local_end
+    starts_date = ls.to_date.iso8601
+    ends_date = le.to_date.iso8601
+    form_pairs = [
+      [ "calendar_event[calendar_id]", calendar_id.to_s ],
+      [ "calendar_event[summary]", title.to_s ],
+      [ "calendar_event[starts_at]", starts_date ],
+      [ "calendar_event[ends_at]", ends_date ],
+      [ "calendar_event[all_day]", "0" ],
+      [ "calendar_event[starts_at_time]", "#{ls.strftime("%H:%M")}:00" ],
+      [ "calendar_event[ends_at_time]", "#{le.strftime("%H:%M")}:00" ],
+      [ "calendar_event[starts_at_time_zone_name]", tz ],
+      [ "calendar_event[ends_at_time_zone_name]", tz ]
+    ]
+    meta = form_request(:post, "/calendar/events", form_pairs)
+    id = extract_form_redirect_event_id(meta)
+    return id if id.present?
+
+    json_body = {
+      "calendar_event" => {
+        "title" => title.to_s,
+        "starts_at" => ls.iso8601,
+        "ends_at" => le.iso8601,
+        "all_day" => false
+      }
+    }
+    jmeta = json_post_with_meta("/calendars/#{calendar_id}/events.json", json_body)
+    return nil unless jmeta[:success]
+
+    extract_json_calendar_event_id(jmeta[:json])
+  end
+
+  def delete_calendar_event_form(event_id)
+    meta = form_request(:delete, "/calendar/events/#{event_id}", nil)
+    code = meta[:code].to_i
+    code == 302 || code == 303 || (code >= 200 && code < 300)
   end
 
   # Habits
@@ -243,6 +311,7 @@ class HeyClient
 
   # Body shape must match HEY API / hey-sdk JournalService.Update:
   #   { "calendar_journal_entry" => { "content" => "..." } }
+  # `content` is Trix HTML (see JournalService.GetContent in hey-sdk).
   # (see https://github.com/basecamp/hey-sdk/blob/main/go/pkg/hey/journal.go)
   def write_journal(day, content)
     patch("/calendar/days/#{day}/journal_entry.json", {
@@ -319,6 +388,61 @@ class HeyClient
     path.presence
   end
 
+  # Mirrors hey-cli unwrapCalendars(CalendarListPayload).
+  def normalize_calendars_list(data)
+    return [] if data.nil?
+    return data if data.is_a?(Array)
+    return [] unless data.is_a?(Hash)
+
+    rows = data["calendars"]
+    return [] unless rows.is_a?(Array)
+
+    rows.filter_map do |row|
+      next unless row.is_a?(Hash)
+
+      row = row.stringify_keys
+      cal = row["calendar"]
+      cal = row if cal.blank?
+      next unless cal.is_a?(Hash)
+
+      cal = cal.stringify_keys
+      next if cal["id"].blank?
+
+      cal = cal.transform_keys(&:to_s)
+      cal["id"] = cal["id"].to_s
+      cal
+    end
+  end
+
+  # Mirrors hey-cli findPersonalCalendarID.
+  def personal_calendar_id(calendars)
+    hit = calendars.find { |c| [ true, "true", 1, "1" ].include?(c["personal"]) }
+    hit ||= calendars.find { |c| (c["name"].to_s).casecmp("personal").zero? }
+    hit&.dig("id")
+  end
+
+  # Extracts Calendar::Todo rows from GetCalendarRecordings JSON for SyncHeyCalendarJob.
+  def recordings_calendar_todos(raw)
+    return [] if raw.blank?
+    return [] unless raw.is_a?(Hash)
+
+    list = raw["Calendar::Todo"]
+    return [] unless list.is_a?(Array)
+
+    list.filter_map do |rec|
+      next unless rec.is_a?(Hash)
+
+      rec = rec.stringify_keys
+      next if rec["id"].blank?
+
+      {
+        "id" => rec["id"].to_s,
+        "title" => rec["title"].presence || rec["summary"].presence || "(untitled)",
+        "completed" => rec["completed_at"].present? || rec["completedAt"].present?
+      }
+    end
+  end
+
   def get(path)
     request(:get, path)
   end
@@ -337,6 +461,36 @@ class HeyClient
 
   def delete(path)
     request(:delete, path)
+  end
+
+  # Removes a timebox mirror id: form calendar delete, JSON calendar delete, then legacy todo mirrors.
+  def delete_timebox_mirror_remote_id(remote_id)
+    return if remote_id.blank?
+
+    cal_ok = false
+    begin
+      cal_ok = delete_calendar_event_form(remote_id)
+    rescue StandardError
+      cal_ok = false
+    end
+    return if cal_ok
+
+    cid = calendar_id_for_timed_writes
+    if cid.present?
+      json_del = nil
+      begin
+        json_del = delete_calendar_event(calendar_id: cid, event_id: remote_id)
+      rescue StandardError
+        json_del = nil
+      end
+      return unless json_del.nil?
+    end
+
+    begin
+      delete_todo(remote_id)
+    rescue StandardError
+      nil
+    end
   end
 
   def request(method, path, body = nil)
@@ -410,5 +564,103 @@ class HeyClient
   rescue StandardError => e
     Rails.logger.error("HEY API transport error: #{e.class} #{e.message}")
     raise
+  end
+
+  def form_request(method, path, form_pairs)
+    ensure_fresh_token!
+    meta = perform_form_http(method, path, form_pairs)
+    if meta[:unauthorized]
+      perform_token_refresh!
+      meta = perform_form_http(method, path, form_pairs)
+    end
+    if meta[:unauthorized] || meta[:code].to_i == 401
+      raise AuthError, "HEY session expired. Reconnect from Settings."
+    end
+    meta
+  rescue AuthError
+    raise
+  rescue StandardError => e
+    Rails.logger.error("HEY form request error: #{e.class} #{e.message}")
+    { code: 0, location: nil, unauthorized: false }
+  end
+
+  def perform_form_http(method, path, form_pairs)
+    uri = URI("#{BASE_API_URL}#{path}")
+    req = case method
+    when :post   then Net::HTTP::Post.new(uri)
+    when :patch  then Net::HTTP::Patch.new(uri)
+    when :delete then Net::HTTP::Delete.new(uri)
+    else
+      raise ArgumentError, "unsupported form method #{method.inspect}"
+    end
+
+    req["Authorization"] = "Bearer #{@user.hey_access_token}"
+    req["Accept"] = "*/*"
+    req["User-Agent"] = self.class.user_agent
+    if form_pairs.present?
+      req["Content-Type"] = "application/x-www-form-urlencoded"
+      req.body = URI.encode_www_form(form_pairs)
+    end
+
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    {
+      code: res.code.to_i,
+      location: res["Location"],
+      unauthorized: res.is_a?(Net::HTTPUnauthorized)
+    }
+  end
+
+  def extract_form_redirect_event_id(meta)
+    location = meta[:location]
+    return nil if location.blank?
+
+    u = URI.join("#{BASE_API_URL}/", location)
+    segments = u.path.to_s.chomp("/").split("/")
+    segments.reverse_each do |seg|
+      return seg if seg.match?(/\A\d+\z/)
+    end
+    nil
+  end
+
+  def json_post_with_meta(path, body)
+    ensure_fresh_token!
+    meta = single_json_post(path, body)
+    if meta[:unauthorized]
+      perform_token_refresh!
+      meta = single_json_post(path, body)
+    end
+    if meta[:unauthorized] || meta[:code] == 401
+      raise AuthError, "HEY session expired. Reconnect from Settings."
+    end
+    meta
+  end
+
+  def single_json_post(path, body)
+    uri = URI("#{BASE_API_URL}#{path}")
+    req = Net::HTTP::Post.new(uri)
+    req["Authorization"] = "Bearer #{@user.hey_access_token}"
+    req["Content-Type"]  = "application/json"
+    req["Accept"]        = "application/json"
+    req["User-Agent"]    = self.class.user_agent
+    req.body = body.to_json
+
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    parsed =
+      if res.is_a?(Net::HTTPSuccess)
+        s = res.body.to_s.strip
+        s.present? ? (JSON.parse(s) rescue nil) : {}
+      end
+    {
+      code: res.code.to_i,
+      json: parsed,
+      success: res.is_a?(Net::HTTPSuccess),
+      unauthorized: res.is_a?(Net::HTTPUnauthorized)
+    }
+  end
+
+  def extract_json_calendar_event_id(data)
+    return nil unless data.is_a?(Hash)
+
+    data["id"]&.to_s || data.dig("calendar_event", "id")&.to_s
   end
 end

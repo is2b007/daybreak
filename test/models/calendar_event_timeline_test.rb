@@ -66,4 +66,80 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
     )
     assert_nil e.to_timeline_hash("America/Los_Angeles")
   end
+
+  test "day_view_chip_records drops HEY all-day chip when timed block shares title" do
+    la = Time.find_zone("America/Los_Angeles")
+    day = Date.parse("2026-04-13")
+    @user.calendar_events.create!(
+      external_id: "allday-dup",
+      source: :hey,
+      title: "Address Gaps",
+      starts_at: la.parse("2026-04-13 00:00"),
+      ends_at: la.parse("2026-04-19 00:00"),
+      all_day: true,
+      hey_calendar_id: "1"
+    )
+    @user.calendar_events.create!(
+      external_id: "timed-dup",
+      source: :hey,
+      title: "Address Gaps",
+      starts_at: la.parse("2026-04-13 09:00"),
+      ends_at: la.parse("2026-04-13 10:00"),
+      all_day: false,
+      hey_calendar_id: "1"
+    )
+    chips = CalendarEvent.day_view_chip_records(@user, day)
+    assert_equal 1, chips.size
+    assert_equal "timed-dup", chips.first.external_id
+  end
+
+  test "for_day_chip_strip excludes daybreak timeline mirrors" do
+    la = Time.find_zone("America/Los_Angeles")
+    day = Date.parse("2026-04-13")
+    @user.calendar_events.create!(
+      external_id: "chip-hey",
+      source: :hey,
+      title: "Hey timed",
+      starts_at: la.parse("2026-04-13 09:00"),
+      ends_at: la.parse("2026-04-13 10:00"),
+      all_day: false
+    )
+    @user.calendar_events.create!(
+      external_id: CalendarEvent.daybreak_timebox_external_id(999),
+      source: :daybreak,
+      title: "Mirror",
+      starts_at: la.parse("2026-04-13 08:30"),
+      ends_at: la.parse("2026-04-13 10:30"),
+      all_day: false
+    )
+    rows = @user.calendar_events.for_date(day).for_day_chip_strip
+    assert_equal 1, rows.size
+    assert_equal "chip-hey", rows.first.external_id
+  end
+
+  test "hourly timeline payload drops all-day entries" do
+    la = Time.find_zone("America/Los_Angeles")
+    all_day = CalendarEvent.new(
+      user: @user,
+      external_id: "ad1",
+      source: :hey,
+      title: "Holiday",
+      starts_at: la.parse("2026-04-13 00:00"),
+      ends_at: la.parse("2026-04-13 23:59"),
+      all_day: true
+    )
+    timed = CalendarEvent.new(
+      user: @user,
+      external_id: "td1",
+      source: :hey,
+      title: "Meet",
+      starts_at: la.parse("2026-04-13 12:00"),
+      ends_at: la.parse("2026-04-13 13:00"),
+      all_day: false
+    )
+    tz = "America/Los_Angeles"
+    rows = [ all_day, timed ].map { |e| e.to_timeline_hash(tz) }.compact.reject { |h| h[:all_day] }
+    assert_equal 1, rows.size
+    assert_equal "Meet", rows.first[:title]
+  end
 end

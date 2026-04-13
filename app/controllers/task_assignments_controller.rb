@@ -79,7 +79,7 @@ class TaskAssignmentsController < ApplicationController
                          .for_week(plan_date.beginning_of_week(:monday))
                          .where(day_plan: plan)
                          .ordered,
-                events: []
+                events: day_column_calendar_events_for(current_user, plan_date)
               })
           end
         elsif was_sometime
@@ -124,7 +124,7 @@ class TaskAssignmentsController < ApplicationController
                            .for_week(source_date.beginning_of_week(:monday))
                            .where(day_plan: source_plan)
                            .ordered,
-                  events: []
+                  events: day_column_calendar_events_for(current_user, source_date)
                 })
             end
 
@@ -151,8 +151,9 @@ class TaskAssignmentsController < ApplicationController
         position: params[:position].to_i
       )
 
-      if from_inbox && @task.hey_app_url.present? && current_user.hey_connected? && !Rails.env.test?
-        SyncInboxSometimeTodoToHeyJob.perform_later(@task.id)
+      sync_enqueued = current_user.hey_connected? && !Rails.env.test?
+      if sync_enqueued
+        SyncSometimeTodoToHeyJob.perform_later(@task.id)
       end
 
       sometime_tasks = current_user.task_assignments
@@ -209,7 +210,7 @@ class TaskAssignmentsController < ApplicationController
                          .for_week(target_date.beginning_of_week(:monday))
                          .where(day_plan: target_plan)
                          .ordered,
-                events: []
+                events: day_column_calendar_events_for(current_user, target_date)
               })
 
             if params[:source_date].present?
@@ -224,7 +225,7 @@ class TaskAssignmentsController < ApplicationController
                              .for_week(source_date.beginning_of_week(:monday))
                              .where(day_plan: source_plan)
                              .ordered,
-                    events: []
+                    events: day_column_calendar_events_for(current_user, source_date)
                   })
               end
             end
@@ -284,6 +285,7 @@ class TaskAssignmentsController < ApplicationController
       @task.defer_to_tomorrow!
     when "sometime"
       @task.defer_to_sometime!
+      SyncSometimeTodoToHeyJob.perform_later(@task.id) if current_user.hey_connected? && !Rails.env.test?
     end
 
     respond_to do |format|
@@ -358,7 +360,7 @@ class TaskAssignmentsController < ApplicationController
                          .for_week(prev_date.beginning_of_week(:monday))
                          .where(day_plan: plan)
                          .ordered,
-                events: []
+                events: day_column_calendar_events_for(current_user, prev_date)
               })
           end
         elsif was_sometime
@@ -404,7 +406,8 @@ class TaskAssignmentsController < ApplicationController
       planned_duration_minutes: duration
     )
 
-    SyncTimeboxToHeyJob.perform_later(@task.id) if current_user.hey_connected?
+    tb_enqueued = current_user.hey_connected?
+    SyncTimeboxToHeyJob.perform_later(@task.id) if tb_enqueued
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: stream_replace_day_timeline(date) }
@@ -415,17 +418,12 @@ class TaskAssignmentsController < ApplicationController
   private
 
   def clear_timebox_for!(date)
+    CalendarEvent.destroy_daybreak_timebox_mirror!(current_user, @task.id)
     if current_user.hey_connected? && @task.hey_calendar_event_id.present?
-      cid = current_user.hey_default_calendar_id.presence
-      if cid.present?
-        begin
-          HeyClient.new(current_user).delete_calendar_event(
-            calendar_id: cid,
-            event_id: @task.hey_calendar_event_id
-          )
-        rescue StandardError => e
-          Rails.logger.warn("clear timebox HEY delete failed: #{e.message}")
-        end
+      begin
+        HeyClient.new(current_user).delete_timebox_mirror_remote_id(@task.hey_calendar_event_id)
+      rescue StandardError => e
+        Rails.logger.warn("clear timebox HEY delete failed: #{e.message}")
       end
     end
 
@@ -445,6 +443,7 @@ class TaskAssignmentsController < ApplicationController
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact
+      .reject { |h| h[:all_day] }
     turbo_stream.replace(
       "timeline_#{date}",
       partial: "days/timeline",

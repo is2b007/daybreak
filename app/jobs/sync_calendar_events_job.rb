@@ -64,24 +64,67 @@ class SyncCalendarEventsJob < ApplicationJob
   def sync_hey(user, week_start, week_end)
     client = HeyClient.new(user)
     events = client.calendar_events(starts_on: week_start.iso8601, ends_on: week_end.iso8601)
-    return unless events.is_a?(Array)
-
-    events.each { |evt| upsert_hey(user, evt) }
+    if events.is_a?(Array)
+      dedupe_hey_recordings(events).each { |evt| upsert_hey(user, evt) }
+    end
+    reconcile_duplicate_hey_calendar_rows!(user)
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY calendar sync failed for user #{user.id}: #{e.message}")
   end
 
+  # HEY sometimes returns the same wall-time recording from multiple calendars with different ids.
+  # Collapse to one row per (title, range, all_day) so chips/timeline are not spammed.
+  def dedupe_hey_recordings(events)
+    events.group_by { |e| hey_recording_fingerprint(e) }.values.map do |group|
+      group.min_by { |e| [ e["hey_calendar_id"].to_s, normalize_hey_external_id(e).to_s ] }
+    end
+  end
+
+  def hey_recording_fingerprint(evt)
+    s = (evt["starts_at"] || evt["startsAt"]).to_s
+    en = (evt["ends_at"] || evt["endsAt"]).to_s
+    ad = (evt["all_day"] || evt["allDay"]).to_s
+    t = (evt["title"] || evt["summary"] || evt["name"]).to_s.strip.downcase
+    [ s, en, ad, t ]
+  end
+
+  def normalize_hey_external_id(evt)
+    raw = (evt["id"] || evt["recording_id"]).to_s.strip
+    return nil if raw.blank?
+
+    raw =~ %r{/(\d+)\z} ? ::Regexp.last_match(1) : raw
+  end
+
+  # Removes extra DB rows left from older syncs before in-batch dedupe (same HEY slot, different ids).
+  def reconcile_duplicate_hey_calendar_rows!(user)
+    rows = user.calendar_events.where(source: :hey).order(:id).to_a
+    rows.group_by { |e| hey_calendar_row_fingerprint(e) }.each_value do |group|
+      next if group.size < 2
+
+      keep = group.max_by { |e| e.show_on_week_board? ? 1 : 0 }
+      group.reject { |e| e.id == keep.id }.each(&:destroy!)
+    end
+  end
+
+  def hey_calendar_row_fingerprint(e)
+    en = e.ends_at || e.starts_at
+    [ e.title.to_s.strip.downcase, e.starts_at.utc.iso8601, en.utc.iso8601, e.all_day ]
+  end
+
   def upsert_hey(user, evt)
+    ext = normalize_hey_external_id(evt)
+    return if ext.blank?
+
     starts = evt["starts_at"] || evt["startsAt"]
     return if starts.blank?
 
     starts_at = Time.parse(starts.to_s)
     ends_raw = evt["ends_at"] || evt["endsAt"]
     all_day_raw = evt["all_day"] || evt["allDay"]
-    all_day = [ true, "true", 1 ].include?(all_day_raw)
+    all_day = ActiveModel::Type::Boolean.new.cast(all_day_raw) == true
 
     event = user.calendar_events.find_or_initialize_by(
-      external_id: evt["id"].to_s,
+      external_id: ext,
       source: :hey
     )
     completed_raw = evt["completed_at"] || evt["completedAt"]

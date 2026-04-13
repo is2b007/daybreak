@@ -8,10 +8,19 @@ class LocalJournalEntry < ApplicationRecord
     Digest::SHA256.hexdigest(content.to_s)
   end
 
-  # HEY journal API expects plain text. Rich-text HTML from the scratchpad editor
-  # and plain text from rituals both pass through here before sync.
+  # HEY Journal uses Trix; the API `content` field is HTML. The scratchpad stores HTML
+  # from contenteditable; we send that through on sync (see SyncJournalJob).
   def plain_text_for_hey
     self.class.plain_text_from_editor(content)
+  end
+
+  # Normalize HEY `journal_entry` JSON `content` into the HTML we persist locally.
+  def self.content_from_hey_api(raw)
+    s = raw.to_s.strip
+    return "" if s.blank?
+    return s if s.include?("<")
+
+    html_from_plain_text(s)
   end
 
   def self.plain_text_from_editor(raw)
@@ -33,7 +42,7 @@ class LocalJournalEntry < ApplicationRecord
       .strip
   end
 
-  # HEY journal is plain text; map into simple HTML for the contenteditable scratchpad.
+  # When HEY returns plain text (no tags), wrap as simple HTML for the scratchpad editor.
   def self.html_from_plain_text(plain)
     str = plain.to_s.strip
     return "" if str.blank?

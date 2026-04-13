@@ -6,56 +6,41 @@ class SyncTimeboxToHeyJob < ApplicationJob
     return unless task.user.hey_connected? && task.timeboxed?
 
     user = task.user
-    calendar_id = user.hey_default_calendar_id.presence
-    if calendar_id.blank?
-      Rails.logger.warn("SyncTimeboxToHeyJob: no hey_default_calendar_id for user #{user.id}, skipping")
-      return
-    end
-
     client = HeyClient.new(user)
-    ends_at = task.planned_start_at + (task.planned_duration_minutes || 60).minutes
-    prev_id = task.hey_calendar_event_id
 
-    new_id = if prev_id.present?
-      res = client.update_calendar_event(
-        calendar_id: calendar_id,
-        event_id: prev_id,
+    CalendarEvent.destroy_daybreak_timebox_mirror!(user, task.id)
+
+    prev_id = task.hey_calendar_event_id
+    client.delete_timebox_mirror_remote_id(prev_id) if prev_id.present?
+
+    cal_id = client.calendar_id_for_timed_writes
+    tz_name = user.timezone.presence || "UTC"
+    zone = ActiveSupport::TimeZone[tz_name] || Time.zone
+    local_start = task.planned_start_at.in_time_zone(zone)
+    duration = task.planned_duration_minutes.to_i
+    duration = 60 if duration <= 0
+    local_end = local_start + duration.minutes
+
+    new_id = nil
+    if cal_id.present?
+      new_id = client.create_timed_calendar_event_form(
+        calendar_id: cal_id,
         title: task.title,
-        starts_at: task.planned_start_at,
-        ends_at: ends_at,
-        all_day: false
-      )
-      if !res.nil?
-        prev_id
-      else
-        cleanup_stale_remote_mirror!(client, calendar_id, prev_id)
-        extract_event_id(
-          client.create_calendar_event(
-            calendar_id: calendar_id,
-            title: task.title,
-            starts_at: task.planned_start_at,
-            ends_at: ends_at,
-            all_day: false
-          )
-        )
-      end
-    else
-      extract_event_id(
-        client.create_calendar_event(
-          calendar_id: calendar_id,
-          title: task.title,
-          starts_at: task.planned_start_at,
-          ends_at: ends_at,
-          all_day: false
-        )
+        local_start: local_start,
+        local_end: local_end,
+        time_zone: tz_name
       )
     end
-
-    return if new_id.blank?
-
-    task.update!(hey_calendar_event_id: new_id)
 
     d = task.planned_start_at.in_time_zone(user.timezone).to_date
+
+    if new_id.present?
+      task.update!(hey_calendar_event_id: new_id)
+    else
+      upsert_daybreak_timebox_mirror!(user, task, local_start, local_end)
+      task.update_column(:hey_calendar_event_id, nil)
+    end
+
     TimelineBroadcaster.replace_for_day!(user, d)
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY timebox sync failed for task #{task_assignment_id}: #{e.message}")
@@ -63,22 +48,16 @@ class SyncTimeboxToHeyJob < ApplicationJob
 
   private
 
-  def cleanup_stale_remote_mirror!(client, calendar_id, stale_id)
-    begin
-      client.delete_todo(stale_id)
-    rescue StandardError
-      nil
-    end
-    begin
-      client.delete_calendar_event(calendar_id: calendar_id, event_id: stale_id)
-    rescue StandardError
-      nil
-    end
-  end
-
-  def extract_event_id(data)
-    return nil unless data.is_a?(Hash)
-
-    data["id"]&.to_s || data.dig("calendar_event", "id")&.to_s
+  def upsert_daybreak_timebox_mirror!(user, task, local_start, local_end)
+    ev = user.calendar_events.find_or_initialize_by(
+      external_id: CalendarEvent.daybreak_timebox_external_id(task.id),
+      source: :daybreak
+    )
+    ev.update!(
+      title: task.title,
+      starts_at: local_start,
+      ends_at: local_end,
+      all_day: false
+    )
   end
 end

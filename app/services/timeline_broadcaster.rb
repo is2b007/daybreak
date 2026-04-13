@@ -4,19 +4,26 @@ class TimelineBroadcaster
     "timeline:user:#{user_id}:day:#{d}"
   end
 
-  def self.replace_for_day!(user, date)
-    return if Rails.env.test?
-
+  # Locals for `days/timeline` (hourly grid + positioned blocks).
+  def self.timeline_locals(user, date)
     day_plan = user.day_plans.find_by(date: date)
     tasks = day_plan ? day_plan.task_assignments.ordered.to_a : []
     tz = user.timezone
-    events = user.calendar_events.for_date(date).chronological.map { |e| e.to_timeline_hash(tz) }.compact
+    events = user.calendar_events.for_date(date).chronological.map { |e| e.to_timeline_hash(tz) }.compact.reject { |h| h[:all_day] }
+    { date: date, events: events, tasks: tasks, timezone: tz }
+  end
 
-    html = ApplicationController.render(
+  def self.render_timeline(user, date)
+    ApplicationController.render(
       partial: "days/timeline",
-      locals: { date: date, events: events, tasks: tasks, timezone: tz }
+      locals: timeline_locals(user, date)
     )
+  end
 
+  def self.replace_for_day!(user, date, html: nil)
+    return if Rails.env.test?
+
+    html ||= render_timeline(user, date)
     Turbo::StreamsChannel.broadcast_replace_to(
       stream_name(user.id, date),
       target: "timeline_#{date}",

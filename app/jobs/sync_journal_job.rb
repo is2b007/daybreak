@@ -11,9 +11,11 @@ class SyncJournalJob < ApplicationJob
     daily_log = user.daily_logs.find_by(date: date)
     journal_entry = user.local_journal_entries.find_by(date: date)
 
-    scratch = journal_entry&.plain_text_for_hey.to_s.strip
+    scratch = journal_entry&.content.to_s.strip
     log_block = if daily_log&.log_entries&.any?
-      "---\nDay log\n\n#{daily_log.formatted_content}"
+      appendix = "---\nDay log\n\n#{daily_log.formatted_content}"
+      escaped = ERB::Util.html_escape(appendix)
+      "<p>#{escaped.gsub("\n", '<br>')}</p>"
     end
 
     parts = []
