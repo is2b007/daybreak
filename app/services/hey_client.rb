@@ -167,6 +167,16 @@ class HeyClient
     delete("/calendars/#{calendar_id}/events/#{event_id}.json")
   end
 
+  def create_calendar_event(calendar_id:, title:, starts_at:, ends_at:, all_day: false)
+    attrs = {
+      title: title.to_s,
+      starts_at: starts_at.respond_to?(:iso8601) ? starts_at.iso8601 : starts_at.to_s,
+      ends_at: ends_at.respond_to?(:iso8601) ? ends_at.iso8601 : ends_at.to_s,
+      all_day: all_day
+    }
+    post("/calendars/#{calendar_id}/events.json", { "calendar_event" => attrs })
+  end
+
   # Habits
 
   def complete_habit(day, habit_id)
@@ -310,10 +320,15 @@ class HeyClient
 
     case response
     when Net::HTTPSuccess
-      body = response.body.to_s
-      return nil if body.strip.empty?
+      body_str = response.body.to_s
+      # PATCH/PUT often return 204 or empty JSON; callers treat nil as failure.
+      if body_str.strip.empty?
+        return nil if method == :get
 
-      JSON.parse(body)
+        return {}
+      end
+
+      JSON.parse(body_str)
     when Net::HTTPUnauthorized
       refresh_and_retry!(method, path, body)
     else

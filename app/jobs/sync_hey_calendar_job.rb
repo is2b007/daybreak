@@ -14,10 +14,24 @@ class SyncHeyCalendarJob < ApplicationJob
 
     todos.each do |todo|
       external_id = todo["id"].to_s
-      existing = user.task_assignments.find_by(external_id: external_id, source: :hey)
+      completed = [ true, "true", 1 ].include?(todo["completed"])
+      desired_status = completed ? :completed : :pending
 
+      mirrored = user.task_assignments.find_by(hey_mirrored_todo_id: external_id)
+      if mirrored
+        attrs = {}
+        attrs[:title] = todo["title"] if mirrored.title != todo["title"]
+        attrs[:status] = desired_status if mirrored.completed? != completed
+        mirrored.update!(attrs) if attrs.any?
+        next
+      end
+
+      existing = user.task_assignments.find_by(external_id: external_id, source: :hey)
       if existing
-        existing.update!(title: todo["title"]) if existing.title != todo["title"]
+        attrs = {}
+        attrs[:title] = todo["title"] if existing.title != todo["title"]
+        attrs[:status] = desired_status if existing.completed? != completed
+        existing.update!(attrs) if attrs.any?
       else
         user.task_assignments.create!(
           external_id: external_id,
@@ -26,7 +40,7 @@ class SyncHeyCalendarJob < ApplicationJob
           week_start_date: week_start,
           week_bucket: "sometime",
           size: :medium,
-          status: todo["completed"] ? :completed : :pending
+          status: desired_status
         )
       end
     end

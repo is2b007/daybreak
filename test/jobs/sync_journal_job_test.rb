@@ -47,6 +47,23 @@ class SyncJournalJobTest < ActiveJob::TestCase
     assert_equal row.content_digest, row.reload.last_pushed_to_hey_digest
   end
 
+  test "marks digest when write_journal returns empty hash (HEY empty body)" do
+    @user.local_journal_entries.create!(
+      date: @date,
+      content: "<p>Only scratch</p>"
+    )
+
+    client = Object.new
+    client.define_singleton_method(:write_journal) { |_, _| {} }
+
+    with_hey_client(client) do
+      SyncJournalJob.perform_now(@user.id, @date.to_s)
+    end
+
+    row = @user.local_journal_entries.find_by(date: @date)
+    assert_equal row.content_digest, row.reload.last_pushed_to_hey_digest
+  end
+
   test "skips when not HEY connected" do
     @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
     called = false

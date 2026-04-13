@@ -27,12 +27,15 @@ class CalendarEvent < ApplicationRecord
 
   def to_view_hash
     {
+      id: id,
       source: source,
       title: title,
       time: time_label,
       all_day: all_day,
       start_hour: start_hour,
-      duration_hours: duration_hours
+      duration_hours: duration_hours,
+      starts_at_iso: starts_at.iso8601,
+      ends_at_iso: (ends_at || (starts_at + 1.hour)).iso8601
     }
   end
 

@@ -32,6 +32,9 @@ class ApplicationController < ActionController::Base
     @rp_hey_labels = hey_scope.filter_map(&:label).uniq.compact.sort
     @rp_goals = current_user.weekly_goals.where(week_start_date: week_start)
     @rp_journal = current_user.local_journal_entries.find_by(date: Date.current)
+    @rp_journal_hey_synced = @rp_journal.present? &&
+      @rp_journal.last_pushed_to_hey_digest.present? &&
+      @rp_journal.last_pushed_to_hey_digest == @rp_journal.content_digest
   rescue => e
     Rails.logger.warn "Right panel data load failed: #{e.message}"
     @rp_bc_tasks = []
@@ -41,5 +44,6 @@ class ApplicationController < ActionController::Base
     @rp_hey_labels = []
     @rp_goals = []
     @rp_journal = nil
+    @rp_journal_hey_synced = false
   end
 end

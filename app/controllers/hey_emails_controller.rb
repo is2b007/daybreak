@@ -100,6 +100,10 @@ class HeyEmailsController < ApplicationController
       t
     end
 
+    if params[:target_bucket] == "sometime" && current_user.hey_connected? && !Rails.env.test?
+      SyncInboxSometimeTodoToHeyJob.perform_later(task.id)
+    end
+
     respond_to do |format|
       format.turbo_stream do
         streams = [ turbo_stream.remove("hey_email_#{@email.id}") ]

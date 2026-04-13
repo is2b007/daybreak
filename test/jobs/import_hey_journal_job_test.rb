@@ -19,6 +19,29 @@ class ImportHeyJournalJobTest < ActiveJob::TestCase
     HeyClient.define_singleton_method(:new, original)
   end
 
+  test "returns early when journal push guard cache is set" do
+    prev_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    begin
+      Rails.cache.write("journal_local_push:#{@user.id}:#{@date}", "1", expires_in: 60.seconds)
+
+      called = false
+      client = Object.new
+      client.define_singleton_method(:journal_entry) do |*_|
+        called = true
+        nil
+      end
+
+      with_hey_client(client) do
+        ImportHeyJournalJob.perform_now(@user.id, @date.to_s)
+      end
+
+      assert_equal false, called
+    ensure
+      Rails.cache = prev_cache
+    end
+  end
+
   test "creates local entry from HEY plain text when empty" do
     client = Object.new
     client.define_singleton_method(:journal_entry) do |_day|

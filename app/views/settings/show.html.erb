@@ -77,7 +77,9 @@
                     {},
                     class: "form-input" %>
               <p class="text-xs text-muted mt-1">
-                Used when a synced HEY event has no calendar id (e.g. legacy rows). Timeboxed tasks still sync as HEY todos.
+                Required for <strong>timeboxed tasks</strong> on the day timeline: they mirror as timed events on this calendar.
+                Also used when a synced HEY event has no calendar id (e.g. legacy rows).
+                HEY <strong>todos</strong> (“Sometime this week” in HEY) are only created when you drag a HEY inbox message into Daybreak’s “Sometime this week” row.
               </p>
             </div>
           <% else %>

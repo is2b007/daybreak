@@ -4,21 +4,34 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
   parallelize(workers: 1)
 
   FakeHey = Struct.new(:user) do
-    def create_todo(title:, starts_at: nil, ends_at: nil)
-      (@creates ||= []) << [ title, starts_at, ends_at ]
-      { "calendar_todo" => { "id" => "new-todo-id" } }
+    def update_calendar_event(**kwargs)
+      (@updates ||= []) << kwargs
+      {}
+    end
+
+    def create_calendar_event(**kwargs)
+      (@creates ||= []) << kwargs
+      { "calendar_event" => { "id" => "new-cal-event-id" } }
+    end
+
+    def delete_calendar_event(**kwargs)
+      (@cal_deletes ||= []) << kwargs
     end
 
     def delete_todo(id)
-      (@deletes ||= []) << id
+      (@todo_deletes ||= []) << id
     end
 
     def creates
       @creates ||= []
     end
 
-    def deletes
-      @deletes ||= []
+    def updates
+      @updates ||= []
+    end
+
+    def todo_deletes
+      @todo_deletes ||= []
     end
   end
 
@@ -27,7 +40,8 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     @user.update!(
       hey_access_token: "stub",
       hey_refresh_token: "stub",
-      hey_token_expires_at: 1.day.from_now
+      hey_token_expires_at: 1.day.from_now,
+      hey_default_calendar_id: "cal-default"
     )
     @plan = @user.day_plans.create!(date: Date.parse("2026-04-13"))
     @task = @user.task_assignments.create!(
@@ -38,7 +52,7 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
       position: 0,
       planned_start_at: Time.zone.parse("2026-04-13 14:00"),
       planned_duration_minutes: 60,
-      hey_calendar_event_id: "old-todo-id"
+      hey_calendar_event_id: "old-remote-id"
     )
 
     @hey_fake = FakeHey.new(@user)
@@ -51,12 +65,24 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     HeyClient.define_singleton_method(:new, @orig_hey_new)
   end
 
-  test "creates HEY todo and deletes previous id when it changes" do
+  test "updates existing HEY calendar event when id present" do
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_includes @hey_fake.deletes, "old-todo-id"
-    assert_equal "new-todo-id", @task.reload.hey_calendar_event_id
-    assert_equal "Boxed", @hey_fake.creates.last[0]
+    assert_equal 1, @hey_fake.updates.size
+    assert_equal "old-remote-id", @hey_fake.updates.last[:event_id]
+    assert_equal "cal-default", @hey_fake.updates.last[:calendar_id]
+    assert_empty @hey_fake.creates
+    assert_equal "old-remote-id", @task.reload.hey_calendar_event_id
+  end
+
+  test "creates calendar event when update returns nil (legacy cleanup then create)" do
+    @hey_fake.define_singleton_method(:update_calendar_event) { |**_| nil }
+
+    SyncTimeboxToHeyJob.perform_now(@task.id)
+
+    assert_includes @hey_fake.todo_deletes, "old-remote-id"
+    assert_equal 1, @hey_fake.creates.size
+    assert_equal "new-cal-event-id", @task.reload.hey_calendar_event_id
   end
 
   test "no-op when task is not timeboxed" do
@@ -65,5 +91,15 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
     assert_empty @hey_fake.creates
+    assert_empty @hey_fake.updates
+  end
+
+  test "skips when default calendar missing" do
+    @user.update_column(:hey_default_calendar_id, nil)
+
+    SyncTimeboxToHeyJob.perform_now(@task.id)
+
+    assert_empty @hey_fake.creates
+    assert_empty @hey_fake.updates
   end
 end

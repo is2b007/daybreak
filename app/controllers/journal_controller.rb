@@ -10,7 +10,10 @@ class JournalController < ApplicationController
       entry.destroy if entry.persisted?
       head :no_content
     elsif entry.save
-      SyncJournalJob.perform_later(current_user.id, date.to_s) if current_user.hey_connected?
+      if current_user.hey_connected?
+        Rails.cache.write("journal_local_push:#{current_user.id}:#{date}", "1", expires_in: 12.seconds)
+        SyncJournalJob.perform_later(current_user.id, date.to_s)
+      end
       head :no_content
     else
       head :unprocessable_entity
@@ -18,4 +21,5 @@ class JournalController < ApplicationController
   rescue ArgumentError
     head :bad_request
   end
+
 end

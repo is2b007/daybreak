@@ -2602,6 +2602,61 @@ select.form-input {
   flex-shrink: 0;
 }
 
+.daily-log__head-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.jrnl-hey-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line2);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 92%, var(--muted) 8%);
+}
+
+.jrnl-hey-badge--synced {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--color-hey) 35%, var(--line2));
+  background: color-mix(in srgb, var(--color-hey) 12%, var(--surface));
+}
+
+.jrnl-hey-badge--pending {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 40%, var(--line2));
+}
+
+.jrnl-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-view__calendar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.day-view__calendar-chips .calendar-event {
+  cursor: grab;
+}
+
+.day-view__calendar-chips .calendar-event:active {
+  cursor: grabbing;
+}
+
 .daily-log__sub {
   font-size: 11px;
   color: var(--muted);

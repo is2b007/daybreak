@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_180000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -122,6 +122,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_140000) do
     t.string "external_id"
     t.string "hey_app_url"
     t.string "hey_calendar_event_id"
+    t.string "hey_mirrored_todo_id"
     t.integer "planned_duration_minutes"
     t.datetime "planned_start_at"
     t.integer "position"
@@ -137,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_140000) do
     t.date "week_start_date"
     t.index ["day_plan_id"], name: "index_task_assignments_on_day_plan_id"
     t.index ["external_id", "source"], name: "index_task_assignments_on_external_id_and_source"
+    t.index ["hey_mirrored_todo_id"], name: "index_task_assignments_on_hey_mirrored_todo_id"
     t.index ["user_id", "day_plan_id"], name: "index_task_assignments_on_user_id_and_day_plan_id"
     t.index ["user_id", "planned_start_at"], name: "index_task_assignments_on_user_id_and_planned_start_at"
     t.index ["user_id", "week_start_date"], name: "index_task_assignments_on_user_id_and_week_start_date"

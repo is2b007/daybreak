@@ -4,6 +4,7 @@ class ImportHeyJournalJob < ApplicationJob
   def perform(user_id, date_string)
     user = User.find(user_id)
     return unless user.hey_connected?
+    return if Rails.cache.exist?("journal_local_push:#{user_id}:#{date_string}")
 
     date = Date.parse(date_string)
     data = HeyClient.new(user).journal_entry(date.to_s)

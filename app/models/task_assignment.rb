@@ -2,6 +2,8 @@ class TaskAssignment < ApplicationRecord
   belongs_to :user
   belongs_to :day_plan, optional: true
 
+  before_destroy :schedule_delete_hey_mirrored_todo
+
   enum :source, { local: 0, basecamp: 1, hey: 2 }
   enum :size, { small: 0, medium: 1, large: 2 }
   enum :status, { pending: 0, active: 1, completed: 2, deferred: 3 }
@@ -67,6 +69,13 @@ class TaskAssignment < ApplicationRecord
 
   def duration_hours
     (planned_duration_minutes || 60) / 60.0
+  end
+
+  def schedule_delete_hey_mirrored_todo
+    return if hey_mirrored_todo_id.blank?
+    return unless user&.hey_connected?
+
+    DeleteHeyMirroredTodoJob.perform_later(user_id, hey_mirrored_todo_id)
   end
 
   # Web app URL for this todo (API ids match the web UI).

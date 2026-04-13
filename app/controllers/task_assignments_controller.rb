@@ -101,7 +101,8 @@ class TaskAssignmentsController < ApplicationController
     if params[:target_bucket] == "inbox"
       previous_date = @task.day_plan&.date
       source_date = params[:source_date].present? ? Date.parse(params[:source_date]) : nil
-      @task.update!(day_plan: nil, week_start_date: nil, week_bucket: "inbox", position: 0)
+      clear_hey_mirrored_todo_if_present!
+      @task.update!(day_plan: nil, week_start_date: nil, week_bucket: "inbox", position: 0, hey_mirrored_todo_id: nil)
 
       respond_to do |format|
         format.turbo_stream do
@@ -148,6 +149,10 @@ class TaskAssignmentsController < ApplicationController
         position: params[:position].to_i
       )
 
+      if from_inbox && @task.hey_app_url.present? && current_user.hey_connected? && !Rails.env.test?
+        SyncInboxSometimeTodoToHeyJob.perform_later(@task.id)
+      end
+
       sometime_tasks = current_user.task_assignments
         .where(week_bucket: "sometime", week_start_date: week_start)
         .ordered
@@ -167,11 +172,14 @@ class TaskAssignmentsController < ApplicationController
       target_date = Date.parse(params[:target_date])
       target_plan = current_user.day_plans.find_or_create_by!(date: target_date)
 
+      clear_hey_mirrored_todo_if_present! if @task.week_bucket == "sometime"
+
       @task.update!(
         day_plan: target_plan,
         week_start_date: target_date.beginning_of_week(:monday),
         week_bucket: "day",
-        position: params[:position].to_i
+        position: params[:position].to_i,
+        hey_mirrored_todo_id: nil
       )
 
       respond_to do |format|
@@ -237,7 +245,7 @@ class TaskAssignmentsController < ApplicationController
     rotation = params[:rotation]&.to_i
     plan = @task.day_plan
     @task.complete!(rotation: rotation)
-    WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey?
+    WriteCompletionJob.perform_later(@task.id) if @task.basecamp? || @task.hey? || @task.hey_mirrored_todo_id.present?
 
     respond_to do |format|
       format.turbo_stream do
@@ -397,6 +405,13 @@ class TaskAssignmentsController < ApplicationController
   end
 
   private
+
+  def clear_hey_mirrored_todo_if_present!
+    return if @task.hey_mirrored_todo_id.blank?
+    return unless current_user.hey_connected?
+
+    DeleteHeyMirroredTodoJob.perform_later(current_user.id, @task.hey_mirrored_todo_id)
+  end
 
   # Day view has no turbo-frame#day_* or #sometime_row; only #day_plan_tasks_DATE.
   def day_view_stream_context?

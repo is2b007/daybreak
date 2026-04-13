@@ -1,4 +1,4 @@
-<%# locals: (date:, tasks:, calendar_events:, plan_mode:, tab:, daily_log: nil, log_entries: nil, tasks_heading: nil, tasks_subtitle: nil, timeline_heading: nil, sunrise_actions: nil) %>
+<%# locals: (date:, tasks:, calendar_events:, calendar_chips: [], plan_mode:, tab:, daily_log: nil, log_entries: nil, tasks_heading: nil, tasks_subtitle: nil, timeline_heading: nil, sunrise_actions: nil) %>
 <div class="day-view"<% if tab != "log" %> data-controller="sortable" data-sortable-view-value="day"<% end %>>
   <div class="day-view__tasks">
     <% unless tab == "log" %>
@@ -67,6 +67,14 @@
     <% if local_assigns[:timeline_heading].present? %>
       <div class="day-view__timeline-column-head">
         <h2 class="day-view__tasks-title"><%= local_assigns[:timeline_heading] %></h2>
+      </div>
+    <% end %>
+    <% chips = local_assigns[:calendar_chips] || [] %>
+    <% if tab != "log" && chips.any? %>
+      <div class="day-view__calendar-chips" aria-label="Calendar events for this day">
+        <% chips.each do |event| %>
+          <%= render "weeks/calendar_event", event: event %>
+        <% end %>
       </div>
     <% end %>
     <%= turbo_stream_from TimelineBroadcaster.stream_name(current_user.id, date) %>

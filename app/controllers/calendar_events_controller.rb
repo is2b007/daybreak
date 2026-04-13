@@ -1,11 +1,26 @@
 class CalendarEventsController < ApplicationController
   before_action :set_event
 
-  def update
+  # Drag calendar chip onto timeline: server computes wall time in the user timezone.
+  def slot
     return head :forbidden unless @event.hey?
 
-    cid = @event.hey_calendar_id.presence || current_user.hey_default_calendar_id
-    return head :unprocessable_entity if cid.blank?
+    date = Date.parse(params.require(:date))
+    hour = params.require(:hour).to_i
+    minute = params.require(:minute).to_i
+    tz = ActiveSupport::TimeZone[current_user.timezone] || Time.zone
+    starts = tz.local(date.year, date.month, date.day, hour, minute)
+    ends = if @event.ends_at && @event.starts_at
+      starts + (@event.ends_at - @event.starts_at)
+    else
+      starts + 1.hour
+    end
+
+    apply_hey_calendar_update!(starts: starts, ends: ends, title: @event.title)
+  end
+
+  def update
+    return head :forbidden unless @event.hey?
 
     starts = Time.zone.parse(params.require(:starts_at))
     ends = if params[:ends_at].present?
@@ -17,6 +32,37 @@ class CalendarEventsController < ApplicationController
     end
 
     title = params[:title].presence || @event.title
+
+    apply_hey_calendar_update!(starts: starts, ends: ends, title: title)
+  end
+
+  def destroy
+    return head :forbidden unless @event.hey?
+
+    cid = @event.hey_calendar_id.presence || current_user.hey_default_calendar_id
+    return head :unprocessable_entity if cid.blank?
+
+    d = @event.starts_at.in_time_zone(current_user.timezone).to_date
+
+    client = HeyClient.new(current_user)
+    begin
+      client.delete_calendar_event(calendar_id: cid, event_id: @event.external_id)
+    rescue StandardError => e
+      Rails.logger.warn("HEY calendar event remote delete failed: #{e.message}")
+    end
+
+    @event.destroy!
+    broadcast_timeline_for(d)
+    head :no_content
+  rescue HeyClient::AuthError
+    head :unauthorized
+  end
+
+  private
+
+  def apply_hey_calendar_update!(starts:, ends:, title:)
+    cid = @event.hey_calendar_id.presence || current_user.hey_default_calendar_id
+    return head :unprocessable_entity if cid.blank?
 
     client = HeyClient.new(current_user)
     result = client.update_calendar_event(
@@ -46,30 +92,6 @@ class CalendarEventsController < ApplicationController
   rescue HeyClient::AuthError
     head :unauthorized
   end
-
-  def destroy
-    return head :forbidden unless @event.hey?
-
-    cid = @event.hey_calendar_id.presence || current_user.hey_default_calendar_id
-    return head :unprocessable_entity if cid.blank?
-
-    d = @event.starts_at.in_time_zone(current_user.timezone).to_date
-
-    client = HeyClient.new(current_user)
-    begin
-      client.delete_calendar_event(calendar_id: cid, event_id: @event.external_id)
-    rescue StandardError => e
-      Rails.logger.warn("HEY calendar event remote delete failed: #{e.message}")
-    end
-
-    @event.destroy!
-    broadcast_timeline_for(d)
-    head :no_content
-  rescue HeyClient::AuthError
-    head :unauthorized
-  end
-
-  private
 
   def set_event
     @event = current_user.calendar_events.find(params[:id])

@@ -52,6 +52,22 @@ class CalendarEventsControllerTest < ActionController::TestCase
     HeyClient.define_singleton_method(:new, @orig_hey_new)
   end
 
+  test "PATCH slot reschedules using date hour minute in user timezone" do
+    patch :slot,
+      params: {
+        id: @hey_event.id,
+        date: "2026-04-13",
+        hour: "10",
+        minute: "30"
+      }
+
+    assert_response :no_content
+    assert_equal "hey-ev-1", @hey_fake.updates.last[:event_id]
+    ev = @hey_event.reload
+    assert_equal 10, ev.starts_at.in_time_zone(@user.timezone).hour
+    assert_equal 30, ev.starts_at.in_time_zone(@user.timezone).min
+  end
+
   test "PATCH update syncs HEY and updates local times" do
     patch :update,
       params: {

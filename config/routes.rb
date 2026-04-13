@@ -68,7 +68,11 @@ Rails.application.routes.draw do
   end
 
   # HEY (and future) calendar events shown on the day timeline
-  resources :calendar_events, only: [ :update, :destroy ]
+  resources :calendar_events, only: [ :update, :destroy ] do
+    member do
+      patch :slot
+    end
+  end
 
   # Local tasks (personal, not in any API)
   resources :local_tasks, only: [ :create, :destroy ]

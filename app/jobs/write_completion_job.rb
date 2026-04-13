@@ -6,6 +6,13 @@ class WriteCompletionJob < ApplicationJob
     user = task.user
     return unless task.completed?
 
+    if task.hey_mirrored_todo_id.present?
+      return unless user.hey_connected?
+
+      HeyClient.new(user).complete_todo(task.hey_mirrored_todo_id)
+      return
+    end
+
     case task.source
     when "basecamp"
       client = BasecampClient.new(user)
