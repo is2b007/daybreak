@@ -203,8 +203,13 @@ class HeyClient
     get("/calendar/days/#{day}/journal_entry.json")
   end
 
+  # Body shape must match HEY API / hey-sdk JournalService.Update:
+  #   { "calendar_journal_entry" => { "content" => "..." } }
+  # (see https://github.com/basecamp/hey-sdk/blob/main/go/pkg/hey/journal.go)
   def write_journal(day, content)
-    patch("/calendar/days/#{day}/journal_entry.json", { content: content })
+    patch("/calendar/days/#{day}/journal_entry.json", {
+      "calendar_journal_entry" => { "content" => content.to_s }
+    })
   end
 
   # Email triage (read-only)

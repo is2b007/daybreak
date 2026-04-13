@@ -53,6 +53,7 @@ Rails.application.routes.draw do
 
   # Daily journal scratchpad (right panel)
   post "journal/:date", to: "journal#upsert", as: :journal_entry
+  get "journal/:date/status", to: "journal#hey_badge_status", as: :journal_entry_status
 
   # Tasks
   resources :task_assignments, only: [ :show, :create, :update, :destroy ] do
