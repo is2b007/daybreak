@@ -30,9 +30,12 @@ class RefreshTokensJob < ApplicationJob
         .find_each do |user|
       begin
         data = HeyClient.refresh_token(user.hey_refresh_token)
+        expires_in = data["expires_in"]&.to_i
+        expires_at = expires_in&.positive? ? expires_in.seconds.from_now : 2.weeks.from_now
         user.update!(
-          hey_access_token: data["access_token"],
-          hey_token_expires_at: 2.weeks.from_now
+          hey_access_token:     data["access_token"],
+          hey_refresh_token:    data["refresh_token"].presence || user.hey_refresh_token,
+          hey_token_expires_at: expires_at
         )
       rescue => e
         Rails.logger.error("HEY token refresh failed for user #{user.id}: #{e.message}")

@@ -24,6 +24,6 @@ production:
     schedule: at 6am every day
 
   sync_calendar_events:
-    command: "User.where.not(basecamp_access_token: nil).find_each { |u| SyncCalendarEventsJob.perform_later(u.id) }"
+    command: "User.find_each { |u| SyncCalendarEventsJob.perform_later(u.id) if u.basecamp_access_token.present? || u.hey_access_token.present? }"
     queue: sync
     schedule: every 15 minutes

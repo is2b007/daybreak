@@ -7,32 +7,34 @@ class SyncBasecampAssignmentsJob < ApplicationJob
     week_start = Date.current.beginning_of_week(:monday)
 
     assignments = client.my_assignments
-    return unless assignments.is_a?(Array)
+    if assignments.is_a?(Array)
+      assignments.each do |assignment|
+        next unless assignment["type"].to_s.casecmp?("todo")
 
-    assignments.each do |assignment|
-      next unless assignment["type"].to_s.casecmp?("todo")
+        title = assignment["title"].presence || assignment["content"].presence || "(untitled)"
+        external_id = assignment["id"].to_s
+        existing = user.task_assignments.find_by(external_id: external_id, source: :basecamp)
 
-      title = assignment["title"].presence || assignment["content"].presence || "(untitled)"
-      external_id = assignment["id"].to_s
-      existing = user.task_assignments.find_by(external_id: external_id, source: :basecamp)
-
-      if existing
-        # Update title if changed, but don't overwrite local changes
-        existing.update!(title: title) if existing.title != title
-      else
-        user.task_assignments.create!(
-          external_id: external_id,
-          source: :basecamp,
-          title: title,
-          description: assignment["description"],
-          project_name: assignment.dig("bucket", "name"),
-          basecamp_bucket_id: assignment.dig("bucket", "id")&.to_s,
-          week_bucket: "inbox",
-          size: :medium,
-          status: assignment["completed"] ? :completed : :pending
-        )
+        if existing
+          # Update title if changed, but don't overwrite local changes
+          existing.update!(title: title) if existing.title != title
+        else
+          user.task_assignments.create!(
+            external_id: external_id,
+            source: :basecamp,
+            title: title,
+            description: assignment["description"],
+            project_name: assignment.dig("bucket", "name"),
+            basecamp_bucket_id: assignment.dig("bucket", "id")&.to_s,
+            week_bucket: "inbox",
+            size: :medium,
+            status: assignment["completed"] ? :completed : :pending
+          )
+        end
       end
     end
+
+    user.sync_basecamp_avatar_url_from_api!
   rescue BasecampClient::AuthError => e
     Rails.logger.warn("Basecamp auth failed for user #{user_id}: #{e.message}")
   rescue BasecampClient::RateLimitError

@@ -14,8 +14,23 @@ class SyncTimeboxToHeyJob < ApplicationJob
       ends_at: ends_at
     )
 
-    task.update!(hey_calendar_event_id: result&.dig("id")&.to_s)
+    new_id = extract_todo_id(result)
+    return if new_id.blank?
+
+    if task.hey_calendar_event_id.present? && task.hey_calendar_event_id != new_id
+      client.delete_todo(task.hey_calendar_event_id)
+    end
+
+    task.update!(hey_calendar_event_id: new_id)
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY timebox sync failed for task #{task_assignment_id}: #{e.message}")
+  end
+
+  private
+
+  def extract_todo_id(data)
+    return nil unless data.is_a?(Hash)
+
+    data["id"]&.to_s || data.dig("calendar_todo", "id")&.to_s
   end
 end

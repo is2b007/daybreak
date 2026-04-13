@@ -109,10 +109,12 @@ class RitualsController < ApplicationController
   end
 
   def fetch_calendar_events_for_date(date)
+    tz = current_user.timezone
     current_user.calendar_events
       .for_date(date)
       .chronological
-      .map(&:to_view_hash)
+      .map { |e| e.to_timeline_hash(tz) }
+      .compact
   end
 
   def load_yesterday_wins

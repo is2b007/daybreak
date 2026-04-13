@@ -69,6 +69,7 @@
         <h2 class="day-view__tasks-title"><%= local_assigns[:timeline_heading] %></h2>
       </div>
     <% end %>
-    <%= render "days/timeline", date: date, events: calendar_events, tasks: tasks %>
+    <%= turbo_stream_from TimelineBroadcaster.stream_name(current_user.id, date) %>
+    <%= render "days/timeline", date: date, events: calendar_events, tasks: tasks, timezone: current_user.timezone %>
   </div>
 </div>

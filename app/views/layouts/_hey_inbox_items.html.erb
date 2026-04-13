@@ -1,0 +1,4 @@
+<%# locals: (emails:) %>
+<% emails.each do |email| %>
+  <%= render "layouts/hey_inbox_row", email: email %>
+<% end %>

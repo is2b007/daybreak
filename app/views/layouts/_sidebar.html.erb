@@ -1,27 +1,30 @@
 <aside class="sb" data-controller="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-text">
-      <div class="sb-sun"></div>
+      <%= image_tag "daybreak-logo.svg", class: "sb-logo-mark", alt: "" %>
       <div class="sb-word">Daybreak</div>
     </div>
     <button type="button" class="sb-toggle" data-sidebar-target="toggleBtn" data-action="click->sidebar#toggle" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="19 7 13 12 19 17"/>
+        <polyline points="13 7 7 12 13 17"/>
+      </svg>
     </button>
   </div>
 
   <nav class="sb-nav">
     <%= link_to root_path, class: "sbi #{controller_name == 'weeks' ? 'on' : ''}", title: "Week" do %>
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="4" x2="9" y2="9"/><line x1="15" y1="4" x2="15" y2="9"/></svg>
+      <%= render "icons/nav/week" %>
       <span class="sbi-label">Week</span>
     <% end %>
 
     <%= link_to day_path(Date.current), class: "sbi #{controller_name == 'days' && @tab != 'log' ? 'on' : ''}", title: "Today" do %>
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      <%= render "icons/nav/today" %>
       <span class="sbi-label">Today</span>
     <% end %>
 
     <%= link_to day_path(Date.current, tab: "log"), class: "sbi #{controller_name == 'daily_logs' || (controller_name == 'days' && @tab == 'log') ? 'on' : ''}", title: "Daily log" do %>
-      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <%= render "icons/nav/daily_log" %>
       <span class="sbi-label">Daily log</span>
     <% end %>
 
@@ -29,19 +32,24 @@
     <div class="sb-sect">Rituals</div>
 
     <%= link_to ritual_morning_path, class: "sbi #{controller_name == 'rituals' && action_name == 'morning' ? 'on' : ''}", title: "Sunrise" do %>
-      <svg viewBox="0 0 24 24"><path d="M12 2v4M4.93 7.93l2.83 2.83M2 16h4M20 16h-4M19.07 7.93l-2.83 2.83"/><path d="M5 16a7 7 0 0 1 14 0"/></svg>
+      <%= render "icons/nav/sunrise" %>
       <span class="sbi-label">Sunrise</span>
     <% end %>
 
     <%= link_to ritual_evening_path, class: "sbi #{controller_name == 'rituals' && action_name == 'evening' ? 'on' : ''}", title: "Sundown" do %>
-      <svg viewBox="0 0 24 24"><path d="M5 16a7 7 0 0 1 14 0"/><line x1="8" y1="21" x2="16" y2="21"/><path d="M12 2v4M4.22 6.22l2.83 2.83M19.78 6.22l-2.83 2.83"/><path d="M3 16h2M19 16h2"/></svg>
+      <%= render "icons/nav/sunset" %>
       <span class="sbi-label">Sundown</span>
     <% end %>
   </nav>
 
   <div class="sb-bot">
-    <%= link_to settings_path, style: "display: contents; text-decoration: none;", title: "Settings" do %>
-      <div class="sb-avatar"><%= current_user.greeting_name.first.upcase %></div>
+    <%# Do not use display:contents on the link — it breaks <img> painting in Safari/WebKit. %>
+    <%= link_to settings_path, class: "sb-bot-link", title: "Settings" do %>
+      <% if current_user.basecamp_avatar_url.present? %>
+        <%= image_tag basecamp_avatar_path, alt: "", class: "sb-avatar sb-avatar--photo", size: "28x28", decoding: "async" %>
+      <% else %>
+        <div class="sb-avatar"><%= current_user.greeting_name.first.upcase %></div>
+      <% end %>
       <div class="sb-username"><%= current_user.greeting_name %></div>
     <% end %>
     <div class="sb-badge">Pro</div>

@@ -57,23 +57,32 @@
       <div class="settings__row">
         <div>
           <span class="settings__row-label">HEY</span>
-          <% if current_user.hey_connected? %>
-            <div class="settings__sub-action">
-              <%= link_to "Triage inbox", triage_path, class: "text-sm" %>
-            </div>
-          <% end %>
         </div>
         <div class="settings__connection">
           <% if current_user.hey_connected? %>
             <span class="settings__connection-status settings__connection-status--connected"></span>
             <span class="text-sm text-muted">Connected</span>
             <%= button_to "Disconnect HEY", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
-          <% elsif HeyClient.configured? %>
-            <span class="settings__connection-status settings__connection-status--disconnected"></span>
-            <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
+            <div class="form-group mt-4">
+              <%= f.label :hey_default_calendar_id, "Default HEY calendar", class: "form-label" %>
+              <%= f.select :hey_default_calendar_id,
+                    options_for_select(
+                      [["Use each event’s calendar (recommended)", ""]] +
+                        (@hey_calendars || []).map { |c|
+                          label = c["name"].presence || c["title"].presence || "Calendar #{c['id']}"
+                          [ label, c["id"].to_s ]
+                        },
+                      current_user.hey_default_calendar_id
+                    ),
+                    {},
+                    class: "form-input" %>
+              <p class="text-xs text-muted mt-1">
+                Used when a synced HEY event has no calendar id (e.g. legacy rows). Timeboxed tasks still sync as HEY todos.
+              </p>
+            </div>
           <% else %>
             <span class="settings__connection-status settings__connection-status--disconnected"></span>
-            <span class="text-sm text-muted">Not available</span>
+            <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
           <% end %>
         </div>
       </div>
@@ -83,4 +92,10 @@
       <%= f.submit "Save", class: "btn btn--primary btn--large" %>
     </div>
   <% end %>
+
+  <div class="settings__section">
+    <div class="settings__section-title">Session</div>
+    <p class="text-xs text-muted mb-4">Sign out of Daybreak on this browser.</p>
+    <%= button_to "Log out", logout_path, method: :delete, class: "btn btn--ghost" %>
+  </div>
 </div>

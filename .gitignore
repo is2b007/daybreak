@@ -36,3 +36,4 @@
 # Claude Code local settings and worktree checkouts
 /.claude/
 
+.gstack/

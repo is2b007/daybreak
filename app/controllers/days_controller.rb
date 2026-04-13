@@ -11,6 +11,14 @@ class DaysController < ApplicationController
     @journal_entry = current_user.local_journal_entries.find_by(date: @date)
     @tab = params[:tab] || "tasks"
     @plan_mode = params[:plan].present?
+
+    if !Rails.env.test? && (current_user.basecamp_access_token.present? || current_user.hey_connected?)
+      SyncCalendarEventsJob.perform_later(
+        current_user.id,
+        week_start: @date.beginning_of_week(:monday).iso8601
+      )
+    end
+    ImportHeyJournalJob.perform_later(current_user.id, @date.to_s) if !Rails.env.test? && current_user.hey_connected?
   rescue Date::Error
     redirect_to root_path
   end
@@ -18,9 +26,11 @@ class DaysController < ApplicationController
   private
 
   def fetch_calendar_events
+    tz = current_user.timezone
     current_user.calendar_events
       .for_date(@date)
       .chronological
-      .map(&:to_view_hash)
+      .map { |e| e.to_timeline_hash(tz) }
+      .compact
   end
 end

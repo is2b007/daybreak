@@ -22,19 +22,14 @@ class ApplicationController < ActionController::Base
     return unless logged_in? && current_user&.onboarded?
 
     week_start = Date.current.beginning_of_week(:monday)
-<<<<<<< HEAD
-    bc_scope = current_user.task_assignments.basecamp.incomplete.ordered.limit(20)
-    @rp_bc_tasks = bc_scope
-    @rp_bc_project_names = bc_scope.filter_map { |t| t.project_name&.strip }.uniq.sort
-    @rp_bc_has_blank_project = bc_scope.any? { |t| t.project_name.blank? }
-    @rp_hey_tasks = current_user.task_assignments.hey.incomplete.ordered.limit(20)
-=======
     bc_scope = current_user.task_assignments.basecamp.incomplete.where(week_bucket: "inbox").ordered.limit(20)
     @rp_bc_tasks = bc_scope
     @rp_bc_project_names = bc_scope.filter_map { |t| t.project_name&.strip }.uniq.sort
     @rp_bc_has_blank_project = bc_scope.any? { |t| t.project_name.blank? }
-    @rp_hey_tasks = current_user.task_assignments.hey.incomplete.where(week_bucket: "inbox").ordered.limit(20)
->>>>>>> cursor/collapsible-panels-and-week-topbar
+    hey_scope = current_user.hey_emails.active
+    hey_emails = hey_scope.for_folder(:imbox).ordered.limit(25)
+    @rp_hey_emails = hey_emails
+    @rp_hey_labels = hey_scope.filter_map(&:label).uniq.compact.sort
     @rp_goals = current_user.weekly_goals.where(week_start_date: week_start)
     @rp_journal = current_user.local_journal_entries.find_by(date: Date.current)
   rescue => e
@@ -42,7 +37,8 @@ class ApplicationController < ActionController::Base
     @rp_bc_tasks = []
     @rp_bc_project_names = []
     @rp_bc_has_blank_project = false
-    @rp_hey_tasks = []
+    @rp_hey_emails = []
+    @rp_hey_labels = []
     @rp_goals = []
     @rp_journal = nil
   end

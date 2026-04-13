@@ -11,6 +11,9 @@ class WriteCompletionJob < ApplicationJob
       client = BasecampClient.new(user)
       client.complete_todo(task.basecamp_bucket_id, task.external_id)
     when "hey"
+      # Email-sourced tasks (source: local + hey_app_url) must never call complete_todo.
+      # Only HEY calendar todos have a real external_id.
+      return if task.external_id.blank?
       return unless user.hey_connected?
       client = HeyClient.new(user)
       client.complete_todo(task.external_id)
