@@ -21,5 +21,4 @@ class JournalController < ApplicationController
   rescue ArgumentError
     head :bad_request
   end
-
 end
