@@ -5,5 +5,5 @@
      data-controller="calendar-event-chip"
      data-calendar-event-chip-payload-value="<%= ERB::Util.html_escape(chip_payload) %>">
   <span class="calendar-event__time"><%= event[:time] %></span>
-  <span><%= event[:title] %></span>
+  <span class="calendar-event__title"><%= event[:title] %></span>
 </div>

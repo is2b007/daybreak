@@ -3,6 +3,7 @@
 <% px = TimelineLayout::PX_PER_HOUR %>
 <% h0 = TimelineLayout::HOUR_START %>
 <% h1 = TimelineLayout::HOUR_END + 1 %>
+<% mirror_external_ids = events.filter_map { |e| e[:external_id].presence if %w[hey daybreak].include?(e[:source].to_s) }.to_set %>
 <div class="timeline" id="timeline_<%= date %>" data-controller="timeline" data-timeline-date-value="<%= date %>" style="--timeline-hour: <%= px %>px;">
   <% if events.empty? && tasks.none?(&:timeboxed?) %>
     <div class="timeline__hint">
@@ -20,35 +21,45 @@
   <% end %>
 
   <% events.each do |event| %>
-    <% next unless event[:top_px] && event[:height_px] %>
-    <% hey_timeline = event[:source].to_s == "hey" && event[:id].present? %>
-    <div class="timeline__block timeline__block--<%= event[:source] || 'calendar' %> <%= 'timeline__block--allday' if event[:all_day] %>"
-         style="top: <%= event[:top_px] %>px; height: <%= event[:height_px] %>px;"
+    <% hey_timeline = %w[hey daybreak].include?(event[:source].to_s) && event[:id].present? %>
+    <% next if event[:all_day] %>
+    <% next unless event[:top_offset_hours] && event[:height_hours] %>
+    <% block_classes = "timeline__block timeline__block--#{event[:source] || 'calendar'}" %>
+    <% block_classes += " timeline__block--completed" if event[:completed] %>
+    <div class="<%= block_classes %>"
+         style="top: calc(var(--timeline-hour) * <%= event[:top_offset_hours] %>); height: max(calc(var(--timeline-hour) * <%= event[:height_hours] %>), calc(var(--timeline-hour) * 0.25));"
          <% if hey_timeline %>
          data-controller="hey-timeline-event"
          data-hey-timeline-event-update-url-value="<%= calendar_event_path(event[:id]) %>"
          data-hey-timeline-event-starts-at-value="<%= event[:starts_at_iso] %>"
          data-hey-timeline-event-ends-at-value="<%= event[:ends_at_iso] %>"
-         <% if !event[:all_day] %>
+         data-hey-timeline-event-date-value="<%= date %>"
          data-action="pointerdown->hey-timeline-event#pointerdown"
-         <% end %>
          <% end %>>
       <% if hey_timeline %>
-        <div class="hey-timeline-event__row">
+        <button type="button" class="hey-timeline-event__resize hey-timeline-event__resize--top" aria-label="Resize start" data-action="pointerdown->hey-timeline-event#resizePointerdown" data-edge="top"></button>
+        <div class="hey-timeline-event__row hey-timeline-event__row--main">
           <div class="hey-timeline-event__body">
             <strong><%= event[:title] %></strong>
-            <span class="text-xs"><%= event[:time] %></span>
+            <span class="text-xs"><%= event[:time] %><% if event[:duration_label].present? %> · <%= event[:duration_label] %><% end %></span>
           </div>
-          <button type="button" class="hey-timeline-event__delete" data-action="hey-timeline-event#delete" aria-label="Remove HEY event">×</button>
+          <button type="button" class="hey-timeline-event__delete" data-action="hey-timeline-event#delete" aria-label="Remove calendar block">×</button>
         </div>
+        <button type="button" class="hey-timeline-event__resize hey-timeline-event__resize--bottom" aria-label="Resize end" data-action="pointerdown->hey-timeline-event#resizePointerdown" data-edge="bottom"></button>
       <% else %>
-        <strong><%= event[:title] %></strong>
-        <span class="text-xs"><%= event[:time] %></span>
+        <div class="hey-timeline-event__row hey-timeline-event__row--main">
+          <div class="hey-timeline-event__body">
+            <strong><%= event[:title] %></strong>
+            <span class="text-xs"><%= event[:time] %><% if event[:duration_label].present? %> · <%= event[:duration_label] %><% end %></span>
+          </div>
+        </div>
       <% end %>
     </div>
   <% end %>
 
   <% tasks.select(&:timeboxed?).each do |task| %>
+    <% next if mirror_external_ids.include?(CalendarEvent.daybreak_timebox_external_id(task.id)) %>
+    <% next if task.hey_calendar_event_id.present? && mirror_external_ids.include?(task.hey_calendar_event_id) %>
     <% start_dec = task.start_hour_in(tz) %>
     <% next if start_dec.nil? %>
     <% end_dec = start_dec + task.duration_hours %>
@@ -56,12 +67,24 @@
     <% top_dec = [ [ start_dec, h0 ].max, h1 ].min %>
     <% bottom_dec = [ [ end_dec, h0 ].max, h1 ].min %>
     <% bottom_dec = [ bottom_dec, top_dec + 0.25 ].max %>
-    <% top_px = ((top_dec - h0) * px).round %>
-    <% height_px = [ ((bottom_dec - top_dec) * px).round, (px / 4.0).round ].max %>
+    <% top_offset_hours = (top_dec - h0).round(4) %>
+    <% height_hours = [ (bottom_dec - top_dec).round(4), 0.25 ].max %>
     <div class="timeline__block timeline__block--task <%= 'timeline__block--completed' if task.completed? %>"
-         style="top: <%= top_px %>px; height: <%= height_px %>px;">
-      <strong><%= task.title %></strong>
-      <span class="text-xs"><%= task.planned_duration_minutes || 60 %>m</span>
+         style="top: calc(var(--timeline-hour) * <%= top_offset_hours %>); height: max(calc(var(--timeline-hour) * <%= height_hours %>), calc(var(--timeline-hour) * 0.25));"
+         data-controller="task-timeline-block"
+         data-task-timeline-block-assignment-id-value="<%= task.id %>"
+         data-task-timeline-block-date-value="<%= date %>"
+         data-task-timeline-block-duration-value="<%= task.planned_duration_minutes || 60 %>"
+         data-action="pointerdown->task-timeline-block#pointerdown">
+      <button type="button" class="hey-timeline-event__resize hey-timeline-event__resize--top" aria-label="Resize start" data-action="pointerdown->task-timeline-block#resizePointerdown" data-edge="top"></button>
+      <div class="hey-timeline-event__row hey-timeline-event__row--main task-timeline-block__row">
+        <div class="hey-timeline-event__body">
+          <strong><%= task.title %></strong>
+          <span class="text-xs"><%= TimelineLayout.format_duration_hm(task.planned_duration_minutes || 60) %></span>
+        </div>
+        <button type="button" class="hey-timeline-event__delete task-timeline-block__clear" data-action="task-timeline-block#clear" aria-label="Remove time from timeline">×</button>
+      </div>
+      <button type="button" class="hey-timeline-event__resize hey-timeline-event__resize--bottom" aria-label="Resize end" data-action="pointerdown->task-timeline-block#resizePointerdown" data-edge="bottom"></button>
     </div>
   <% end %>
 </div>

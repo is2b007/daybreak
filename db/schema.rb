@@ -10,22 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_200000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
+    t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.text "description"
     t.datetime "ends_at"
     t.string "external_id", null: false
     t.string "hey_calendar_id"
     t.string "location"
+    t.boolean "show_on_week_board", default: false, null: false
     t.integer "source", null: false
     t.datetime "starts_at", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
-    t.index ["external_id", "source"], name: "index_calendar_events_on_external_id_and_source", unique: true
+    t.index ["user_id", "external_id", "source"], name: "index_calendar_events_on_user_external_and_source", unique: true
+    t.index ["user_id", "show_on_week_board"], name: "index_calendar_events_on_user_id_and_show_on_week_board"
     t.index ["user_id", "starts_at"], name: "index_calendar_events_on_user_id_and_starts_at"
     t.index ["user_id"], name: "index_calendar_events_on_user_id"
   end

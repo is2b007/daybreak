@@ -84,6 +84,7 @@ Rails.application.routes.draw do
   # Rituals
   get  "ritual/morning",          to: "rituals#morning"
   post "ritual/morning",          to: "rituals#morning_update"
+  post "ritual/morning/add_week_events", to: "rituals#morning_add_week_events", as: :ritual_morning_add_week_events
   post "ritual/morning/complete", to: "rituals#morning_complete"
   get  "ritual/evening",          to: "rituals#evening"
   post "ritual/evening",          to: "rituals#evening_update"

@@ -1,6 +1,20 @@
 require "test_helper"
 
 class BasecampClientTest < ActiveSupport::TestCase
+  test "validate_basecamp_avatar_url! accepts Basecamp static CDN avatar URLs" do
+    user = users(:one)
+    client = BasecampClient.new(user)
+    url = "https://bc3-production-assets-cdn.basecamp-static.com/577/people/BAhpBEzV1QI=--x/avatar"
+    assert_nothing_raised { client.send(:validate_basecamp_avatar_url!, url) }
+  end
+
+  test "validate_basecamp_avatar_url! rejects non-Basecamp hosts even with avatar-shaped path" do
+    user = users(:one)
+    client = BasecampClient.new(user)
+    url = "https://evil.example/1/people/x/avatar"
+    assert_raises(ArgumentError) { client.send(:validate_basecamp_avatar_url!, url) }
+  end
+
   test "normalize_my_assignments_payload flattens priorities and non_priorities" do
     user = users(:one)
     client = BasecampClient.new(user)

@@ -10,9 +10,10 @@ class ImportHeyJournalJob < ApplicationJob
     data = HeyClient.new(user).journal_entry(date.to_s)
     return if data.nil?
 
-    hey_plain = (data["content"] || data["body"]).to_s.strip
-    return if hey_plain.blank?
+    hey_raw = (data["content"] || data["body"]).to_s.strip
+    return if hey_raw.blank?
 
+    incoming_html = LocalJournalEntry.content_from_hey_api(hey_raw)
     local = user.local_journal_entries.find_by(date: date)
 
     if local
@@ -24,10 +25,10 @@ class ImportHeyJournalJob < ApplicationJob
         return
       end
 
-      return if local.plain_text_for_hey.strip == hey_plain
+      return if Digest::SHA256.hexdigest(incoming_html) == local.content_digest
     end
 
-    html = LocalJournalEntry.html_from_plain_text(hey_plain)
+    html = incoming_html
     digest = Digest::SHA256.hexdigest(html)
 
     if local

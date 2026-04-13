@@ -36,6 +36,18 @@ class RitualsController < ApplicationController
     redirect_to day_path(Date.current), notice: "Your day is set."
   end
 
+  def morning_add_week_events
+    @date = Date.current
+    scope = current_user.calendar_events.for_date(@date).where(show_on_week_board: false)
+    n = scope.update_all(show_on_week_board: true)
+    notice = if n.positive?
+      "#{n} #{'item'.pluralize(n)} added to your week view."
+    else
+      "Everything visible is already on your week view."
+    end
+    redirect_to ritual_morning_path(step: 2, plan: params[:plan]), notice: notice
+  end
+
   def evening
     @date = Date.current
     @step = (params[:step] || 1).to_i
@@ -104,7 +116,7 @@ class RitualsController < ApplicationController
   def load_today_planning_context
     @tasks = @day_plan.task_assignments.ordered
     @calendar_events = fetch_calendar_events_for_date(@date)
-    @calendar_chips = current_user.calendar_events.for_date(@date).chronological.map(&:to_view_hash)
+    @calendar_chips = CalendarEvent.day_view_chip_records(current_user, @date).map(&:to_view_hash)
     @plan_mode = params[:plan].present?
     @tab = "tasks"
   end
@@ -116,6 +128,7 @@ class RitualsController < ApplicationController
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact
+      .reject { |h| h[:all_day] }
   end
 
   def load_yesterday_wins
@@ -199,6 +212,7 @@ class RitualsController < ApplicationController
         task.defer_to_tomorrow!
       when "sometime"
         task.defer_to_sometime!
+        SyncSometimeTodoToHeyJob.perform_later(task.id) if current_user.hey_connected? && !Rails.env.test?
       when "let_go"
         task.update!(status: :deferred)
       end

@@ -78,6 +78,22 @@ class ImportHeyJournalJobTest < ActiveJob::TestCase
     assert_includes row.content, "Local only"
   end
 
+  test "imports HTML journal content from HEY without escaping tags" do
+    client = Object.new
+    client.define_singleton_method(:journal_entry) do |_day|
+      { "content" => "<p>From HEY <em>rich</em></p>" }
+    end
+
+    with_hey_client(client) do
+      ImportHeyJournalJob.perform_now(@user.id, @date.to_s)
+    end
+
+    row = @user.local_journal_entries.find_by(date: @date)
+    assert row
+    assert_includes row.content, "<em>rich</em>"
+    assert_equal row.content_digest, row.last_pushed_to_hey_digest
+  end
+
   test "updates when local matches last pushed digest and HEY changed" do
     html = "<p>Synced</p>"
     digest = Digest::SHA256.hexdigest(html)

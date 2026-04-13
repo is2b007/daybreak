@@ -3,35 +3,32 @@ require "test_helper"
 class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
   parallelize(workers: 1)
 
-  FakeHey = Struct.new(:user) do
-    def update_calendar_event(**kwargs)
-      (@updates ||= []) << kwargs
-      {}
+  FakeHey = Struct.new(:user, :remote_id) do
+    def calendar_id_for_timed_writes
+      "cal-default"
     end
 
-    def create_calendar_event(**kwargs)
-      (@creates ||= []) << kwargs
-      { "calendar_event" => { "id" => "new-cal-event-id" } }
+    def delete_timebox_mirror_remote_id(id)
+      (@mirror_deletes ||= []) << id
     end
 
-    def delete_calendar_event(**kwargs)
-      (@cal_deletes ||= []) << kwargs
+    def create_timed_calendar_event_form(calendar_id:, title:, local_start:, local_end:, time_zone:)
+      (@event_creates ||= []) << {
+        calendar_id: calendar_id,
+        title: title,
+        local_start: local_start,
+        local_end: local_end,
+        time_zone: time_zone
+      }
+      remote_id
     end
 
-    def delete_todo(id)
-      (@todo_deletes ||= []) << id
+    def event_creates
+      @event_creates ||= []
     end
 
-    def creates
-      @creates ||= []
-    end
-
-    def updates
-      @updates ||= []
-    end
-
-    def todo_deletes
-      @todo_deletes ||= []
+    def mirror_deletes
+      @mirror_deletes ||= []
     end
   end
 
@@ -52,10 +49,10 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
       position: 0,
       planned_start_at: Time.zone.parse("2026-04-13 14:00"),
       planned_duration_minutes: 60,
-      hey_calendar_event_id: "old-remote-id"
+      hey_calendar_event_id: "old-event-id"
     )
 
-    @hey_fake = FakeHey.new(@user)
+    @hey_fake = FakeHey.new(@user, "event-remote-new")
     fake = @hey_fake
     @orig_hey_new = HeyClient.method(:new)
     HeyClient.define_singleton_method(:new) { |_u| fake }
@@ -65,24 +62,41 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     HeyClient.define_singleton_method(:new, @orig_hey_new)
   end
 
-  test "updates existing HEY calendar event when id present" do
+  test "replaces existing HEY mirror by delete then create timed calendar event" do
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_equal 1, @hey_fake.updates.size
-    assert_equal "old-remote-id", @hey_fake.updates.last[:event_id]
-    assert_equal "cal-default", @hey_fake.updates.last[:calendar_id]
-    assert_empty @hey_fake.creates
-    assert_equal "old-remote-id", @task.reload.hey_calendar_event_id
+    assert_equal %w[old-event-id], @hey_fake.mirror_deletes
+    assert_equal 1, @hey_fake.event_creates.size
+    c = @hey_fake.event_creates.last
+    assert_equal "cal-default", c[:calendar_id]
+    assert_equal "Boxed", c[:title]
+    assert_equal "America/Los_Angeles", c[:time_zone]
+    assert_operator c[:local_end], :>, c[:local_start]
+    assert_equal "event-remote-new", @task.reload.hey_calendar_event_id
+    assert_not @user.calendar_events.exists?(source: :daybreak, external_id: CalendarEvent.daybreak_timebox_external_id(@task.id))
   end
 
-  test "creates calendar event when update returns nil (legacy cleanup then create)" do
-    @hey_fake.define_singleton_method(:update_calendar_event) { |**_| nil }
+  test "creates calendar event when no prior mirror id" do
+    @task.update_column(:hey_calendar_event_id, nil)
 
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_includes @hey_fake.todo_deletes, "old-remote-id"
-    assert_equal 1, @hey_fake.creates.size
-    assert_equal "new-cal-event-id", @task.reload.hey_calendar_event_id
+    assert_empty @hey_fake.mirror_deletes
+    assert_equal 1, @hey_fake.event_creates.size
+    assert_equal "event-remote-new", @task.reload.hey_calendar_event_id
+  end
+
+  test "persists daybreak calendar row when HEY API returns no remote id" do
+    @hey_fake.remote_id = nil
+    @task.update_column(:hey_calendar_event_id, nil)
+
+    SyncTimeboxToHeyJob.perform_now(@task.id)
+
+    assert_equal 1, @hey_fake.event_creates.size
+    assert_nil @task.reload.hey_calendar_event_id
+    ev = @user.calendar_events.find_by!(source: :daybreak, external_id: CalendarEvent.daybreak_timebox_external_id(@task.id))
+    assert_equal "Boxed", ev.title
+    assert_not ev.all_day
   end
 
   test "no-op when task is not timeboxed" do
@@ -90,16 +104,17 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
 
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_empty @hey_fake.creates
-    assert_empty @hey_fake.updates
+    assert_empty @hey_fake.event_creates
+    assert_empty @hey_fake.mirror_deletes
   end
 
-  test "skips when default calendar missing" do
-    @user.update_column(:hey_default_calendar_id, nil)
+  test "creates daybreak mirror when HEY calendar id cannot be resolved" do
+    @hey_fake.define_singleton_method(:calendar_id_for_timed_writes) { nil }
+    @task.update_column(:hey_calendar_event_id, nil)
 
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_empty @hey_fake.creates
-    assert_empty @hey_fake.updates
+    assert_empty @hey_fake.event_creates
+    assert @user.calendar_events.exists?(source: :daybreak, external_id: CalendarEvent.daybreak_timebox_external_id(@task.id))
   end
 end

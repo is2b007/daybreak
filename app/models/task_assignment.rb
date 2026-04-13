@@ -3,6 +3,7 @@ class TaskAssignment < ApplicationRecord
   belongs_to :day_plan, optional: true
 
   before_destroy :schedule_delete_hey_mirrored_todo
+  before_destroy :destroy_daybreak_timebox_mirror
 
   enum :source, { local: 0, basecamp: 1, hey: 2 }
   enum :size, { small: 0, medium: 1, large: 2 }
@@ -42,7 +43,8 @@ class TaskAssignment < ApplicationRecord
   end
 
   def defer_to_sometime!
-    update!(day_plan: nil, week_bucket: "sometime", status: :deferred)
+    ws = Date.current.beginning_of_week(:monday)
+    update!(day_plan: nil, week_bucket: "sometime", week_start_date: ws, status: :deferred)
   end
 
   def source_badge_color
@@ -76,6 +78,12 @@ class TaskAssignment < ApplicationRecord
     return unless user&.hey_connected?
 
     DeleteHeyMirroredTodoJob.perform_later(user_id, hey_mirrored_todo_id)
+  end
+
+  def destroy_daybreak_timebox_mirror
+    return unless user_id
+
+    CalendarEvent.destroy_daybreak_timebox_mirror!(user, id)
   end
 
   # Web app URL for this todo (API ids match the web UI).

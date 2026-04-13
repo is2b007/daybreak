@@ -37,3 +37,4 @@
 /.claude/
 
 .gstack/
+/.cursor/*.log

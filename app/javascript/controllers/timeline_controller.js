@@ -5,6 +5,26 @@ export default class extends Controller {
   static values = { date: String }
   static targets = ["hour"]
 
+  connect() {
+    this._syncHourHeight = this._syncHourHeight.bind(this)
+    this._resizeObserver = new ResizeObserver(() => this._syncHourHeight())
+    this._resizeObserver.observe(this.element)
+    requestAnimationFrame(() => this._syncHourHeight())
+  }
+
+  disconnect() {
+    this._resizeObserver?.disconnect()
+  }
+
+  _syncHourHeight() {
+    const n = this.hourTargets.length || 15
+    const h = this.element.getBoundingClientRect().height
+    if (h > 0) {
+      const px = Math.max(28, h / n)
+      this.element.style.setProperty("--timeline-hour", `${px}px`)
+    }
+  }
+
   dragover(event) {
     event.preventDefault()
     event.dataTransfer.dropEffect = "move"

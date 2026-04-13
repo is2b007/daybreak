@@ -47,7 +47,7 @@ class HeyConnectionsController < ApplicationController
   # DELETE /auth/hey
   def destroy
     current_user.hey_emails.delete_all
-    current_user.calendar_events.hey.delete_all
+    current_user.calendar_events.where(source: [ :hey, :daybreak ]).delete_all
     current_user.update!(
       hey_access_token:     nil,
       hey_refresh_token:    nil,
