@@ -1,4 +1,27 @@
 class JournalController < ApplicationController
+  # JSON for the journal-editor HEY pill: refreshes after background SyncJournalJob completes.
+  def hey_badge_status
+    return head :not_found unless current_user.hey_connected?
+
+    date = Date.parse(params[:date])
+    entry = current_user.local_journal_entries.find_by(date: date)
+    synced = entry.present? &&
+      entry.last_pushed_to_hey_digest.present? &&
+      entry.last_pushed_to_hey_digest == entry.content_digest
+
+    state = if entry.blank?
+      "idle"
+    elsif synced
+      "synced"
+    else
+      "pending"
+    end
+
+    render json: { state: state }
+  rescue ArgumentError
+    head :bad_request
+  end
+
   def upsert
     date = Date.parse(params[:date])
     content = params[:content].to_s

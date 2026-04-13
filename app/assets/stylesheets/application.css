@@ -2593,13 +2593,25 @@ select.form-input {
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.3px;
-  margin-bottom: 2px;
+  margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .daily-log__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  row-gap: 6px;
   padding: 16px 20px 12px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .daily-log__head-meta {
@@ -2608,7 +2620,8 @@ select.form-input {
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .jrnl-hey-badge {
@@ -2621,6 +2634,8 @@ select.form-input {
   border: 1px solid var(--line2);
   color: var(--muted);
   background: color-mix(in srgb, var(--surface) 92%, var(--muted) 8%);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .jrnl-hey-badge--synced {
@@ -2639,6 +2654,8 @@ select.form-input {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .day-view__calendar-chips {
@@ -2801,9 +2818,11 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding: 14px 16px 10px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--line2);
+  min-width: 0;
 }
 
 .jrnl-date {
@@ -2811,6 +2830,10 @@ select.form-input {
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.2px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .jrnl-dow {

@@ -137,17 +137,18 @@
   <div class="r-tab-content" id="rc-log" data-right-panel-target="tab" data-tab="log"
        data-controller="journal-editor"
        data-journal-editor-url-value="<%= journal_entry_path(Date.current) %>"
-       data-journal-editor-csrf-value="<%= form_authenticity_token %>">
+       data-journal-editor-csrf-value="<%= form_authenticity_token %>"
+       <% if current_user.hey_connected? %>data-journal-editor-status-url-value="<%= journal_entry_status_path(Date.current) %>"<% end %>>
     <div class="jrnl-header">
       <span class="jrnl-date"><%= Date.current.strftime("%B %-d") %> <span class="jrnl-dow"><%= Date.current.strftime("%a") %></span></span>
       <div class="jrnl-header-meta">
         <% if current_user.hey_connected? %>
           <% if @rp_journal_hey_synced %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--synced" title="Last save matched HEY Journal">HEY Journal</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for today.">Synced</span>
           <% elsif @rp_journal.present? %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--pending" title="Syncing to HEY or local edits not yet pushed">HEY Journal…</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically.">HEY</span>
           <% else %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--idle" title="HEY connected; journal syncs when you add an entry">HEY Journal</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save.">HEY</span>
           <% end %>
         <% end %>
         <span class="jrnl-status" data-journal-editor-target="status"></span>
