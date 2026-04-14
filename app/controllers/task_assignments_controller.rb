@@ -1,5 +1,5 @@
 class TaskAssignmentsController < ApplicationController
-  before_action :set_task, only: [ :show, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment, :restore_hey_email ]
+  before_action :set_task, only: [ :show, :focus, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment, :restore_hey_email ]
 
   def show
     @bc_comments = []
@@ -19,6 +19,16 @@ class TaskAssignmentsController < ApplicationController
     respond_to do |format|
       format.turbo_stream { render :show }
       format.html { render :show }
+    end
+  end
+
+  def focus
+    @active_timer = current_user.local_timer_sessions.running.find_by(task_assignment: @task)
+    @any_running_timer = current_user.local_timer_sessions.running.first
+
+    respond_to do |format|
+      format.turbo_stream { render :focus }
+      format.html { render :focus }
     end
   end
 
@@ -302,10 +312,24 @@ class TaskAssignmentsController < ApplicationController
 
   def comment
     content = params[:content].to_s.strip
-    return head :unprocessable_entity if content.blank?
+    error = if content.blank?
+      "Comment can't be blank."
+    elsif !(@task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?)
+      "Cannot comment on this task."
+    end
 
-    unless @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
-      return head :unprocessable_entity
+    if error
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "task_comment_#{@task.id}",
+            partial: "task_assignments/comment_form",
+            locals: { task: @task, error: error }
+          ), status: :unprocessable_entity
+        end
+        format.html { redirect_back fallback_location: root_path, alert: error }
+      end
+      return
     end
 
     client = BasecampClient.new(current_user)

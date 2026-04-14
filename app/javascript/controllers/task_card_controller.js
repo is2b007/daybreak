@@ -12,6 +12,14 @@ export default class extends Controller {
     Turbo.visit(`/task_assignments/${this.idValue}`, { frame: "modal" })
   }
 
+  handleKeydown(event) {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault()
+      event.stopPropagation()
+      Turbo.visit(`/task_assignments/${this.idValue}/focus`, { frame: "focus" })
+    }
+  }
+
   cycleSize(event) {
     event.stopPropagation()
     this.postAction(`/task_assignments/${this.idValue}/cycle_size`)

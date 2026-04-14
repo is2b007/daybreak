@@ -117,8 +117,9 @@ class HeyClient
 
     calendars_data.flat_map do |cal|
       cid = cal["id"].to_s
+      color = cal["color"].presence
       raw = calendar_recordings(cid, starts_on: starts_on, ends_on: ends_on)
-      flatten_calendar_recordings(raw, calendar_id: cid)
+      flatten_calendar_recordings(raw, calendar_id: cid, color: color)
     end
   end
 
@@ -177,7 +178,7 @@ class HeyClient
   end
 
   # Normalizes GetCalendarRecordings JSON (map of type => arrays) into flat event-like hashes.
-  def flatten_calendar_recordings(raw, calendar_id:)
+  def flatten_calendar_recordings(raw, calendar_id:, color: nil)
     rows = []
     return rows if raw.blank?
 
@@ -194,10 +195,12 @@ class HeyClient
         rid = rec["id"]
         next if rid.blank?
 
-        rows << rec.merge(
+        merged = rec.merge(
           "id" => rid.to_s,
           "hey_calendar_id" => calendar_id
         )
+        merged["calendar_color"] = color if color.present?
+        rows << merged
       end
     end
 

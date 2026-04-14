@@ -13,14 +13,16 @@
   </div>
 
   <nav class="sb-nav">
-    <%= link_to root_path, class: "sbi #{controller_name == 'weeks' ? 'on' : ''}", title: "Week" do %>
+    <%= link_to root_path, class: "sbi #{controller_name == 'weeks' ? 'on' : ''}", title: "Week (W)" do %>
       <%= render "icons/nav/week" %>
       <span class="sbi-label">Week</span>
+      <kbd class="sbi-shortcut">W</kbd>
     <% end %>
 
-    <%= link_to day_path(Date.current), class: "sbi #{controller_name == 'days' && @tab != 'log' ? 'on' : ''}", title: "Today" do %>
+    <%= link_to day_path(Date.current), class: "sbi #{controller_name == 'days' && @tab != 'log' ? 'on' : ''}", title: "Today (T)" do %>
       <%= render "icons/nav/today" %>
       <span class="sbi-label">Today</span>
+      <kbd class="sbi-shortcut">T</kbd>
     <% end %>
 
     <%= link_to day_path(Date.current, tab: "log"), class: "sbi #{controller_name == 'daily_logs' || (controller_name == 'days' && @tab == 'log') ? 'on' : ''}", title: "Daily log" do %>
@@ -31,14 +33,16 @@
     <div class="sb-div"></div>
     <div class="sb-sect">Rituals</div>
 
-    <%= link_to ritual_morning_path, class: "sbi #{controller_name == 'rituals' && action_name == 'morning' ? 'on' : ''}", title: "Sunrise" do %>
+    <%= link_to ritual_morning_path, class: "sbi #{controller_name == 'rituals' && action_name == 'morning' ? 'on' : ''}", title: "Sunrise (S)" do %>
       <%= render "icons/nav/sunrise" %>
       <span class="sbi-label">Sunrise</span>
+      <kbd class="sbi-shortcut">S</kbd>
     <% end %>
 
-    <%= link_to ritual_evening_path, class: "sbi #{controller_name == 'rituals' && action_name == 'evening' ? 'on' : ''}", title: "Sundown" do %>
+    <%= link_to ritual_evening_path, class: "sbi #{controller_name == 'rituals' && action_name == 'evening' ? 'on' : ''}", title: "Sundown (D)" do %>
       <%= render "icons/nav/sunset" %>
       <span class="sbi-label">Sundown</span>
+      <kbd class="sbi-shortcut">D</kbd>
     <% end %>
   </nav>
 

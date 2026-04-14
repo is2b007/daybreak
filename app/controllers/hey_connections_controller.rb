@@ -3,8 +3,27 @@ class HeyConnectionsController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :callback ]
 
   # GET /auth/hey
-  # Renders the "Connect HEY via CLI" page with step-by-step token instructions.
+  # Renders the "Connect HEY" page with OAuth button + CLI token paste fallback.
   def new
+  end
+
+  # GET /auth/hey/authorize
+  # Starts PKCE OAuth flow: generates verifier/challenge, caches state, redirects to HEY.
+  def authorize
+    verifier = HeyClient.generate_code_verifier
+    challenge = HeyClient.generate_code_challenge(verifier)
+    state = SecureRandom.hex(24)
+
+    redirect_uri = auth_hey_callback_url(protocol: "http", host: "127.0.0.1", port: request.port)
+
+    Rails.cache.write(
+      hey_oauth_cache_key(state),
+      { user_id: current_user.id, verifier: verifier, redirect_uri: redirect_uri },
+      expires_in: 10.minutes
+    )
+
+    redirect_to HeyClient.authorize_url(redirect_uri, code_challenge: challenge, state: state),
+      allow_other_host: true
   end
 
   # POST /auth/hey
@@ -57,9 +76,8 @@ class HeyConnectionsController < ApplicationController
   end
 
   # GET /auth/hey/callback
-  # Kept for the PKCE OAuth flow — currently HEY's redirect_uri validation blocks
-  # third-party apps, so this path is not reachable in practice. Preserved for when
-  # 37signals opens up OAuth registration.
+  # PKCE OAuth callback: exchanges the authorization code for access + refresh tokens.
+  # Uses 127.0.0.1 redirect_uri (same pattern as hey-cli's localhost OAuth flow).
   def callback
     if params[:error].present?
       Rails.logger.warn("HEY OAuth denied: #{params[:error]} — #{params[:error_description]}")

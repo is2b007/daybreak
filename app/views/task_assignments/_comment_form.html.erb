@@ -1,5 +1,8 @@
-<%# locals: (task:) %>
+<%# locals: (task:, error: nil) %>
 <div id="task_comment_<%= task.id %>" class="modal__comment-form">
+  <% if error.present? %>
+    <p class="modal__comment-error"><%= error %></p>
+  <% end %>
   <%= form_with url: comment_task_assignment_path(task), method: :post,
         data: { turbo: true, turbo_stream: true } do |f| %>
     <div class="modal__comment-row">
