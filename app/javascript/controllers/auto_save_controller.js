@@ -5,6 +5,14 @@ export default class extends Controller {
 
   connect() {
     queueMicrotask(() => this.resizeTitle())
+    this.handleSubmitEnd = this.#onSubmitEnd.bind(this)
+    this.element.addEventListener("turbo:submit-end", this.handleSubmitEnd)
+  }
+
+  disconnect() {
+    clearTimeout(this.timeout)
+    clearTimeout(this.errorTimeout)
+    this.element.removeEventListener("turbo:submit-end", this.handleSubmitEnd)
   }
 
   save() {
@@ -24,5 +32,17 @@ export default class extends Controller {
     const next = Math.min(ta.scrollHeight, maxPx)
     ta.style.height = `${next}px`
     ta.style.overflowY = ta.scrollHeight > maxPx ? "auto" : "hidden"
+  }
+
+  // Private
+
+  #onSubmitEnd(event) {
+    if (!event.detail.success) {
+      this.element.dataset.saveError = "true"
+      clearTimeout(this.errorTimeout)
+      this.errorTimeout = setTimeout(() => {
+        delete this.element.dataset.saveError
+      }, 3000)
+    }
   }
 }

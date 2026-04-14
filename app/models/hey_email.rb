@@ -21,4 +21,9 @@ class HeyEmail < ApplicationRecord
   def handled?
     dismissed_at.present? || triaged_at.present?
   end
+
+  # Returns hey_url only if it uses a safe scheme (http/https).
+  def safe_hey_url
+    hey_url if hey_url&.match?(%r{\Ahttps?://}i)
+  end
 end

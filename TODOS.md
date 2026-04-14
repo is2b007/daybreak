@@ -4,28 +4,13 @@ Generated from adversarial code review findings. This feature shipped with criti
 
 ## Medium Priority (P1)
 
-### URL Scheme Validation on External Links [P1]
-**File:** `app/views/triage/_hey_email.html.erb:10`  
-**Issue:** `hey_url` from the HEY API is rendered directly in `href` with no validation. A malicious or compromised HEY posting could inject `javascript:` or `data:` URIs.  
-**Fix:** Validate that the URL scheme is `http` or `https` before rendering. Use Rails `sanitize_url` helper or add a simple scheme check:
-```erb
-<% if @email.hey_url&.match?(%r{^https?://}) %>
-  <%= link_to @email.subject, @email.hey_url, target: "_blank", rel: "noopener" %>
-<% else %>
-  <span><%= @email.subject %></span>
-<% end %>
-```
+### URL Scheme Validation on External Links [P1] ✓ FIXED
+**File:** `app/models/task_assignment.rb`, `app/models/hey_email.rb`, `app/views/task_assignments/_modal.html.erb`  
+**Status:** Fixed. Added `safe_hey_app_url` / `safe_hey_url` helpers that validate `https?://` scheme. Modal link uses `safe_hey_app_url` instead of raw `hey_app_url`.
 
-### Missing Index on for_triage Scope [P1]
+### Missing Index on for_triage Scope [P1] ✓ FIXED
 **File:** `db/migrate/20260408120000_create_hey_emails.rb` + `app/models/hey_email.rb`  
-**Issue:** `for_triage` filters `dismissed_at IS NULL AND triaged_at IS NULL` ordered by `received_at DESC`. The existing indexes `[user_id, folder]` and `[user_id, received_at]` don't cover the soft-delete predicate. Queries are sequential scans. Also, `app/views/rituals/_morning_step_2.html.erb` renders `for_triage.count` on every page.  
-**Fix:** Add a partial index to cover both soft-delete columns:
-```ruby
-add_index :hey_emails, 
-  [:user_id, :folder, :received_at], 
-  where: "dismissed_at IS NULL AND triaged_at IS NULL",
-  name: "idx_hey_emails_for_triage"
-```
+**Status:** Fixed in migration `20260414100000_add_for_triage_index_to_hey_emails`. Added partial index on `[:user_id, :received_at]` where `dismissed_at IS NULL AND triaged_at IS NULL`.
 
 ### Cross-User 404 Leakage (Low Impact) [P1]
 **File:** `app/controllers/hey_emails_controller.rb:27-36`  
@@ -64,8 +49,8 @@ add_index :hey_emails,
 
 **Deferred to follow-up:**
 - P1 #4: Cross-user 404 leak (low-risk enumeration, already scoped)
-- P1 #5: URL scheme validation (add sanitize_url)
-- P1 #8: Missing for_triage index (add partial index)
+- P1 #5: URL scheme validation (FIXED — safe_hey_app_url / safe_hey_url helpers)
+- P1 #8: Missing for_triage index (FIXED — migration 20260414100000)
 - P2 #10: Enum string/symbol consistency (flag for robustness)
 - P2 #11: Transport error handling (expand in SyncHeyEmailsJob)
 - P2 #12: Timezone handling (FIXED)

@@ -51,8 +51,12 @@ class CalendarEvent < ApplicationRecord
     ((ends_at - starts_at) / 1.hour).ceil.clamp(1, 14)
   end
 
+  def event_color
+    color.presence
+  end
+
   def to_view_hash
-    {
+    h = {
       id: id,
       source: source,
       title: title,
@@ -64,6 +68,8 @@ class CalendarEvent < ApplicationRecord
       starts_at_iso: starts_at.iso8601,
       ends_at_iso: (ends_at || (starts_at + 1.hour)).iso8601
     }
+    h[:color] = event_color if event_color
+    h
   end
 
   # Attributes for the day timeline (positioned blocks). Returns nil when the event
@@ -75,6 +81,7 @@ class CalendarEvent < ApplicationRecord
 
     completed_flag = hey? && completed_at.present?
     base = { source: source, title: title, time: time_label, all_day: all_day, completed: completed_flag }
+    base[:color] = event_color if event_color
 
     if all_day
       return base.merge(

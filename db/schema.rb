@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
+    t.string "color"
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.text "description"
@@ -71,6 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_200000) do
     t.integer "user_id", null: false
     t.index ["user_id", "external_id"], name: "index_hey_emails_on_user_id_and_external_id", unique: true
     t.index ["user_id", "folder"], name: "index_hey_emails_on_user_id_and_folder"
+    t.index ["user_id", "received_at"], name: "idx_hey_emails_for_triage", order: { received_at: :desc }, where: "dismissed_at IS NULL AND triaged_at IS NULL"
     t.index ["user_id", "received_at"], name: "index_hey_emails_on_user_id_and_received_at"
     t.index ["user_id"], name: "index_hey_emails_on_user_id"
   end
@@ -98,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_200000) do
   create_table "local_timer_sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "ended_at"
+    t.string "hey_time_track_id"
     t.datetime "started_at", null: false
     t.integer "task_assignment_id"
     t.datetime "updated_at", null: false

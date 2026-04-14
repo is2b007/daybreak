@@ -1,12 +1,13 @@
 <%# locals: (task:, compact: false) %>
 <div class="task-card task-card--<%= task.hey_app_url.present? ? 'hey' : task.source %> card--<%= task.size %> <%= 'task-card--completed' if task.completed? %>"
      id="task_<%= task.id %>"
+     tabindex="0"
      draggable="true"
      data-controller="task-card"
      data-task-card-id-value="<%= task.id %>"
      data-task-card-completed-value="<%= task.completed? %>"
      data-hey-email-task="<%= task.hey_app_url.present? %>"
-     data-action="click->task-card#openModal dragstart->sortable#dragstart dragend->sortable#dragend"
+     data-action="click->task-card#openModal keydown->task-card#handleKeydown dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
   <button class="task-card__size-badge"

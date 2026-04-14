@@ -29,7 +29,8 @@ class LocalTimerSession < ApplicationRecord
     total = user.local_timer_sessions
       .where(task_assignment: task_assignment)
       .where.not(ended_at: nil)
-      .sum { |s| s.duration_minutes }
+      .pluck(:started_at, :ended_at)
+      .sum { |started, ended| ((ended - started).to_i / 60.0).round }
     task_assignment.update!(actual_duration_minutes: total)
   end
 end

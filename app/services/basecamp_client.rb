@@ -300,11 +300,16 @@ class BasecampClient
   end
 
   def perform_token_refresh!
-    data = self.class.refresh_token(@user.basecamp_refresh_token)
-    @user.update!(
-      basecamp_access_token: data["access_token"],
-      basecamp_token_expires_at: 2.weeks.from_now
-    )
+    # Use with_lock to prevent concurrent refresh races under concurrent job syncs.
+    @user.with_lock do
+      return if @user.reload.basecamp_token_fresh?
+
+      data = self.class.refresh_token(@user.basecamp_refresh_token)
+      @user.update!(
+        basecamp_access_token: data["access_token"],
+        basecamp_token_expires_at: 2.weeks.from_now
+      )
+    end
   end
 
   def refresh_and_retry!(method, path, body_or_params)

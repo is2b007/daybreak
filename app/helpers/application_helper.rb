@@ -47,4 +47,10 @@ module ApplicationHelper
       "#{r} min"
     end
   end
+
+  def format_focus_duration(minutes)
+    m = minutes.to_i
+    h, r = m.divmod(60)
+    "#{h}:#{r.to_s.rjust(2, '0')}:00"
+  end
 end

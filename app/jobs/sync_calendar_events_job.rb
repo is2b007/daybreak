@@ -137,6 +137,7 @@ class SyncCalendarEventsJob < ApplicationJob
       completed_at: completed_raw.present? ? Time.zone.parse(completed_raw.to_s) : nil
     }
     attrs[:hey_calendar_id] = evt["hey_calendar_id"].to_s if evt["hey_calendar_id"].present?
+    attrs[:color] = evt["calendar_color"].to_s if evt["calendar_color"].present?
     event.update!(attrs)
   end
 end

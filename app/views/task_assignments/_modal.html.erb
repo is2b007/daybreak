@@ -31,8 +31,8 @@
                   class: "modal__menu-item modal__menu-item--danger" %>
           </div>
         </details>
-        <% if task.hey_app_url.present? %>
-          <%= link_to task.hey_app_url,
+        <% if task.safe_hey_app_url.present? %>
+          <%= link_to task.safe_hey_app_url,
                 target: "_blank",
                 rel: "noopener noreferrer",
                 class: "modal__ext-link",

@@ -86,6 +86,11 @@ class TaskAssignment < ApplicationRecord
     CalendarEvent.destroy_daybreak_timebox_mirror!(user, id)
   end
 
+  # Returns hey_app_url only if it uses a safe scheme (http/https).
+  def safe_hey_app_url
+    hey_app_url if hey_app_url&.match?(%r{\Ahttps?://}i)
+  end
+
   # Web app URL for this todo (API ids match the web UI).
   def basecamp_web_url
     return nil unless basecamp?

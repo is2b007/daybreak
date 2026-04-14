@@ -21,6 +21,19 @@
       <div class="flash flash--alert connect-hey__flash"><%= flash[:alert] %></div>
     <% end %>
 
+    <div class="connect-hey__oauth">
+      <%= link_to authorize_hey_path, class: "btn btn--primary connect-hey__oauth-btn" do %>
+        Connect with HEY
+      <% end %>
+      <p class="connect-hey__oauth-hint">
+        Opens HEY in your browser to authorize Daybreak. Fastest option.
+      </p>
+    </div>
+
+    <div class="connect-hey__divider">
+      <span class="connect-hey__divider-text">or connect via CLI token</span>
+    </div>
+
     <ol class="connect-hey__steps" data-controller="clipboard">
 
       <li class="connect-hey__step">

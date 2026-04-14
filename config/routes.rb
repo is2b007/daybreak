@@ -13,11 +13,12 @@ Rails.application.routes.draw do
   get  "auth/basecamp/callback",  to: "sessions#create",  as: :auth_basecamp_callback
   delete "logout",                to: "sessions#destroy",  as: :logout
 
-  # HEY connection (token-based; PKCE OAuth kept as callback for potential future use)
-  get    "auth/hey",          to: "hey_connections#new",      as: :auth_hey
-  post   "auth/hey",          to: "hey_connections#create",   as: :connect_hey
-  get    "auth/hey/callback", to: "hey_connections#callback", as: :auth_hey_callback
-  delete "auth/hey",          to: "hey_connections#destroy",  as: :disconnect_hey
+  # HEY connection (PKCE OAuth + token-paste fallback)
+  get    "auth/hey",           to: "hey_connections#new",       as: :auth_hey
+  post   "auth/hey",           to: "hey_connections#create",    as: :connect_hey
+  get    "auth/hey/authorize", to: "hey_connections#authorize", as: :authorize_hey
+  get    "auth/hey/callback",  to: "hey_connections#callback",  as: :auth_hey_callback
+  delete "auth/hey",           to: "hey_connections#destroy",   as: :disconnect_hey
 
   # HEY email actions (triage/dismiss from the right panel, plan via drag)
   resources :hey_emails, only: [] do
@@ -58,6 +59,7 @@ Rails.application.routes.draw do
   # Tasks
   resources :task_assignments, only: [ :show, :create, :update, :destroy ] do
     member do
+      get   :focus
       post  :comment
       patch :move
       patch :cycle_size
