@@ -1,8 +1,23 @@
 class SettingsController < ApplicationController
   def show
+    load_hey_calendars
+  end
+
+  def update
+    if current_user.update(settings_params)
+      redirect_to settings_path, notice: "Saved."
+    else
+      load_hey_calendars
+      flash.now[:alert] = current_user.errors.full_messages.to_sentence
+      render :show, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def load_hey_calendars
     @hey_calendars = []
     return unless current_user.hey_connected?
-
     begin
       data = HeyClient.new(current_user).calendars
       @hey_calendars = data if data.is_a?(Array)
@@ -10,22 +25,6 @@ class SettingsController < ApplicationController
       @hey_calendars = []
     end
   end
-
-  def update
-    if current_user.update(settings_params)
-      respond_to do |format|
-        format.html { redirect_to settings_path, notice: "Saved." }
-        format.json { head :ok }
-      end
-    else
-      respond_to do |format|
-        format.html { render :show, status: :unprocessable_entity }
-        format.json { render json: { errors: current_user.errors }, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  private
 
   def settings_params
     params.require(:user).permit(

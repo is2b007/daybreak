@@ -1,6 +1,14 @@
 class HeyEmailsController < ApplicationController
   before_action :set_email, except: [ :more ]
 
+  # GET /hey_emails/:id — renders email preview in the modal frame.
+  def show
+    respond_to do |format|
+      format.turbo_stream { render :show }
+      format.html { render :show }
+    end
+  end
+
   # GET /hey_emails/more?offset=75 — JSON fragment for infinite scroll in the HEY panel.
   def more
     offset = [ params[:offset].to_i, 0 ].max

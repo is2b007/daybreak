@@ -7,14 +7,14 @@
       <div class="kanban__day-name"><%= date.strftime("%a") %></div>
       <% if date == Date.current %>
         <div class="kanban__day-date kanban__day-date--today">
-          <%= link_to day_path(date), class: "kanban__day-date-link" do %>
+          <%= link_to day_path(date), class: "kanban__day-date-link", data: { turbo_frame: "_top" } do %>
             <span class="kanban__day-month"><%= date.strftime("%b") %></span>
             <span class="kanban__day-number" aria-label="<%= date.strftime('%B %-d') %>"><%= date.day %></span>
           <% end %>
         </div>
       <% else %>
         <div class="kanban__day-date">
-          <%= link_to date.strftime("%b %-d"), day_path(date), style: "color: inherit; text-decoration: none;" %>
+          <%= link_to date.strftime("%b %-d"), day_path(date), style: "color: inherit; text-decoration: none;", data: { turbo_frame: "_top" } %>
         </div>
       <% end %>
     </div>

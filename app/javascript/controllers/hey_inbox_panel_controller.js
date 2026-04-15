@@ -6,6 +6,7 @@ export default class extends Controller {
   static values = { nextOffset: Number }
 
   connect() {
+    this.dragging = false
     if (!this.hasFolderSelectTarget) return
     this._bulkRemoving = false
     this._awaitingFirstPage = false
@@ -148,7 +149,20 @@ export default class extends Controller {
     this.loadMore()
   }
 
+  openEmail(event) {
+    if (this.dragging) return
+    if (event.defaultPrevented) return
+    if (event.target.closest("button, a, input, select, textarea, label, [role='button']")) return
+
+    const row = event.currentTarget.closest(".r-item")
+    const emailId = row?.dataset.heyEmailId
+    if (!emailId) return
+
+    Turbo.visit(`/hey_emails/${emailId}`, { frame: "modal" })
+  }
+
   dragstart(event) {
+    this.dragging = true
     const row = event.currentTarget
     const emailId = row.dataset.heyEmailId
     if (!emailId) return
@@ -164,6 +178,7 @@ export default class extends Controller {
     const row = event.currentTarget
     row.classList.remove("r-item--dragging")
     document.body.classList.remove("hey-email-dragging")
+    setTimeout(() => { this.dragging = false }, 0)
   }
 
   dragover(event) {

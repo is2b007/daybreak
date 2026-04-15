@@ -6,8 +6,8 @@
      data-hey-email-id="<%= email.id %>"
      data-folder="<%= email.folder %>"
      data-label="<%= h(email.label.to_s) %>"
-     data-action="dragstart->hey-inbox-panel#dragstart dragend->hey-inbox-panel#dragend"
-     title="Drag to plan">
+     data-action="click->hey-inbox-panel#openEmail dragstart->hey-inbox-panel#dragstart dragend->hey-inbox-panel#dragend"
+     title="Click to preview · Drag to plan">
   <div class="r-item-body">
     <div class="r-item-name"><%= truncate(email.subject, length: 72) %></div>
     <div class="r-item-project"><%= email.sender_name.presence || email.sender_email || "Unknown sender" %></div>

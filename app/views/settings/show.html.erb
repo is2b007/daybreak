@@ -1,7 +1,7 @@
 <div class="settings">
   <h1 class="settings__title">Settings</h1>
 
-  <%= form_with model: current_user, url: settings_path, method: :patch do |f| %>
+  <%= form_with model: current_user, url: settings_path, method: :patch, data: { turbo: false } do |f| %>
     <div class="settings__section">
       <div class="settings__section-title">Profile</div>
       <div class="form-group">
@@ -36,10 +36,32 @@
       </div>
     </div>
 
-    <div class="settings__section">
+    <div class="settings__section"
+         data-controller="timezone-detector"
+         data-timezone-detector-auto-select-value="false"
+         data-timezone-detector-stored-value="<%= current_user.timezone %>">
       <div class="settings__section-title">Timezone</div>
+
+      <%# Auto-detect suggestion banner — hidden until JS compares detected vs stored %>
+      <div class="settings__tz-suggest" hidden
+           data-timezone-detector-target="suggest">
+        <span class="settings__tz-suggest-text">
+          Your browser timezone looks like
+          <strong data-timezone-detector-target="suggestLabel"></strong>.
+        </span>
+        <button type="button"
+                class="btn btn--secondary btn--small"
+                data-action="timezone-detector#applyDetected">
+          Use this
+        </button>
+      </div>
+
       <div class="form-group">
-        <%= f.select :timezone, ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] }, {}, class: "form-input" %>
+        <%= f.select :timezone,
+              ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
+              { selected: current_user.timezone },
+              class: "form-input",
+              data: { timezone_detector_target: "select" } %>
       </div>
     </div>
 
@@ -63,7 +85,7 @@
             <div class="settings__connection">
               <span class="settings__connection-status settings__connection-status--connected"></span>
               <span class="text-sm text-muted">Connected</span>
-              <%= button_to "Disconnect HEY", disconnect_hey_path, method: :delete, class: "btn btn--ghost btn--small" %>
+              <%= link_to "Disconnect HEY", disconnect_hey_path, data: { turbo_method: :delete, turbo_confirm: "Disconnect your HEY account?" }, class: "btn btn--ghost btn--small" %>
             </div>
             <div class="form-group">
               <%= f.label :hey_default_calendar_id, "Default HEY calendar", class: "form-label" %>

@@ -229,7 +229,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   z-index: 900;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-size: 160px 160px;
-  opacity: 0.035;
+  opacity: 0.055;
   mix-blend-mode: multiply;
 }
 
@@ -1025,6 +1025,17 @@ a.rri:hover {
 
 .r-sync-btn:active {
   background: var(--bg3);
+}
+
+/* Sync in-progress: spin the icon, block double-clicks */
+.r-sync-btn--loading {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.r-sync-btn--loading svg {
+  animation: spin 0.7s linear infinite;
+  transform-origin: center;
 }
 
 .r-sync-form {
@@ -2659,10 +2670,10 @@ select.form-input {
   font-weight: 600;
 }
 
-/* Current time indicator — floating line positioned by JS */
+/* Current time indicator — floating dotted line with time label, positioned by JS */
 .timeline__now-line {
   position: absolute;
-  left: 32px;
+  left: 38px;
   right: 0;
   height: 0;
   z-index: 10;
@@ -2672,18 +2683,35 @@ select.form-input {
 .timeline__now-line::after {
   content: "";
   display: block;
-  height: 1.5px;
-  background: var(--amber);
+  height: 0;
+  border-top: 1.5px dashed var(--amber);
+  opacity: 0.75;
 }
 
-.timeline__now-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--amber);
+.timeline__now-label {
   position: absolute;
-  left: -4px;
-  top: -3.5px;
+  left: -38px;
+  top: -7px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--amber);
+  white-space: nowrap;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.timeline__now-ampm {
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.timeline__now-colon {
+  animation: colon-blink 1s step-end infinite;
+}
+
+@keyframes colon-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 }
 
 .timeline__drop-zone {
@@ -4216,6 +4244,26 @@ select.form-input {
   margin-bottom: var(--space-4);
 }
 
+/* Timezone auto-detect suggestion banner */
+.settings__tz-suggest {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+}
+
+.settings__tz-suggest[hidden] { display: none; }
+
+.settings__tz-suggest-text {
+  flex: 1;
+  color: var(--amber-text);
+}
+
 .settings__row {
   display: flex;
   align-items: center;
@@ -4295,6 +4343,146 @@ select.form-input {
 }
 
 .checkin__goal-input .form-input { flex: 1; }
+
+/* --------------------------------------------------------------------------
+   WEEKLY CHECK-IN RITUAL
+   -------------------------------------------------------------------------- */
+.ritual--checkin {
+  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 55%);
+}
+
+.shell .view-area > .ritual.ritual--checkin {
+  min-height: 0;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.ritual__content--checkin {
+  max-width: 520px;
+  width: 100%;
+  text-align: left;
+}
+
+.checkin-ritual__header {
+  margin-bottom: var(--space-8);
+}
+
+.checkin-ritual__title {
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  margin: 0 0 var(--space-2);
+  line-height: 1.1;
+}
+
+.checkin-ritual__subtitle {
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.checkin-ritual__goals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+/* Step 1: checkbox goal items */
+.checkin-ritual__goal-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.checkin-ritual__goal-item:hover {
+  background: var(--bg2);
+}
+
+.checkin-ritual__goal-item--done {
+  opacity: 0.55;
+}
+
+.checkin-ritual__checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkin-ritual__goal-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  background: transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.checkin-ritual__checkbox:checked + .checkin-ritual__goal-check {
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #fff;
+}
+
+.checkin-ritual__goal-title {
+  flex: 1;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+  color: var(--text);
+}
+
+/* Step 2: text inputs */
+.checkin-ritual__goal-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.checkin-ritual__goal-num {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  width: 18px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.checkin-ritual__goal-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.checkin-ritual__goal-input::placeholder { color: var(--muted2); }
+
+.checkin-ritual__goal-input:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+
+.checkin-ritual__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
 
 /* --------------------------------------------------------------------------
    MODAL / OVERLAY
@@ -4388,6 +4576,14 @@ select.form-input {
 }
 
 .modal__close:hover { background: var(--bg2); color: var(--text); }
+
+.modal__focus-btn,
+.modal__add-today-btn {
+  font-size: 11px;
+  padding: 3px 8px;
+  height: 26px;
+  white-space: nowrap;
+}
 
 /* Title row: squarish checkbox icon + title input */
 .modal__title-row {
@@ -4733,8 +4929,74 @@ form[data-save-error="true"] {
   50% { opacity: 1; }
 }
 
+/* Solid-colour sunrise: CSS can interpolate hex colours smoothly; gradients cannot. */
+@keyframes sunrise-ritual {
+  0%   { background-color: #1a1a2e; }
+  20%  { background-color: #7B3F2B; }
+  45%  { background-color: #E8833A; }
+  70%  { background-color: #F5C06F; }
+  100% { background-color: #FFFBF5; }
+}
+
+@keyframes sunset-ritual {
+  0%   { background-color: #FFFBF5; }
+  25%  { background-color: #E8833A; }
+  55%  { background-color: #C25B7A; }
+  80%  { background-color: #3D1A4A; }
+  100% { background-color: #1E1E2E; }
+}
+
 .ritual-bg--sunrise { animation: sunrise 2.5s ease-out forwards; }
 .ritual-bg--sunset { animation: sunset 3s ease-out forwards; }
+
+/* Triggered by ritual_controller.js for first-open-today sunrise */
+.ritual--sunrise-animate {
+  animation: sunrise-ritual 4s ease-out forwards;
+}
+
+/* Triggered for sunset wrap screen */
+.ritual--sunset-animate {
+  animation: sunset-ritual 4.5s ease-in-out forwards;
+}
+
+/* Evening wrap screen */
+.ritual--evening-wrap {
+  background: var(--bg);
+}
+
+.ritual__content--sunset-wrap {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.sunset-wrap__icon {
+  margin-bottom: var(--space-2);
+  color: var(--amber);
+}
+
+.sunset-wrap__title {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.sunset-wrap__sub {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.sunset-wrap__link {
+  margin-top: var(--space-4);
+  opacity: 0.6;
+}
 
 .star-dot {
   position: absolute;
@@ -5644,16 +5906,18 @@ body.focus-open { overflow: hidden; }
 
 .task-card:focus-visible::after,
 .task-card:hover::after {
-  content: "\2423";
+  content: "f";
   position: absolute;
   top: 6px;
   right: 6px;
   font-size: 10px;
-  color: var(--muted2);
-  background: var(--bg2);
+  font-family: ui-monospace, monospace;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
   border-radius: 3px;
-  padding: 1px 4px;
-  line-height: 1;
+  padding: 1px 5px;
+  line-height: 1.4;
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--transition-fast);

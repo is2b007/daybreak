@@ -21,7 +21,7 @@ Rails.application.routes.draw do
   delete "auth/hey",           to: "hey_connections#destroy",   as: :disconnect_hey
 
   # HEY email actions (triage/dismiss from the right panel, plan via drag)
-  resources :hey_emails, only: [] do
+  resources :hey_emails, only: [ :show ] do
     collection do
       get :more
     end

@@ -10,7 +10,9 @@
   <% end %>
 <% end %>
 
-<div class="ritual ritual--morning <%= @step == 2 ? "ritual--sunrise-step2" : "ritual--sunrise-step1" %>" data-controller="ritual">
+<div class="ritual ritual--morning <%= @step == 2 ? "ritual--sunrise-step2" : "ritual--sunrise-step1" %>"
+     data-controller="ritual"
+     data-ritual-sunrise-play-value="<%= @play_sunrise ? 'true' : 'false' %>">
   <% if @step == 1 %>
     <div class="ritual__content ritual__content--sunrise-review">
       <h1 class="ritual__greeting ritual__greeting--sunrise"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>

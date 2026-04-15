@@ -463,7 +463,7 @@ class TaskAssignmentsController < ApplicationController
     day_plan = current_user.day_plans.find_by(date: date)
     tz = current_user.timezone
     timeline_events = current_user.calendar_events
-      .for_date(date)
+      .for_date(date, tz)
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact

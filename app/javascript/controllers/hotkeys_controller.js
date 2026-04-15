@@ -6,7 +6,9 @@ export default class extends Controller {
     week: String,
     today: String,
     sunrise: String,
-    sundown: String
+    sundown: String,
+    dailyLog: String,
+    checkin: String
   }
 
   connect() {
@@ -42,6 +44,8 @@ export default class extends Controller {
       case "t": return this.todayValue
       case "s": return this.sunriseValue
       case "d": return this.sundownValue
+      case "l": return this.dailyLogValue
+      case "c": return this.checkinValue
       default:  return null
     }
   }

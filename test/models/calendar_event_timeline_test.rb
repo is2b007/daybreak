@@ -70,6 +70,7 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
   test "day_view_chip_records drops HEY all-day chip when timed block shares title" do
     la = Time.find_zone("America/Los_Angeles")
     day = Date.parse("2026-04-13")
+    # All-day chip — should be suppressed because a timed event shares the title
     @user.calendar_events.create!(
       external_id: "allday-dup",
       source: :hey,
@@ -79,6 +80,7 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
       all_day: true,
       hey_calendar_id: "1"
     )
+    # Timed duplicate — causes the all-day chip to be dropped
     @user.calendar_events.create!(
       external_id: "timed-dup",
       source: :hey,
@@ -88,33 +90,35 @@ class CalendarEventTimelineTest < ActiveSupport::TestCase
       all_day: false,
       hey_calendar_id: "1"
     )
+    # The all-day chip is suppressed; the chip strip only shows all-day events so the
+    # timed duplicate does not take its place — result is 0 chips for this day.
     chips = CalendarEvent.day_view_chip_records(@user, day)
-    assert_equal 1, chips.size
-    assert_equal "timed-dup", chips.first.external_id
+    assert_equal 0, chips.size
   end
 
-  test "for_day_chip_strip excludes daybreak timeline mirrors" do
-    la = Time.find_zone("America/Los_Angeles")
+  test "for_day_chip_strip excludes daybreak mirrors and timed events, keeps HEY all-day" do
     day = Date.parse("2026-04-13")
+    # All-day HEY event — the only kind that belongs in the chip strip
     @user.calendar_events.create!(
-      external_id: "chip-hey",
+      external_id: "chip-hey-allday",
       source: :hey,
-      title: "Hey timed",
-      starts_at: la.parse("2026-04-13 09:00"),
-      ends_at: la.parse("2026-04-13 10:00"),
-      all_day: false
+      title: "Hey all-day",
+      starts_at: day.in_time_zone("UTC").beginning_of_day,
+      ends_at:   day.in_time_zone("UTC").end_of_day,
+      all_day: true
     )
+    # Daybreak all-day mirror — must be excluded
     @user.calendar_events.create!(
       external_id: CalendarEvent.daybreak_timebox_external_id(999),
       source: :daybreak,
       title: "Mirror",
-      starts_at: la.parse("2026-04-13 08:30"),
-      ends_at: la.parse("2026-04-13 10:30"),
-      all_day: false
+      starts_at: day.in_time_zone("UTC").beginning_of_day,
+      ends_at:   day.in_time_zone("UTC").end_of_day,
+      all_day: true
     )
-    rows = @user.calendar_events.for_date(day).for_day_chip_strip
+    rows = @user.calendar_events.for_date(day, "UTC").for_day_chip_strip
     assert_equal 1, rows.size
-    assert_equal "chip-hey", rows.first.external_id
+    assert_equal "chip-hey-allday", rows.first.external_id
   end
 
   test "hourly timeline payload drops all-day entries" do

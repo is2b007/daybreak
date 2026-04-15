@@ -7,7 +7,9 @@
 <div class="timeline" id="timeline_<%= date %>" data-controller="timeline time-indicator" data-timeline-date-value="<%= date %>" data-time-indicator-timezone-value="<%= tz %>" style="--timeline-hour: <%= px %>px;">
   <% if date == Date.current %>
     <div class="timeline__now-line" data-time-indicator-target="line">
-      <div class="timeline__now-dot"></div>
+      <div class="timeline__now-label">
+        <span data-time-indicator-target="hour">--</span><span class="timeline__now-colon">:</span><span data-time-indicator-target="minute">--</span><span class="timeline__now-ampm" data-time-indicator-target="ampm">am</span>
+      </div>
     </div>
   <% end %>
   <% if events.empty? && tasks.none?(&:timeboxed?) %>
@@ -49,7 +51,9 @@
             <strong><%= event[:title] %></strong>
             <span class="text-xs"><%= event[:time] %><% if event[:duration_label].present? %> · <%= event[:duration_label] %><% end %><% if event[:source].to_s == "daybreak" %> · <span class="timeline__local-badge">local</span><% end %></span>
           </div>
-          <button type="button" class="hey-timeline-event__delete" data-action="hey-timeline-event#delete" aria-label="Remove calendar block">×</button>
+          <% if event[:source].to_s == "daybreak" %>
+            <button type="button" class="hey-timeline-event__delete" data-action="hey-timeline-event#delete" aria-label="Remove calendar block">×</button>
+          <% end %>
         </div>
         <button type="button" class="hey-timeline-event__resize hey-timeline-event__resize--bottom" aria-label="Resize end" data-action="pointerdown->hey-timeline-event#resizePointerdown" data-edge="bottom"></button>
       <% else %>
