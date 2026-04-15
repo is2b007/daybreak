@@ -19,7 +19,9 @@
         data-hotkeys-week-value="<%= root_path %>"
         data-hotkeys-today-value="<%= day_path(Date.current) %>"
         data-hotkeys-sunrise-value="<%= ritual_morning_path %>"
-        data-hotkeys-sundown-value="<%= ritual_evening_path %>">
+        data-hotkeys-sundown-value="<%= ritual_evening_path %>"
+        data-hotkeys-daily-log-value="<%= day_path(Date.current, tab: 'log') %>"
+        data-hotkeys-checkin-value="<%= weekly_checkin_path %>">
     <% if logged_in? && current_user.onboarded? && !content_for?(:full_screen) %>
       <% if logged_in? %>
         <template data-user-stamp-svg>

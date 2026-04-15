@@ -1,0 +1,75 @@
+<%# locals: (email:) %>
+<div class="modal-overlay"
+     data-controller="modal"
+     data-action="click->modal#closeIfBackdrop">
+  <div class="modal modal--task">
+
+    <div class="modal__topbar">
+      <div class="modal__channel">
+        <span>HEY Email</span>
+      </div>
+      <div class="modal__topbar-actions">
+        <%# Add to Today %>
+        <%= button_to "Add to Today",
+              plan_hey_email_path(email),
+              method: :post,
+              params: { target_date: Date.current.iso8601, target_bucket: "day" },
+              class: "btn btn--secondary btn--small modal__add-today-btn",
+              form: { data: { turbo_stream: true } } %>
+        <% if email.safe_hey_url.present? %>
+          <%= link_to email.safe_hey_url,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "modal__ext-link",
+                title: "Open in HEY",
+                aria: { label: "Open email in HEY" } do %>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          <% end %>
+        <% end %>
+        <button type="button"
+                class="modal__close"
+                data-action="click->modal#close"
+                aria-label="Close modal">×</button>
+      </div>
+    </div>
+
+    <div class="modal__title-row" style="padding-bottom: var(--space-3);">
+      <div class="modal__check-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="1" y="1" width="18" height="18" rx="4.5" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <h2 class="modal__title-input" style="font-size: var(--font-size-lg); font-weight: 600; line-height: 1.35; padding: 0; border: none; background: transparent; resize: none; width: 100%;"><%= email.subject %></h2>
+    </div>
+
+    <div class="modal__body">
+      <div class="modal__section">
+        <div class="modal__section-label">From</div>
+        <p class="text-sm" style="margin: 0; color: var(--text);">
+          <%= email.sender_name.presence || email.sender_email || "Unknown sender" %>
+          <% if email.sender_name.present? && email.sender_email.present? %>
+            <span class="text-muted">&lt;<%= email.sender_email %>&gt;</span>
+          <% end %>
+        </p>
+      </div>
+
+      <% if email.snippet.present? %>
+        <div class="modal__section">
+          <div class="modal__section-label">Preview</div>
+          <p class="text-sm" style="margin: 0; color: var(--text); white-space: pre-wrap; line-height: 1.6;"><%= email.snippet %></p>
+        </div>
+      <% end %>
+
+      <% if email.safe_hey_url.present? %>
+        <div class="modal__section" style="padding-top: var(--space-2);">
+          <%= link_to "Read full email in HEY →", email.safe_hey_url, target: "_blank", rel: "noopener noreferrer", class: "text-sm", style: "color: var(--bc); text-decoration: none; font-weight: 500;" %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+</div>

@@ -25,9 +25,10 @@
       <kbd class="sbi-shortcut">T</kbd>
     <% end %>
 
-    <%= link_to day_path(Date.current, tab: "log"), class: "sbi #{controller_name == 'daily_logs' || (controller_name == 'days' && @tab == 'log') ? 'on' : ''}", title: "Daily log" do %>
+    <%= link_to day_path(Date.current, tab: "log"), class: "sbi #{controller_name == 'daily_logs' || (controller_name == 'days' && @tab == 'log') ? 'on' : ''}", title: "Daily log (L)" do %>
       <%= render "icons/nav/daily_log" %>
       <span class="sbi-label">Daily log</span>
+      <kbd class="sbi-shortcut">L</kbd>
     <% end %>
 
     <div class="sb-div"></div>
@@ -44,6 +45,12 @@
       <span class="sbi-label">Sundown</span>
       <kbd class="sbi-shortcut">D</kbd>
     <% end %>
+
+    <%= link_to weekly_checkin_path, class: "sbi #{controller_name == 'weekly_checkins' ? 'on' : ''}", title: "Check-in (C)" do %>
+      <%= render "icons/nav/goals" %>
+      <span class="sbi-label">Check-in</span>
+      <kbd class="sbi-shortcut">C</kbd>
+    <% end %>
   </nav>
 
   <div class="sb-bot">
@@ -56,6 +63,5 @@
       <% end %>
       <div class="sb-username"><%= current_user.greeting_name %></div>
     <% end %>
-    <div class="sb-badge">Pro</div>
   </div>
 </aside>

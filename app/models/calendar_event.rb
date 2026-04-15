@@ -21,15 +21,29 @@ class CalendarEvent < ApplicationRecord
 
   validates :external_id, :title, :starts_at, presence: true
 
-  scope :for_date, ->(date) { where(starts_at: date.beginning_of_day..date.end_of_day) }
+  scope :for_date, ->(date, tz = "UTC") {
+    local_start   = date.in_time_zone(tz).beginning_of_day
+    local_end     = date.in_time_zone(tz).end_of_day
+    # Use in_time_zone("UTC") — not .to_time.utc — to avoid local-system-timezone conversion.
+    utc_day_start = date.in_time_zone("UTC").beginning_of_day
+    utc_day_end   = date.in_time_zone("UTC").end_of_day
+    # Timed events: use timezone-aware local boundaries so a 9am event lands on the correct local date.
+    # All-day events: always stored at UTC midnight regardless of timezone, so match by UTC date.
+    where(
+      "(all_day = FALSE AND starts_at BETWEEN ? AND ?) OR (all_day = TRUE AND starts_at BETWEEN ? AND ?)",
+      local_start, local_end, utc_day_start, utc_day_end
+    )
+  }
   # Daybreak = local timebox mirror only; it already renders on the hourly timeline, not the chip row.
-  scope :for_day_chip_strip, -> { where.not(source: :daybreak) }
+  # Timed events (all_day: false) also render on the timeline — only all-day events belong in the chip strip.
+  scope :for_day_chip_strip, -> { where.not(source: :daybreak).where(all_day: true) }
 
-  # Top chip row: hide redundant HEY all-day pills when a timed HEY/daybreak block exists with the same title.
+  # Top chip row: only all-day events. Dedup: reject HEY all-day pills when a timed block with the same title exists.
   def self.day_view_chip_records(user, date)
-    day = user.calendar_events.for_date(date).for_day_chip_strip.chronological.to_a
-    timed_titles = user.calendar_events.for_date(date).where(all_day: false, source: [ :hey, :daybreak ]).map { |e| e.title.to_s.strip.downcase }.to_set
-    day.reject { |e| e.all_day && e.hey? && timed_titles.include?(e.title.to_s.strip.downcase) }
+    tz = user.timezone
+    day = user.calendar_events.for_date(date, tz).for_day_chip_strip.chronological.to_a
+    timed_titles = user.calendar_events.for_date(date, tz).where(all_day: false, source: [ :hey, :daybreak ]).map { |e| e.title.to_s.strip.downcase }.to_set
+    day.reject { |e| e.hey? && timed_titles.include?(e.title.to_s.strip.downcase) }
   end
   scope :for_week, ->(week_start) {
     where(starts_at: week_start.beginning_of_day..(week_start + 6.days).end_of_day)

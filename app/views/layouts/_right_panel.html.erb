@@ -8,13 +8,19 @@
       <div class="r-head-title">Basecamp</div>
       <div class="r-cnt" data-right-panel-target="bcCount" data-bc-inbox-panel-target="count"><%= @rp_bc_tasks&.count || 0 %></div>
       <div class="r-head-spacer"></div>
-      <%= button_to sync_basecamp_path, method: :post, class: "r-sync-btn", title: "Sync Basecamp", form: { class: "r-sync-form" } do %>
+      <button type="button"
+              class="r-sync-btn"
+              title="Sync Basecamp"
+              data-controller="sync-btn"
+              data-sync-btn-url-value="<%= sync_basecamp_path %>"
+              data-sync-btn-panel-value="bc-inbox-panel"
+              data-action="click->sync-btn#sync">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="23 4 23 10 17 10"/>
           <polyline points="1 20 1 14 7 14"/>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
         </svg>
-      <% end %>
+      </button>
     </div>
     <div class="r-filter">
       <select class="r-select" data-bc-inbox-panel-target="projectSelect" data-action="change->bc-inbox-panel#apply" aria-label="Filter by project">
@@ -88,13 +94,19 @@
       <div class="r-cnt" data-right-panel-target="heyCount" data-hey-inbox-panel-target="count"><%= @rp_hey_emails&.count || 0 %></div>
       <% if current_user.hey_connected? %>
         <div class="r-head-spacer"></div>
-        <%= button_to sync_hey_path, method: :post, class: "r-sync-btn", title: "Sync HEY", form: { class: "r-sync-form" } do %>
+        <button type="button"
+                class="r-sync-btn"
+                title="Sync HEY"
+                data-controller="sync-btn"
+                data-sync-btn-url-value="<%= sync_hey_path %>"
+                data-sync-btn-panel-value="hey-inbox-panel"
+                data-action="click->sync-btn#sync">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="23 4 23 10 17 10"/>
             <polyline points="1 20 1 14 7 14"/>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
-        <% end %>
+        </button>
       <% end %>
     </div>
     <% if current_user.hey_connected? %>

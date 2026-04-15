@@ -21,6 +21,23 @@
         <% end %>
       </div>
       <div class="modal__topbar-actions">
+        <%# Add to Today — show when the task isn't already on today's plan %>
+        <% unless task.day_plan&.date == Date.current %>
+          <%= button_to "Add to Today",
+                move_task_assignment_path(task),
+                method: :patch,
+                params: { target_date: Date.current.iso8601, position: 0 },
+                class: "btn btn--secondary btn--small modal__add-today-btn",
+                form: { data: { turbo_stream: true } } %>
+        <% end %>
+        <%# Focus button %>
+        <button type="button"
+                class="modal__focus-btn btn btn--ghost btn--small"
+                data-task-id="<%= task.id %>"
+                onclick="document.querySelector('[data-action*=\'modal#close\']')?.dispatchEvent(new Event('click')); setTimeout(() => Turbo.visit('/task_assignments/<%= task.id %>/focus', { frame: 'focus' }), 50)"
+                title="Focus on this task (F)">
+          Focus
+        </button>
         <details class="modal__menu">
           <summary class="modal__menu-btn" aria-label="Task options">•••</summary>
           <div class="modal__menu-pop">

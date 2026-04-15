@@ -35,7 +35,7 @@ class DaysController < ApplicationController
   def fetch_calendar_events
     tz = current_user.timezone
     current_user.calendar_events
-      .for_date(@date)
+      .for_date(@date, tz)
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact

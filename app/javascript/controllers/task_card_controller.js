@@ -13,7 +13,7 @@ export default class extends Controller {
   }
 
   handleKeydown(event) {
-    if (event.key === " " || event.key === "Enter") {
+    if (event.key === " " || event.key === "Enter" || event.key.toLowerCase() === "f") {
       event.preventDefault()
       event.stopPropagation()
       Turbo.visit(`/task_assignments/${this.idValue}/focus`, { frame: "focus" })

@@ -8,6 +8,10 @@ class RitualsController < ApplicationController
     end
 
     @day_plan = current_user.day_plans.find_or_create_by!(date: @date)
+    # Play sunrise animation + sound once per day on step 1.
+    # Record the open immediately so a page refresh doesn't replay the animation.
+    @play_sunrise = @step == 1 && current_user.first_open_today?
+    current_user.record_open! if @play_sunrise
 
     case @step
     when 1
@@ -38,7 +42,7 @@ class RitualsController < ApplicationController
 
   def morning_add_week_events
     @date = Date.current
-    scope = current_user.calendar_events.for_date(@date).where(show_on_week_board: false)
+    scope = current_user.calendar_events.for_date(@date, current_user.timezone).where(show_on_week_board: false)
     n = scope.update_all(show_on_week_board: true)
     notice = if n.positive?
       "#{n} #{'item'.pluralize(n)} added to your week view."
@@ -84,7 +88,7 @@ class RitualsController < ApplicationController
     # Sync daily log to HEY Journal if connected
     SyncJournalJob.perform_later(current_user.id, Date.current.to_s) if current_user.hey_connected?
 
-    redirect_to root_path
+    render :evening_wrap
   end
 
   private
@@ -124,7 +128,7 @@ class RitualsController < ApplicationController
   def fetch_calendar_events_for_date(date)
     tz = current_user.timezone
     current_user.calendar_events
-      .for_date(date)
+      .for_date(date, tz)
       .chronological
       .map { |e| e.to_timeline_hash(tz) }
       .compact

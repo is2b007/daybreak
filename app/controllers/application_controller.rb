@@ -7,10 +7,16 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   before_action :require_onboarding!
+  around_action :set_user_timezone
   before_action :load_active_timer
   before_action :load_right_panel_data
 
   private
+
+  def set_user_timezone
+    tz = logged_in? && current_user&.timezone.present? ? current_user.timezone : "UTC"
+    Time.use_zone(tz) { yield }
+  end
 
   def load_active_timer
     return unless logged_in? && current_user&.onboarded?
