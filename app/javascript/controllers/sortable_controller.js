@@ -145,6 +145,7 @@ export default class extends Controller {
 
     // Move card visually for board→board reorder only
     if (!fromInbox && card) {
+      cardContainer.querySelector(".kanban__empty")?.remove()
       if (position < existingCards.length) {
         cardContainer.insertBefore(card, existingCards[position])
       } else {
