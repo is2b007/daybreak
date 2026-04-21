@@ -212,7 +212,7 @@ class RitualsController < ApplicationController
                 when hey_source then "HEY"
                 when local_source then "Local"
                 else TaskAssignment.sources.key(source).to_s.titleize
-                end
+      end
       hash[label] += mins
     end
 
