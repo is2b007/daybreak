@@ -180,5 +180,4 @@ class CalendarEventsController < ApplicationController
   def set_event
     @event = current_user.calendar_events.find(params[:id])
   end
-
 end
