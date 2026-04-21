@@ -1,5 +1,19 @@
-<svg class="stamp stamp--navy-star" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <polygon points="32,2 38,22 58,22 42,34 48,56 32,42 16,56 22,34 6,22 26,22" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
-  <polygon points="32,4 22,24 2,24 18,36 12,58 32,44 52,58 46,36 62,24 42,24" stroke="currentColor" stroke-width="2.5" fill="none" opacity="0.9"/>
-  <polygon points="32,18 35,26 44,26 37,31 39,40 32,35 25,40 27,31 20,26 29,26" fill="currentColor" opacity="0.8"/>
+<svg class="stamp stamp--navy-star" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <filter id="stamp-distress-navy-star" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="11" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+    </filter>
+  </defs>
+  <g filter="url(#stamp-distress-navy-star)">
+    <circle cx="40" cy="40" r="33" stroke="currentColor" stroke-width="2.5" opacity="0.85"/>
+    <polygon points="40,16 46,32 63,32 49,43 54,60 40,50 26,60 31,43 17,32 34,32" fill="currentColor" opacity="0.9"/>
+    <polygon points="40,22 44,32 54,32 46,39 49,50 40,43 31,50 34,39 26,32 36,32" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.35"/>
+  </g>
+  <g fill="currentColor" opacity="0.38">
+    <circle cx="18" cy="22" r="0.6"/>
+    <circle cx="60" cy="64" r="0.5"/>
+    <circle cx="66" cy="30" r="0.4"/>
+    <circle cx="14" cy="50" r="0.5"/>
+  </g>
 </svg>

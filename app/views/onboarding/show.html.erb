@@ -1,22 +1,28 @@
-<div class="onboarding">
-  <div class="onboarding__card">
-    <div class="onboarding__step-indicator">
-      <% (1..4).each do |s| %>
-        <div class="onboarding__step-dot <%= 'onboarding__step-dot--active' if s == @step %> <%= 'onboarding__step-dot--done' if s < @step %>"></div>
-      <% end %>
-    </div>
-
+<div class="onboarding-doc">
+  <div class="onboarding-doc__page">
     <%= turbo_frame_tag "onboarding_step" do %>
       <% case @step %>
       <% when 1 %>
-        <%= render "step_1_name" %>
+        <%= render "step_1_welcome" %>
       <% when 2 %>
-        <%= render "step_2_stamp" %>
+        <%= render "step_2_name" %>
       <% when 3 %>
-        <%= render "step_3_hey" %>
+        <%= render "step_3_stamp" %>
       <% when 4 %>
-        <%= render "step_4_timezone" %>
+        <%= render "step_4_basecamp" %>
+      <% when 5 %>
+        <%= render "step_5_hey" %>
+      <% when 6 %>
+        <%= render "step_6_timezone" %>
+      <% when 7 %>
+        <%= render "step_7_first_week" %>
       <% end %>
     <% end %>
+
+    <div class="ritual-doc__stepper" aria-hidden="true">
+      <% (1..OnboardingController::STEPS).each do |s| %>
+        <span class="ritual-doc__stepper-dot <%= 'ritual-doc__stepper-dot--active' if s == @step %>"></span>
+      <% end %>
+    </div>
   </div>
 </div>

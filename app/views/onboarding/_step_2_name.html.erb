@@ -1,0 +1,21 @@
+<p class="ritual-doc__dateline">Step 2 of 7</p>
+<h1 class="ritual-doc__title">What should we call you?</h1>
+<p class="ritual-doc__prose">Just a first name &mdash; it&rsquo;s how Daybreak says hello in the morning.</p>
+
+<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
+  <%= f.hidden_field :step, value: 2 %>
+  <div class="ritual-doc__goal-row">
+    <input type="text"
+           name="name"
+           value="<%= current_user.name %>"
+           class="ritual-doc__goal-input"
+           placeholder="your first name"
+           autocomplete="given-name"
+           autofocus
+           required>
+  </div>
+  <div class="ritual-doc__actions">
+    <span></span>
+    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+  </div>
+<% end %>

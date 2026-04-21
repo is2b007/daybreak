@@ -1,12 +1,35 @@
-<div class="ritual__step ritual__step--reflection">
-  <p class="ritual__prompt">How did today go?</p>
-  <p class="text-sm text-muted mb-6">One line. That&rsquo;s all.</p>
+<% today = current_user.today_in_zone %>
 
-  <%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" } do |f| %>
+<div class="ritual-doc__page">
+  <p class="ritual-doc__dateline"><%= today.strftime("%A, %B %-d") %></p>
+  <h1 class="ritual-doc__title">One line for tonight.</h1>
+
+  <p class="ritual-doc__prose">What stays with you from today?</p>
+
+  <%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "ritual-doc__reflection" } do |f| %>
     <%= f.hidden_field :step, value: 2 %>
-    <div class="form-group">
-      <%= f.text_field :reflection, class: "form-input form-input--large", placeholder: "Shipped the landing page. Good day.", autofocus: true %>
+    <%= f.text_area :reflection,
+                    class: "ritual-doc__reflection-input",
+                    placeholder: "Something worth remembering from today…",
+                    rows: 3,
+                    autofocus: true %>
+
+    <p class="ritual-doc__reflection-hint">
+      <% if current_user.hey_connected? %>
+        Kept private &middot; synced to your HEY Journal.
+      <% else %>
+        Kept private on your own Daybreak.
+      <% end %>
+    </p>
+
+    <div class="ritual-doc__actions">
+      <%= link_to "back", ritual_evening_path(step: 1), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "_top" } %>
+      <button type="submit" class="ritual-doc__link">close the day <span aria-hidden="true">&rarr;</span></button>
     </div>
-    <%= f.submit "Good night", class: "btn btn--warm" %>
   <% end %>
+
+  <div class="ritual-doc__stepper" aria-hidden="true">
+    <span class="ritual-doc__stepper-dot"></span>
+    <span class="ritual-doc__stepper-dot ritual-doc__stepper-dot--active"></span>
+  </div>
 </div>

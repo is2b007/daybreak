@@ -22,16 +22,15 @@ class CalendarEvent < ApplicationRecord
   validates :external_id, :title, :starts_at, presence: true
 
   scope :for_date, ->(date, tz = "UTC") {
-    local_start   = date.in_time_zone(tz).beginning_of_day
-    local_end     = date.in_time_zone(tz).end_of_day
-    # Use in_time_zone("UTC") — not .to_time.utc — to avoid local-system-timezone conversion.
-    utc_day_start = date.in_time_zone("UTC").beginning_of_day
-    utc_day_end   = date.in_time_zone("UTC").end_of_day
+    # all_day covers the DST fallback (25-hour) and spring-forward (23-hour) days correctly
+    # because it derives from the tz-aware Time, not from fixed beginning_of_day arithmetic.
+    local_range = Time.use_zone(tz) { date.in_time_zone.all_day }
+    utc_range   = Time.use_zone("UTC") { date.in_time_zone.all_day }
     # Timed events: use timezone-aware local boundaries so a 9am event lands on the correct local date.
     # All-day events: always stored at UTC midnight regardless of timezone, so match by UTC date.
     where(
       "(all_day = FALSE AND starts_at BETWEEN ? AND ?) OR (all_day = TRUE AND starts_at BETWEEN ? AND ?)",
-      local_start, local_end, utc_day_start, utc_day_end
+      local_range.begin, local_range.end, utc_range.begin, utc_range.end
     )
   }
   # Daybreak = local timebox mirror only; it already renders on the hourly timeline, not the chip row.

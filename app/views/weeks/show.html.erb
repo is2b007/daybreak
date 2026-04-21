@@ -22,9 +22,9 @@
     <div class="first-run">
       <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
       <p class="first-run__body">
-        This is your week. The columns below are days. Pull in tasks from Basecamp with
-        <strong>Sync Basecamp</strong> in the side panel, or after sign-in they load automatically. When you're ready,
-        <%= link_to "shape today", ritual_morning_path %> with the morning ritual.
+        This is your week. The columns below are days &mdash; your Basecamp to-dos are syncing in
+        quietly as we speak, and they&rsquo;ll show up in the inbox on the right. When you&rsquo;re ready,
+        <%= link_to "open sunrise", ritual_morning_path %> to shape today.
       </p>
     </div>
   <% end %>

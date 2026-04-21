@@ -1,16 +1,16 @@
 <% if @step == 1 %>
   <% content_for(:topbar) do %>
-    <span class="topbar__title">Today</span>
-    <span class="topbar__sub">In review</span>
+    <span class="topbar__title">Sunset</span>
+    <span class="topbar__sub">A look back at today</span>
   <% end %>
 <% elsif @step == 2 %>
   <% content_for(:topbar) do %>
     <span class="topbar__title">Sunset</span>
-    <span class="topbar__sub">One line to close the day</span>
+    <span class="topbar__sub">One line for tonight</span>
   <% end %>
 <% end %>
 
-<div class="ritual ritual--evening <%= @step == 1 ? 'ritual--sunset-step1' : 'ritual--sunset-step2' %>" data-controller="ritual">
+<div class="ritual-doc ritual-doc--sunset" data-controller="ritual">
   <% if @step == 1 %>
     <%= render "evening_review",
         completed_tasks: @completed_tasks,
@@ -19,8 +19,6 @@
         planned_minutes: @evening_planned_minutes,
         donut_segments: @donut_segments %>
   <% else %>
-    <div class="ritual__content ritual__content--reflection">
-      <%= render "evening_reflection" %>
-    </div>
+    <%= render "evening_reflection" %>
   <% end %>
 </div>

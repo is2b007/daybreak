@@ -28,29 +28,51 @@ class ApplicationController < ActionController::Base
     return if controller_name == "rituals" && action_name == "evening"
     return unless logged_in? && current_user&.onboarded?
 
-    week_start = Date.current.beginning_of_week(:monday)
+    @right_panel_errors = []
+    week_start = current_user.current_week_start
+
+    load_right_panel_basecamp
+    load_right_panel_hey
+    load_right_panel_goals_and_journal(week_start)
+  end
+
+  def load_right_panel_basecamp
     bc_scope = current_user.task_assignments.basecamp.incomplete.where(week_bucket: "inbox").ordered.limit(20)
     @rp_bc_tasks = bc_scope
     @rp_bc_project_names = bc_scope.filter_map { |t| t.project_name&.strip }.uniq.sort
     @rp_bc_has_blank_project = bc_scope.any? { |t| t.project_name.blank? }
+  rescue => e
+    Rails.logger.warn "Right panel (Basecamp) load failed: #{e.class}: #{e.message}"
+    @rp_bc_tasks = []
+    @rp_bc_project_names = []
+    @rp_bc_has_blank_project = false
+    @right_panel_errors << "Basecamp tasks didn't load"
+  end
+
+  def load_right_panel_hey
     hey_scope = current_user.hey_emails.active
-    hey_emails = hey_scope.for_folder(:imbox).ordered.limit(25)
-    @rp_hey_emails = hey_emails
+    @rp_hey_emails = hey_scope.for_folder(:imbox).ordered.limit(25)
     @rp_hey_labels = hey_scope.filter_map(&:label).uniq.compact.sort
-    @rp_goals = current_user.weekly_goals.where(week_start_date: week_start)
-    @rp_journal = current_user.local_journal_entries.find_by(date: Date.current)
+  rescue => e
+    Rails.logger.warn "Right panel (HEY) load failed: #{e.class}: #{e.message}"
+    @rp_hey_emails = []
+    @rp_hey_labels = []
+    @right_panel_errors << "HEY inbox didn't load"
+  end
+
+  def load_right_panel_goals_and_journal(week_start)
+    @rp_goals = current_user.weekly_goals.where(week_start_date: week_start).order(:position, :id)
+    @rp_goal_progress = WeeklyGoal.progress_totals_for_week(current_user, week_start)
+    @rp_journal = current_user.local_journal_entries.find_by(date: current_user.today_in_zone)
     @rp_journal_hey_synced = @rp_journal.present? &&
       @rp_journal.last_pushed_to_hey_digest.present? &&
       @rp_journal.last_pushed_to_hey_digest == @rp_journal.content_digest
   rescue => e
-    Rails.logger.warn "Right panel data load failed: #{e.message}"
-    @rp_bc_tasks = []
-    @rp_bc_project_names = []
-    @rp_bc_has_blank_project = false
-    @rp_hey_emails = []
-    @rp_hey_labels = []
+    Rails.logger.warn "Right panel (goals/journal) load failed: #{e.class}: #{e.message}"
     @rp_goals = []
+    @rp_goal_progress = {}
     @rp_journal = nil
     @rp_journal_hey_synced = false
+    @right_panel_errors << "Goals or journal didn't load"
   end
 end

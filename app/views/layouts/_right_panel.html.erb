@@ -1,5 +1,11 @@
 <button type="button" class="right__resizer" data-action="pointerdown->right-panel#startResize" aria-label="Resize side panel" title="Drag to resize panel"></button>
 <div class="r-content" data-right-panel-target="content">
+  <% if @right_panel_errors.present? %>
+    <div class="r-errors" role="status" aria-live="polite" title="<%= @right_panel_errors.join('. ') %>">
+      <span class="r-errors__dot">·</span>
+      <span class="r-errors__msg"><%= pluralize(@right_panel_errors.size, 'item') %> didn't load</span>
+    </div>
+  <% end %>
   <%# Basecamp tab %>
   <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel"
        data-bc-inbox-panel-next-offset-value="<%= @rp_bc_tasks&.size || 0 %>">
@@ -203,7 +209,7 @@
               <div class="g-progress-fill <%= 'g-progress-fill--complete' if goal.completed? %>" style="width: <%= goal.respond_to?(:progress_percent) ? goal.progress_percent : 0 %>%"></div>
             </div>
             <div class="g-meta">
-              <span class="g-frac"><%= goal.progress_text %></span>
+              <span class="g-frac"><%= goal.progress_text(preloaded: @rp_goal_progress) %></span>
             </div>
           </div>
         <% end %>

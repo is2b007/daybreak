@@ -8,11 +8,12 @@ export default class extends Controller {
   }
 
   connect() {
-    // Entrance fade-in
     this.element.style.opacity = "0"
+    this.element.style.transform = "translateY(6px)"
     requestAnimationFrame(() => {
-      this.element.style.transition = "opacity 0.8s ease"
+      this.element.style.transition = "opacity 2.4s ease, transform 2.4s ease"
       this.element.style.opacity = "1"
+      this.element.style.transform = "translateY(0)"
     })
 
     if (this.sunrisePlayValue) {
@@ -25,26 +26,17 @@ export default class extends Controller {
   }
 
   #playSunrise() {
-    // Play sound
-    this.#playAudio("/sounds/sunrise.mp3")
-
-    // Add animation class for background gradient
+    this.#playAudioFaded("/sounds/sunrise.mp3")
     this.element.classList.add("ritual--sunrise-animate")
-
-    // Remove animation class after it finishes so subsequent visits don't replay
     this.element.addEventListener("animationend", () => {
       this.element.classList.remove("ritual--sunrise-animate")
     }, { once: true })
   }
 
   #playSunset() {
-    // Play sound
-    this.#playAudio("/sounds/sunset.mp3")
-
-    // Add animation class
+    this.#playAudioFaded("/sounds/sunset.mp3")
     this.element.classList.add("ritual--sunset-animate")
 
-    // After 4.5s, navigate home
     const redirectUrl = this.redirectUrlValue
     if (redirectUrl) {
       setTimeout(() => {
@@ -53,11 +45,22 @@ export default class extends Controller {
     }
   }
 
-  #playAudio(src) {
+  #playAudioFaded(src) {
     try {
       const audio = new Audio(src)
-      audio.volume = 0.7
-      audio.play().catch(() => {
+      audio.volume = 0
+      const target = 0.6
+      const fadeMs = 1200
+      const steps = 24
+      const stepMs = fadeMs / steps
+      let step = 0
+      audio.play().then(() => {
+        const fade = setInterval(() => {
+          step += 1
+          audio.volume = Math.min(target, (target * step) / steps)
+          if (step >= steps) clearInterval(fade)
+        }, stepMs)
+      }).catch(() => {
         // Autoplay may be blocked — silently fail
       })
     } catch (_e) {

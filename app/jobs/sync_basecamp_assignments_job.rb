@@ -4,7 +4,6 @@ class SyncBasecampAssignmentsJob < ApplicationJob
   def perform(user_id, basecamp_client_class: BasecampClient)
     user = User.find(user_id)
     client = basecamp_client_class.new(user)
-    week_start = Date.current.beginning_of_week(:monday)
 
     assignments = client.my_assignments
     if assignments.is_a?(Array)

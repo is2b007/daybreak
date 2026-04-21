@@ -1,0 +1,17 @@
+<p class="ritual-doc__dateline">Daybreak</p>
+<h1 class="ritual-doc__title">Welcome.</h1>
+
+<p class="ritual-doc__prose">
+  Daybreak is a calm planning surface for your week.
+  It pulls in your work from Basecamp and, if you use it, HEY &mdash;
+  and stays out of your way the rest of the time.
+</p>
+
+<p class="ritual-doc__prose ritual-doc__prose--muted">
+  Seven short steps and you&rsquo;ll be set. Takes about a minute.
+</p>
+
+<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" }, html: { class: "ritual-doc__actions" } do |f| %>
+  <%= f.hidden_field :step, value: 1 %>
+  <button type="submit" class="ritual-doc__link">begin <span aria-hidden="true">&rarr;</span></button>
+<% end %>

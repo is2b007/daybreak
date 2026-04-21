@@ -1,0 +1,20 @@
+<p class="ritual-doc__dateline">Step 4 of 7</p>
+<h1 class="ritual-doc__title">Your Basecamp work.</h1>
+<p class="ritual-doc__prose">
+  Daybreak is already connected to Basecamp &mdash; that&rsquo;s how you got here.
+  On continue, we&rsquo;ll pull in your assigned to-dos so you can plan with them tomorrow morning.
+</p>
+
+<ul class="onboarding-doc__feature-list">
+  <li>Assigned to-dos land in the inbox on the right</li>
+  <li>Schedule events sit alongside your day timeline</li>
+  <li>Complete here &rarr; marked complete in Basecamp</li>
+</ul>
+
+<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
+  <%= f.hidden_field :step, value: 4 %>
+  <div class="ritual-doc__actions">
+    <%= link_to "back", onboarding_path(step: 3), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
+    <button type="submit" class="ritual-doc__link">pull it in <span aria-hidden="true">&rarr;</span></button>
+  </div>
+<% end %>

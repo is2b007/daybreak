@@ -1,0 +1,31 @@
+<p class="ritual-doc__dateline">Step 5 of 7</p>
+<h1 class="ritual-doc__title">Use HEY?</h1>
+<p class="ritual-doc__prose">
+  If you do, Daybreak can pull in your calendar, personal to-dos,
+  email triage, and journal. If you don&rsquo;t &mdash; that&rsquo;s fine, skip this step.
+</p>
+
+<ul class="onboarding-doc__feature-list">
+  <li>Calendar events next to your Basecamp schedule</li>
+  <li>Personal to-dos slot into your day</li>
+  <li>Imbox &middot; Reply Later &middot; Set Aside, triaged from here</li>
+  <li>Reflections write back to your HEY Journal</li>
+</ul>
+
+<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
+  <%= f.hidden_field :step, value: 5 %>
+
+  <% if current_user.hey_connected? %>
+    <p class="ritual-doc__prose ritual-doc__prose--muted">HEY is connected.</p>
+    <div class="ritual-doc__actions">
+      <%= link_to "back", onboarding_path(step: 4), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
+      <button type="submit" name="connect_hey" value="false" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+    </div>
+  <% else %>
+    <div class="ritual-doc__actions">
+      <%= link_to "back", onboarding_path(step: 4), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
+      <%= link_to "connect HEY →", auth_hey_path, class: "ritual-doc__link" %>
+      <button type="submit" name="connect_hey" value="false" class="ritual-doc__link ritual-doc__link--back">skip for now</button>
+    </div>
+  <% end %>
+<% end %>
