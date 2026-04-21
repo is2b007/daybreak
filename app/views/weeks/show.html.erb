@@ -1,13 +1,13 @@
 <% content_for(:topbar) do %>
   <div class="week-nav">
     <div class="week-nav__arrows">
-      <%= link_to week_path(@window_start - 4.days), class: "topbar__nav-arrow", title: "Previous 4 days" do %>
+      <%= link_to week_path(@window_start - 7.days), class: "topbar__nav-arrow", title: "Previous week" do %>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       <% end %>
     </div>
-    <span class="topbar__title"><%= @window_start.strftime("%b %-d") %> &ndash; <%= @window_end.strftime("%b %-d") %></span>
+    <span class="topbar__title"><%= @window_start.strftime("%b %-d") %> &ndash; <%= @display_end.strftime("%b %-d") %></span>
     <div class="week-nav__arrows">
-      <%= link_to week_path(@window_start + 4.days), class: "topbar__nav-arrow", title: "Next 4 days" do %>
+      <%= link_to week_path(@window_start + 7.days), class: "topbar__nav-arrow", title: "Next week" do %>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       <% end %>
     </div>
@@ -17,7 +17,7 @@
 
 <% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
 
-<div class="week-view" data-controller="sortable">
+<div class="week-view" data-controller="sortable infinite-week" data-infinite-week-url-value="<%= week_days_path %>">
   <% if first_run %>
     <div class="first-run">
       <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
@@ -33,6 +33,11 @@
     <% @window_dates.each do |date| %>
       <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
     <% end %>
+    <div id="kanban_sentinel"
+         class="kanban__sentinel"
+         data-infinite-week-target="sentinel"
+         data-infinite-week-from-value="<%= (@window_dates.last + 1.day).iso8601 %>">
+    </div>
   </div>
 
   <%= render "sometime_row", tasks: @sometime_tasks %>

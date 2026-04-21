@@ -1,5 +1,5 @@
 <%= turbo_frame_tag "day_#{date}" do %>
-  <div class="kanban__column"
+  <div class="kanban__column <%= 'kanban__column--week-start' if date.monday? %>"
        data-sortable-target="column"
        data-date="<%= date %>">
 

@@ -549,7 +549,6 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 .sb-bot {
   flex-shrink: 0;
   padding: 10px 12px;
-  border-top: 1px solid var(--line2);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1865,6 +1864,17 @@ select.form-input {
   overflow-x: hidden;
 }
 
+.kanban__column--week-start {
+  border-left: 2px solid var(--line);
+}
+
+.kanban__sentinel {
+  flex: 0 0 1px;
+  min-width: 1px;
+  align-self: stretch;
+  pointer-events: none;
+}
+
 .kanban__column:last-child {
   border-right: none;
 }
@@ -2077,7 +2087,7 @@ select.form-input {
   border-top: 1px solid var(--line2);
   padding: 14px 16px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   flex-shrink: 0;
   background: #f7f8fb;
@@ -2091,7 +2101,6 @@ select.form-input {
   color: var(--muted);
   margin-right: 4px;
   white-space: nowrap;
-  padding-top: 6px;
 }
 
 .sometime-row__tasks {

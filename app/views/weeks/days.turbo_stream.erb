@@ -1,0 +1,13 @@
+<%= turbo_stream.before("kanban_sentinel") do %>
+  <% @batch_dates.each do |date| %>
+    <%= render "weeks/day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace("kanban_sentinel") do %>
+  <div id="kanban_sentinel"
+       class="kanban__sentinel"
+       data-infinite-week-target="sentinel"
+       data-infinite-week-from-value="<%= @next_from.iso8601 %>">
+  </div>
+<% end %>
