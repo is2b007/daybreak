@@ -17,7 +17,7 @@ module TimelineLayout
 
   def self.snap_duration_minutes(minutes)
     m = minutes.to_i
-    [[((m / 15.0).round * 15), 15].max, 24 * 60].min
+    [ [ ((m / 15.0).round * 15), 15 ].max, 24 * 60 ].min
   end
 
   # e.g. 90 → "1h 30m", 60 → "1h", 45 → "45m"
