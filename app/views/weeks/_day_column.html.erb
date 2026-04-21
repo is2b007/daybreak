@@ -29,9 +29,9 @@
 
     <div class="kanban__tasks" data-sortable-target="taskList" data-date="<%= date %>">
       <% pending = tasks.reject(&:completed?) %>
-      <% if pending.empty? && events.empty? %>
+      <% if pending.empty? %>
         <div class="kanban__empty">
-          <% if date == Date.current %>
+          <% if date == Date.current && events.empty? %>
             <%= link_to "Plan today", ritual_morning_path, class: "kanban__empty-link" %>
           <% elsif date < Date.current %>
             <span class="kanban__empty-text">&mdash;</span>

@@ -81,7 +81,7 @@ class WeeksController < ApplicationController
       .pinned_to_week_board
       .where(starts_at: from_date.beginning_of_day..to_date.end_of_day)
       .chronological
-      .group_by { |e| e.starts_at.in_time_zone(current_user.timezone).to_date }
+      .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
       .transform_values { |evs| evs.map(&:to_view_hash) }
 
     {
@@ -96,7 +96,7 @@ class WeeksController < ApplicationController
       .pinned_to_week_board
       .where(starts_at: @window_start.beginning_of_day..@window_end.end_of_day)
       .chronological
-      .group_by { |e| e.starts_at.in_time_zone(current_user.timezone).to_date }
+      .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
       .transform_values { |events| events.map(&:to_view_hash) }
   end
 end

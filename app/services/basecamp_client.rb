@@ -95,7 +95,7 @@ class BasecampClient
   end
 
   def projects
-    get("/projects.json")
+    get_paginated("/projects.json")
   end
 
   def todo(todo_id)
@@ -248,6 +248,60 @@ class BasecampClient
 
   def get(path, params = {})
     request(:get, path, params)
+  end
+
+  # Follows Basecamp's Link: <url>; rel="next" pagination, accumulating all pages into one array.
+  def get_paginated(path, params = {})
+    ensure_fresh_token!
+
+    account_id = @user.basecamp_account_id
+    uri = URI("#{BASE_API_URL}/#{account_id}#{path}")
+    uri.query = params.to_query if params.present?
+
+    results = []
+    loop do
+      req = Net::HTTP::Get.new(uri)
+      req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
+      req["User-Agent"] = self.class.user_agent
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+
+      case response
+      when Net::HTTPSuccess
+        page = JSON.parse(response.body) if response.body.present?
+        results.concat(Array(page))
+        next_url = parse_next_link(response["Link"])
+        break unless next_url
+        uri = URI(next_url)
+      when Net::HTTPTooManyRequests
+        retry_after = response["Retry-After"]&.to_i || 10
+        raise RateLimitError, "Rate limited. Retry after #{retry_after}s"
+      when Net::HTTPUnauthorized
+        perform_token_refresh!
+        req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
+        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+        raise AuthError, "Session expired. Please sign in again." unless response.is_a?(Net::HTTPSuccess)
+        page = JSON.parse(response.body) if response.body.present?
+        results.concat(Array(page))
+        next_url = parse_next_link(response["Link"])
+        break unless next_url
+        uri = URI(next_url)
+      else
+        raise "Basecamp API error: #{response.code} #{response.body}"
+      end
+    end
+
+    results
+  end
+
+  def parse_next_link(link_header)
+    return nil if link_header.blank?
+    # Link: <https://...?page=2>; rel="next", <https://...?page=5>; rel="last"
+    link_header.split(",").each do |part|
+      url, rel = part.strip.split(";").map(&:strip)
+      return url.delete("<>") if rel&.include?('rel="next"')
+    end
+    nil
   end
 
   def post(path, body = nil)
