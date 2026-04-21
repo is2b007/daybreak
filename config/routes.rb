@@ -45,6 +45,7 @@ Rails.application.routes.draw do
 
   # Week view (home)
   root "weeks#show"
+  get "weeks/days", to: "weeks#days", as: :week_days
   get "weeks/:date", to: "weeks#show", as: :week
 
   # Day view

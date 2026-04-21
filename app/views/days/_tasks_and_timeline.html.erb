@@ -1,4 +1,4 @@
-<%# locals: (date:, tasks:, calendar_events:, calendar_chips: [], plan_mode:, tab:, daily_log: nil, log_entries: nil, tasks_heading: nil, tasks_subtitle: nil, timeline_heading: nil, sunrise_actions: nil) %>
+<%# locals: (date:, tasks:, calendar_events:, calendar_chips: [], plan_mode:, tab:, daily_log: nil, log_entries: nil, tasks_heading: nil, tasks_subtitle: nil, timeline_heading: nil, sunrise_actions: nil, sunrise_plan_param: nil) %>
 <div class="day-view"<% if tab != "log" %> data-controller="sortable" data-sortable-view-value="day"<% end %>>
   <div class="day-view__tasks">
     <% unless tab == "log" %>
