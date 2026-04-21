@@ -49,11 +49,30 @@ class User < ApplicationRecord
   end
 
   def first_open_today?
-    last_open_date != Date.current
+    last_open_date != today_in_zone
   end
 
   def record_open!
-    update_column(:last_open_date, Date.current)
+    update_column(:last_open_date, today_in_zone)
+  end
+
+  def sunset_already_played_today?
+    last_sunset_played_date == today_in_zone
+  end
+
+  def record_sunset_played!
+    update_column(:last_sunset_played_date, today_in_zone)
+  end
+
+  def today_in_zone
+    Time.current.in_time_zone(timezone).to_date
+  end
+
+  # Single source of truth for "this week" anchored to the user's local timezone.
+  # Jobs and controllers must route through this — Date.current.beginning_of_week
+  # drifts into the wrong week across midnight-UTC boundaries in non-UTC zones.
+  def current_week_start
+    today_in_zone.beginning_of_week(:monday)
   end
 
   # Fetches avatar URL from GET /my/profile.json and stores it for the sidebar photo + proxy.

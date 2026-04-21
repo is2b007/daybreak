@@ -29,4 +29,15 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
     assert_equal "2085958504", ta.basecamp_bucket_id
     assert_equal "inbox", ta.week_bucket
   end
+
+  test "User#current_week_start respects user timezone at 23:30 UTC on Sunday" do
+    # 23:30 UTC on Sunday is already Monday in Tokyo (JST = UTC+9).
+    user = users(:one)
+    user.update!(timezone: "Asia/Tokyo")
+
+    travel_to Time.utc(2026, 4, 19, 23, 30) do
+      # Sunday in UTC, Monday 08:30 in Tokyo — new week has started for the user.
+      assert_equal Date.new(2026, 4, 20), user.current_week_start
+    end
+  end
 end

@@ -126,4 +126,8 @@
     <p class="text-xs text-muted mb-4">Sign out of Daybreak on this browser.</p>
     <%= button_to "Log out", logout_path, method: :delete, class: "btn btn--ghost" %>
   </div>
+
+  <p class="onboarding-restart-link">
+    <%= link_to "Replay the welcome flow", restart_onboarding_path %>
+  </p>
 </div>

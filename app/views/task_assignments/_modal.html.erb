@@ -1,4 +1,4 @@
-<%# locals: (task:, bc_comments: []) %>
+<%# locals: (task:, bc_comments: [], bc_comments_error: nil) %>
 <% hey_from_email = task.hey_app_url.present? %>
 <div class="modal-overlay"
      data-controller="modal"
@@ -148,7 +148,12 @@
     <%# Comments section — Basecamp tasks only %>
     <% if task.basecamp? %>
       <div class="modal__comments-section">
-        <% if bc_comments.any? %>
+        <% if bc_comments_error.present? %>
+          <div class="modal__comments-error" role="status">
+            <span><%= bc_comments_error %></span>
+            <%= link_to "Retry", task_assignment_path(task), data: { turbo_frame: "modal" }, class: "modal__comments-error-retry" %>
+          </div>
+        <% elsif bc_comments.any? %>
           <div class="modal__comments-list">
             <% bc_comments.each do |c| %>
               <div class="modal__comment-item">

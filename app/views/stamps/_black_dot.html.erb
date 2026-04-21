@@ -1,4 +1,19 @@
-<svg class="stamp stamp--black-dot" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="32" cy="32" r="26" stroke="currentColor" stroke-width="2" opacity="0.9"/>
-  <circle cx="32" cy="32" r="6" fill="currentColor" opacity="0.85"/>
+<svg class="stamp stamp--black-dot" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <filter id="stamp-distress-black-dot" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2"/>
+    </filter>
+  </defs>
+  <g filter="url(#stamp-distress-black-dot)">
+    <circle cx="40" cy="40" r="32" stroke="currentColor" stroke-width="2.2" opacity="0.85"/>
+    <circle cx="40" cy="40" r="7" fill="currentColor" opacity="0.95"/>
+    <circle cx="40" cy="40" r="14" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+  </g>
+  <g fill="currentColor" opacity="0.36">
+    <circle cx="18" cy="26" r="0.6"/>
+    <circle cx="62" cy="56" r="0.5"/>
+    <circle cx="22" cy="60" r="0.4"/>
+    <circle cx="60" cy="20" r="0.5"/>
+  </g>
 </svg>

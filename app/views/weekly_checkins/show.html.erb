@@ -1,93 +1,110 @@
 <% content_for(:topbar) do %>
   <% if @step == 1 %>
-    <span class="topbar__title">Weekly Check-in</span>
-    <span class="topbar__sub">How last week went</span>
+    <span class="topbar__title">Weekly check-in</span>
+    <span class="topbar__sub">Last week in review</span>
   <% else %>
-    <span class="topbar__title">Weekly Check-in</span>
-    <span class="topbar__sub">What this week is for</span>
+    <span class="topbar__title">Weekly check-in</span>
+    <span class="topbar__sub">Heading into the week</span>
   <% end %>
 <% end %>
 
-<div class="ritual ritual--checkin" data-controller="ritual">
-  <div class="ritual__content ritual__content--checkin">
+<div class="ritual-doc ritual-doc--weekly" data-controller="ritual">
+  <% if @step == 1 %>
+    <div class="ritual-doc__page">
+      <p class="ritual-doc__dateline">
+        <%= @last_week_start.strftime("%B %-d") %> &ndash;
+        <%= (@last_week_start + 6.days).strftime("%B %-d") %>
+      </p>
+      <h1 class="ritual-doc__title">Last week, in review.</h1>
 
-    <% if @step == 1 %>
-      <%# ── Step 1: Review last week ── %>
-      <div class="checkin-ritual__header">
-        <h1 class="checkin-ritual__title">Last week.</h1>
-        <p class="checkin-ritual__subtitle text-muted">
-          <%= @last_week_start.strftime("%B %-d") %> &ndash; <%= (@last_week_start + 6.days).strftime("%B %-d") %>
-          &middot; Mark what you actually got done.
-        </p>
-      </div>
+      <p class="ritual-doc__prose">
+        <% if @last_week_goals.any? %>
+          You set <%= pluralize(@last_week_goals.size, "goal") %> for the week.
+          Mark the ones you actually finished.
+        <% else %>
+          No goals were set last week. That&rsquo;s okay &mdash; this week, let&rsquo;s try.
+        <% end %>
+      </p>
 
       <%= form_with url: weekly_checkin_path, method: :patch, data: { turbo_frame: "_top" } do |f| %>
         <%= f.hidden_field :step, value: 1 %>
 
         <% if @last_week_goals.any? %>
-          <div class="checkin-ritual__goals">
-            <% @last_week_goals.each do |goal| %>
-              <label class="checkin-ritual__goal-item <%= 'checkin-ritual__goal-item--done' if goal.completed? %>">
-                <input type="checkbox"
-                       name="completed_goals[]"
-                       value="<%= goal.id %>"
-                       class="checkin-ritual__checkbox"
-                       <%= 'checked' if goal.completed? %>>
-                <span class="checkin-ritual__goal-check" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <polyline points="2.5,7 5.5,10 11.5,4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </span>
-                <span class="checkin-ritual__goal-title"><%= goal.title %></span>
-              </label>
-            <% end %>
-          </div>
-        <% else %>
-          <p class="text-muted text-sm" style="margin-bottom: var(--space-8);">No goals were set for last week. That's okay — set some this week.</p>
+          <hr class="ritual-doc__divider" />
+          <p class="ritual-doc__prompt">The list &mdash;</p>
+
+          <% @last_week_goals.each do |goal| %>
+            <label class="ritual-doc__goal-check <%= 'ritual-doc__goal-check--done' if goal.completed? %>">
+              <input type="checkbox"
+                     name="completed_goals[]"
+                     value="<%= goal.id %>"
+                     <%= 'checked' if goal.completed? %>>
+              <span class="ritual-doc__goal-check-box" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <polyline points="2.5,7 5.5,10 11.5,4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="ritual-doc__goal-check-title"><%= goal.title %></span>
+            </label>
+          <% end %>
         <% end %>
 
-        <div class="checkin-ritual__actions">
+        <div class="ritual-doc__actions">
           <% if @last_week_goals.any? %>
-            <%= f.submit "Mark & continue", class: "btn btn--primary btn--large" %>
+            <button type="submit" class="ritual-doc__link">mark &amp; continue <span aria-hidden="true">&rarr;</span></button>
           <% else %>
-            <%= link_to "Set this week's goals", weekly_checkin_path(step: 2), class: "btn btn--primary btn--large" %>
+            <%= link_to weekly_checkin_path(step: 2), class: "ritual-doc__link", data: { turbo_frame: "_top" } do %>
+              set this week&rsquo;s goals <span aria-hidden="true">&rarr;</span>
+            <% end %>
           <% end %>
         </div>
       <% end %>
 
-    <% else %>
-      <%# ── Step 2: Set this week's goals ── %>
-      <div class="checkin-ritual__header">
-        <h1 class="checkin-ritual__title">This week.</h1>
-        <p class="checkin-ritual__subtitle text-muted">
-          <%= @week_start.strftime("%B %-d") %> &ndash; <%= (@week_start + 6.days).strftime("%B %-d") %>
-          &middot; Two to four things that would make this week feel like a win.
-        </p>
+      <div class="ritual-doc__stepper" aria-hidden="true">
+        <span class="ritual-doc__stepper-dot ritual-doc__stepper-dot--active"></span>
+        <span class="ritual-doc__stepper-dot"></span>
       </div>
+    </div>
+
+  <% else %>
+    <div class="ritual-doc__page">
+      <p class="ritual-doc__dateline">
+        <%= @week_start.strftime("%B %-d") %> &ndash;
+        <%= (@week_start + 6.days).strftime("%B %-d") %>
+      </p>
+      <h1 class="ritual-doc__title">This week.</h1>
+
+      <p class="ritual-doc__prose">
+        The two things that would make this week feel like a win are&hellip;
+        <span class="ritual-doc__prose--muted">(two more if they matter)</span>
+      </p>
 
       <%= form_with url: weekly_checkin_path, method: :patch, data: { turbo_frame: "_top" } do |f| %>
         <%= f.hidden_field :step, value: 2 %>
 
-        <div class="checkin-ritual__goals">
-          <% 4.times do |i| %>
-            <div class="checkin-ritual__goal-input-row">
-              <span class="checkin-ritual__goal-num text-muted"><%= i + 1 %></span>
-              <input type="text"
-                     name="goals[]"
-                     value="<%= @this_week_goals[i]&.title %>"
-                     class="checkin-ritual__goal-input"
-                     placeholder="<%= i < 2 ? 'Goal' : 'Optional goal' %>"
-                     autocomplete="off">
-            </div>
-          <% end %>
-        </div>
+        <% 4.times do |i| %>
+          <div class="ritual-doc__goal-row">
+            <span class="ritual-doc__goal-num"><%= i + 1 %>.</span>
+            <input type="text"
+                   name="goals[]"
+                   value="<%= @this_week_goals[i]&.title %>"
+                   class="ritual-doc__goal-input"
+                   placeholder="<%= i < 2 ? 'something that matters' : 'optional' %>"
+                   autocomplete="off"
+                   <%= 'autofocus' if i == 0 %>>
+          </div>
+        <% end %>
 
-        <div class="checkin-ritual__actions">
-          <%= link_to "← Back", weekly_checkin_path(step: 1), class: "btn btn--ghost", data: { turbo_frame: "_top" } %>
-          <%= f.submit "Set the week", class: "btn btn--primary btn--large" %>
+        <div class="ritual-doc__actions">
+          <%= link_to "back", weekly_checkin_path(step: 1), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "_top" } %>
+          <button type="submit" class="ritual-doc__link">set the week <span aria-hidden="true">&rarr;</span></button>
         </div>
       <% end %>
-    <% end %>
 
-  </div>
+      <div class="ritual-doc__stepper" aria-hidden="true">
+        <span class="ritual-doc__stepper-dot"></span>
+        <span class="ritual-doc__stepper-dot ritual-doc__stepper-dot--active"></span>
+      </div>
+    </div>
+  <% end %>
 </div>

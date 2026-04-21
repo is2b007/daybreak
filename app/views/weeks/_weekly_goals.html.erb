@@ -1,4 +1,5 @@
 <%# locals: (goals:, week_start:) %>
+<% progress = goals.any? ? WeeklyGoal.progress_totals_for_week(goals.first.user, week_start) : nil %>
 <div class="weekly-goals">
   <div class="weekly-goals__label">
     This week
@@ -8,13 +9,13 @@
       <% goals.each do |goal| %>
         <div class="weekly-goal <%= 'weekly-goal--completed' if goal.completed? %>">
           <span class="weekly-goal__title"><%= goal.title %></span>
-          <span class="weekly-goal__progress"><%= goal.progress_text %></span>
+          <span class="weekly-goal__progress"><%= goal.progress_text(preloaded: progress) %></span>
         </div>
       <% end %>
     </div>
   <% else %>
     <div class="weekly-goals__empty">
-      <% if Date.current.beginning_of_week(:monday) == week_start %>
+      <% if current_user.current_week_start == week_start %>
         <%= link_to "What is this week for?", weekly_checkin_path, class: "weekly-goals__empty-link" %>
       <% else %>
         <span class="weekly-goals__empty-text">No goals this week.</span>

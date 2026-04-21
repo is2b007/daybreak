@@ -3,23 +3,25 @@ class SyncCalendarEventsJob < ApplicationJob
 
   def perform(user_id, week_start: nil)
     user = User.find(user_id)
-    ws = parse_week_start(week_start)
+    ws = parse_week_start(user, week_start)
     we = ws + 6.days
 
-    sync_basecamp(user, ws, we) if user.basecamp_access_token.present?
-    sync_hey(user, ws, we) if user.hey_connected?
+    basecamp_ok = user.basecamp_access_token.present? ? sync_basecamp(user, ws, we) : true
+    hey_ok = user.hey_connected? ? sync_hey(user, ws, we) : true
 
-    broadcast_week_timelines(user, ws)
+    # Only broadcast when the week is internally consistent. If either leg failed,
+    # the next sync will broadcast once data is clean — prevents flashing partial state.
+    broadcast_week_timelines(user, ws) if basecamp_ok && hey_ok
   end
 
   private
 
-  def parse_week_start(value)
-    return Date.current.beginning_of_week(:monday) if value.blank?
+  def parse_week_start(user, value)
+    return user.current_week_start if value.blank?
 
     Date.iso8601(value.to_s)
   rescue ArgumentError
-    Date.current.beginning_of_week(:monday)
+    user.current_week_start
   end
 
   def broadcast_week_timelines(user, week_start)
@@ -36,10 +38,13 @@ class SyncCalendarEventsJob < ApplicationJob
 
       entries.each { |entry| upsert_basecamp(user, entry, week_start, week_end) }
     end
+    true
   rescue BasecampClient::AuthError => e
     Rails.logger.warn("Basecamp calendar sync failed for user #{user.id}: #{e.message}")
-  rescue BasecampClient::RateLimitError => e
+    false
+  rescue BasecampClient::RateLimitError
     self.class.set(wait: 15.seconds).perform_later(user.id, week_start: week_start.iso8601)
+    false
   end
 
   def upsert_basecamp(user, entry, week_start, week_end)
@@ -68,8 +73,10 @@ class SyncCalendarEventsJob < ApplicationJob
       dedupe_hey_recordings(events).each { |evt| upsert_hey(user, evt) }
     end
     reconcile_duplicate_hey_calendar_rows!(user)
+    true
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY calendar sync failed for user #{user.id}: #{e.message}")
+    false
   end
 
   # HEY sometimes returns the same wall-time recording from multiple calendars with different ids.

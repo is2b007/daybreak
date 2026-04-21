@@ -1,0 +1,38 @@
+<p class="ritual-doc__dateline">Step 3 of 7</p>
+<h1 class="ritual-doc__title">Pick your stamp.</h1>
+<p class="ritual-doc__prose">
+  When you finish something, this is how it gets marked done.
+  Pick the one that feels right &mdash; you can change it later.
+</p>
+
+<%= form_with url: onboarding_path, method: :patch, data: { controller: "stamp-picker", turbo_frame: "onboarding_step" } do |f| %>
+  <%= f.hidden_field :step, value: 3 %>
+  <%= f.hidden_field :stamp_choice, value: current_user.stamp_choice, data: { stamp_picker_target: "input" } %>
+
+  <div class="stamp-picker onboarding-doc__stamp-grid">
+    <% User::STAMP_OPTIONS.each do |stamp| %>
+      <button type="button"
+              class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>"
+              data-action="click->stamp-picker#select"
+              data-stamp="<%= stamp %>">
+        <%= render "stamps/#{stamp}" %>
+      </button>
+    <% end %>
+  </div>
+
+  <div class="onboarding-doc__stamp-preview" data-stamp-picker-target="preview">
+    <div class="task-card task-card--medium">
+      <div class="task-card__header">
+        <span class="task-card__title">Sample task</span>
+      </div>
+      <div class="task-card__stamp" style="opacity: 0.85;" data-stamp-picker-target="stampPreview">
+        <%= render "stamps/#{current_user.stamp_choice}" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="ritual-doc__actions">
+    <%= link_to "back", onboarding_path(step: 2), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
+    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+  </div>
+<% end %>

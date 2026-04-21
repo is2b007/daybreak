@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   # Onboarding
   resource :onboarding, only: [ :show, :update ], controller: "onboarding" do
     post :complete
+    get :restart
   end
 
   # Manual Basecamp sync + inbox pagination

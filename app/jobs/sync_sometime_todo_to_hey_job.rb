@@ -10,7 +10,7 @@ class SyncSometimeTodoToHeyJob < ApplicationJob
     return unless task.week_bucket == "sometime"
     return if task.hey_mirrored_todo_id.present?
 
-    week_start = task.week_start_date || Date.current.beginning_of_week(:monday)
+    week_start = task.week_start_date || user.current_week_start
     tz = ActiveSupport::TimeZone[user.timezone] || Time.zone
     anchor = tz.local(week_start.year, week_start.month, week_start.day, 12, 0) + 6.days
 

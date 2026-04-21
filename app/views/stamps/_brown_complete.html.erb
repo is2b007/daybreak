@@ -1,5 +1,22 @@
-<svg class="stamp stamp--brown-complete" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="32" cy="32" rx="27" ry="26" stroke="currentColor" stroke-width="2.5" opacity="0.9" transform="rotate(-2 32 32)"/>
-  <ellipse cx="32" cy="32" rx="23" ry="22" stroke="currentColor" stroke-width="1" opacity="0.4" transform="rotate(1 32 32)"/>
-  <text x="32" y="35" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="600" fill="currentColor" letter-spacing="3" text-transform="uppercase" opacity="0.9">COMPLETE</text>
+<svg class="stamp stamp--brown-complete" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <filter id="stamp-distress-brown-complete" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" seed="9" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6"/>
+    </filter>
+    <path id="stamp-arc-brown-complete" d="M 13 40 a 27 27 0 0 1 54 0" fill="none"/>
+  </defs>
+  <g filter="url(#stamp-distress-brown-complete)">
+    <ellipse cx="40" cy="40" rx="33" ry="31" stroke="currentColor" stroke-width="2.6" opacity="0.9" transform="rotate(-2 40 40)"/>
+    <ellipse cx="40" cy="40" rx="28" ry="26" stroke="currentColor" stroke-width="0.8" opacity="0.35" transform="rotate(1 40 40)"/>
+    <text font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="900" letter-spacing="4" fill="currentColor" opacity="0.92">
+      <textPath href="#stamp-arc-brown-complete" startOffset="50%" text-anchor="middle">COMPLETE</textPath>
+    </text>
+    <path d="M 30 48 l 8 6 l 14 -16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" fill="none"/>
+  </g>
+  <g fill="currentColor" opacity="0.38">
+    <circle cx="20" cy="22" r="0.6"/>
+    <circle cx="62" cy="60" r="0.5"/>
+    <circle cx="16" cy="58" r="0.4"/>
+  </g>
 </svg>

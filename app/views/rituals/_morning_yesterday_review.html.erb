@@ -1,67 +1,67 @@
 <%# locals: (wins:, tracked_min:, scale_min:) %>
-<div class="sunrise-review">
-  <div class="sunrise-review__intro">
-    <h2 class="sunrise-review__title">Yesterday in review</h2>
-    <p class="sunrise-review__subtitle text-muted">How you spent your time yesterday in total.</p>
-  </div>
+<% today = current_user.today_in_zone %>
+<% yesterday = today - 1.day %>
+<% pct = scale_min.positive? ? [ [ (100.0 * tracked_min / scale_min).round, 100 ].min, 0 ].max : 0 %>
+<% target_h = (scale_min / 60.0).round(1) %>
+<% tracked_label = format_sunrise_minutes(tracked_min) %>
 
-  <div class="sunrise-review__grid">
-    <div class="sunrise-review__col sunrise-review__col--time">
-      <h3 class="sunrise-review__label">Total time</h3>
-      <% pct = scale_min.positive? ? [ [ (100.0 * tracked_min / scale_min).round, 100 ].min, 0 ].max : 0 %>
-      <% bubble_left = [ [ pct, 6 ].max, 94 ].min %>
-      <div class="sunrise-review__meter">
-        <div class="sunrise-review__bubble" style="left: <%= bubble_left %>%"><%= format_sunrise_minutes(tracked_min) %></div>
-        <div class="sunrise-review__track" role="presentation">
-          <div class="sunrise-review__fill" style="width: <%= pct %>%;"></div>
-        </div>
-        <% target_h = scale_min / 60.0 %>
-        <% mid_h = (target_h * 0.75).round(1) %>
-        <div class="sunrise-review__ticks text-muted">
-          <span>0</span>
-          <span><%= mid_h == mid_h.to_i ? mid_h.to_i : mid_h %> hr</span>
-          <span><%= target_h == target_h.to_i ? target_h.to_i : target_h %> hr</span>
-        </div>
-      </div>
-      <p class="sunrise-review__tip text-muted text-xs">Tip: Open a task and use the timer; time rolls up here.</p>
-    </div>
+<div class="ritual-doc__page">
+  <p class="ritual-doc__dateline"><%= today.strftime("%A, %B %-d") %></p>
+  <h1 class="ritual-doc__title"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>
 
-    <div class="sunrise-review__col sunrise-review__col--tasks">
-      <h3 class="sunrise-review__label">Worked on</h3>
-      <% if wins.any? %>
-        <div class="sunrise-review__cards">
-          <% wins.each do |task| %>
-            <%= link_to task_assignment_path(task), class: "sunrise-review__card", data: { turbo_frame: "modal" } do %>
-              <span class="sunrise-review__check" aria-hidden="true">✓</span>
-              <div class="sunrise-review__card-main">
-                <div class="sunrise-review__card-title"><%= task.title %></div>
-                <div class="sunrise-review__card-meta text-muted text-xs">
-                  <% if task.actual_duration_minutes.present? && task.actual_duration_minutes > 0 %>
-                    <span><%= task.actual_duration_minutes %>m tracked</span>
-                  <% else %>
-                    <span>—</span>
-                  <% end %>
-                  <% if task.project_name.present? %>
-                    <span class="sunrise-review__tag"># <%= truncate(task.project_name, length: 28) %></span>
-                  <% end %>
-                </div>
-              </div>
-              <% if task.source_badge_color %>
-                <span class="badge badge--<%= task.source %>" title="<%= task.source.capitalize %>"></span>
+  <p class="ritual-doc__prose">
+    Yesterday —
+    <em><%= yesterday.strftime("%A") %></em> —
+    <% if wins.any? %>
+      you finished
+      <strong><%= pluralize(wins.size, "thing") %></strong>
+      and tracked <strong><%= tracked_label %></strong> of <%= target_h == target_h.to_i ? target_h.to_i : target_h %> hours.
+    <% else %>
+      you didn&rsquo;t mark anything complete. That happens. Today is a fresh page.
+    <% end %>
+  </p>
+
+  <% if wins.any? %>
+    <hr class="ritual-doc__divider" />
+    <p class="ritual-doc__prompt">What you finished —</p>
+
+    <ul class="ritual-doc__list">
+      <% wins.each do |task| %>
+        <li>
+          <%= link_to task_assignment_path(task), class: "ritual-doc__list-item", data: { turbo_frame: "modal" } do %>
+            <span class="ritual-doc__list-mark" aria-hidden="true">
+              <%= render "stamps/#{current_user.stamp_choice || 'red_done'}" %>
+            </span>
+            <span class="ritual-doc__list-main">
+              <%= task.title %>
+              <% if task.actual_duration_minutes.to_i.positive? %>
+                <span class="ritual-doc__list-meta">&middot; <%= task.actual_duration_minutes %>m tracked<% if task.project_name.present? %> &middot; <%= truncate(task.project_name, length: 28) %><% end %></span>
+              <% elsif task.project_name.present? %>
+                <span class="ritual-doc__list-meta">&middot; <%= truncate(task.project_name, length: 28) %></span>
               <% end %>
-            <% end %>
+            </span>
           <% end %>
-        </div>
-      <% else %>
-        <p class="sunrise-review__empty text-muted text-sm">Nothing marked complete yesterday — that happens. Today is a fresh start.</p>
+        </li>
       <% end %>
-    </div>
-  </div>
+    </ul>
 
-  <%= form_with url: ritual_morning_path, method: :post, data: { turbo_frame: "_top" } do |f| %>
-    <%= f.hidden_field :step, value: 1 %>
-    <div class="sunrise-review__actions">
-      <%= f.submit "Next", class: "btn btn--primary btn--large" %>
+    <div class="ritual-doc__meter" aria-label="Time tracked yesterday">
+      <span>you tracked</span>
+      <strong><%= tracked_label %></strong>
+      <span>of <%= target_h == target_h.to_i ? target_h.to_i : target_h %> hr</span>
+      <span class="ritual-doc__meter-bar" role="presentation">
+        <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
+      </span>
     </div>
   <% end %>
+
+  <%= form_with url: ritual_morning_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "ritual-doc__actions" } do |f| %>
+    <%= f.hidden_field :step, value: 1 %>
+    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+  <% end %>
+
+  <div class="ritual-doc__stepper" aria-hidden="true">
+    <span class="ritual-doc__stepper-dot ritual-doc__stepper-dot--active"></span>
+    <span class="ritual-doc__stepper-dot"></span>
+  </div>
 </div>

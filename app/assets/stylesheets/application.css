@@ -5968,3 +5968,681 @@ body.focus-open { overflow: hidden; }
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ==========================================================================
+   CALM DOCUMENT — Ritual redesign + vintage rubber stamps + onboarding
+   Appended 2026-04-21. Overrides live above where needed.
+   ========================================================================== */
+
+/* ----- Stamps (vintage rubber-stamp feel) -------------------------------- */
+.stamp {
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.08));
+}
+.task-card__stamp .stamp { width: 72px; height: 72px; }
+
+/* Muted, slightly desaturated inks */
+.stamp--red-done       { color: #A8372C; }
+.stamp--navy-star      { color: #1F3D5C; }
+.stamp--green-check    { color: #2D6A4F; }
+.stamp--brown-complete { color: #6B4A2B; }
+.stamp--black-dot      { color: #2A2A2A; }
+
+/* 3-frame press: lift → slam with overshoot → settle */
+@keyframes stampPress {
+  0%   { transform: translate(-50%, -50%) scale(1.9) rotate(calc(var(--stamp-rotation, 0deg) - 8deg)); opacity: 0; }
+  50%  { transform: translate(-50%, -50%) scale(1.12) rotate(calc(var(--stamp-rotation, 0deg) - 6deg)); opacity: 1; }
+  80%  { transform: translate(-50%, -50%) scale(0.94) rotate(calc(var(--stamp-rotation, 0deg) + 1deg)); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(var(--stamp-rotation, 0deg)); opacity: 0.86; }
+}
+.task-card--completed .task-card__stamp { opacity: 0.86; }
+
+/* Ink-splat ghost on the completed card */
+.task-card--completed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at 58% 42%, rgba(0,0,0,0.04), transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ----- Ritual: Calm Document (shared) ------------------------------------ */
+.ritual-doc {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(40px, 6vh, 88px) 24px clamp(48px, 8vh, 120px);
+  color: #3a2e23;
+  position: relative;
+  overflow: hidden;
+}
+.ritual-doc__page {
+  max-width: 640px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 4vh, 56px);
+  position: relative;
+  z-index: 1;
+}
+.ritual-doc__dateline {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 11px;
+  color: #8b7560;
+  font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  font-weight: 500;
+}
+.ritual-doc__title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: #2a1f15;
+  margin: 0;
+}
+.ritual-doc__prose {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.7;
+  color: #3a2e23;
+  margin: 0;
+}
+.ritual-doc__prose--muted { color: #7a6550; font-style: italic; }
+.ritual-doc__prompt {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  line-height: 1.5;
+  color: #2a1f15;
+  margin: 0;
+}
+.ritual-doc__divider {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(120, 90, 60, 0.28), transparent);
+  margin: 0;
+}
+
+/* Wins/completed list — reads like a paragraph of bullets */
+.ritual-doc__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ritual-doc__list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #3a2e23;
+  padding: 0;
+  text-decoration: none;
+}
+.ritual-doc__list-item:hover { color: #1f1a13; }
+.ritual-doc__list-mark {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #A8372C;
+}
+.ritual-doc__list-mark .stamp { width: 28px; height: 28px; opacity: 0.9; }
+.ritual-doc__list-main { flex: 1; }
+.ritual-doc__list-meta {
+  font-size: 14px;
+  color: #8b7560;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* Inline metrics line — replaces meter/bar */
+.ritual-doc__meter {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #3a2e23;
+}
+.ritual-doc__meter strong { font-weight: 700; color: #2a1f15; }
+.ritual-doc__meter-bar {
+  margin-top: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(120, 90, 60, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.ritual-doc__meter-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, #D89B5E, #A8372C);
+  border-radius: 1px;
+  transition: width 0.6s ease-out;
+}
+
+/* Hyperlink-style submit buttons */
+.ritual-doc__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 8px;
+}
+.ritual-doc__link {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-style: italic;
+  color: #A8372C;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(168, 55, 44, 0.4);
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+.ritual-doc__link:hover {
+  color: #831F16;
+  text-decoration-color: #831F16;
+}
+.ritual-doc__link--back {
+  color: #8b7560;
+  text-decoration-color: rgba(139, 117, 96, 0.35);
+}
+.ritual-doc__link--back:hover { color: #5e4d3b; text-decoration-color: #5e4d3b; }
+
+/* Stepper dots at the bottom */
+.ritual-doc__stepper {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: clamp(32px, 5vh, 64px);
+}
+.ritual-doc__stepper-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(139, 117, 96, 0.28);
+}
+.ritual-doc__stepper-dot--active { background: #A8372C; }
+
+/* Variants per ritual (seasonal warmth) */
+.ritual-doc--sunrise {
+  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 55%, #FAF2E4 100%);
+}
+.ritual-doc--sunset {
+  background: linear-gradient(180deg, #FFF4EA 0%, #F8EADB 55%, #EED8C0 100%);
+}
+.ritual-doc--weekly {
+  background: linear-gradient(180deg, #FAF6EF 0%, #F5EDE0 100%);
+}
+
+/* Sunset reflection — one line, centered, private */
+.ritual-doc__reflection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.ritual-doc__reflection-input {
+  width: 100%;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  line-height: 1.6;
+  color: #2a1f15;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(139, 117, 96, 0.28);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 2px rgba(120, 90, 60, 0.05);
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.ritual-doc__reflection-input::placeholder {
+  color: #b5a08a;
+  font-style: italic;
+}
+.ritual-doc__reflection-input:focus {
+  border-color: #A8372C;
+  background: rgba(255, 255, 255, 0.85);
+}
+.ritual-doc__reflection-hint {
+  font-size: 13px;
+  color: #8b7560;
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
+/* Evening decisions — handwritten-style tags */
+.ritual-doc__card {
+  padding: 14px 0;
+  border-bottom: 1px dashed rgba(139, 117, 96, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ritual-doc__card:last-child { border-bottom: 0; }
+.ritual-doc__card-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  color: #2a1f15;
+  line-height: 1.4;
+}
+.ritual-doc__card-meta {
+  font-size: 13px;
+  color: #8b7560;
+  font-style: italic;
+}
+.ritual-doc__decisions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ritual-doc__decision {
+  position: relative;
+  cursor: pointer;
+}
+.ritual-doc__decision input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ritual-doc__decision-ui {
+  display: inline-block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 15px;
+  color: #7a6550;
+  padding: 5px 14px;
+  border: 1px solid rgba(139, 117, 96, 0.35);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: all 120ms ease;
+}
+.ritual-doc__decision:hover .ritual-doc__decision-ui {
+  color: #2a1f15;
+  border-color: #8b7560;
+}
+.ritual-doc__decision input:checked + .ritual-doc__decision-ui {
+  color: #FFFBF5;
+  background: #A8372C;
+  border-color: #A8372C;
+}
+
+/* Weekly checkin: lined-paper inputs + reading-list goals */
+.ritual-doc__goal-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(139, 117, 96, 0.22);
+}
+.ritual-doc__goal-num {
+  width: 20px;
+  text-align: right;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  color: #b5a08a;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.ritual-doc__goal-input {
+  flex: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.5;
+  color: #2a1f15;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 4px 0;
+}
+.ritual-doc__goal-input::placeholder {
+  color: #b5a08a;
+  font-style: italic;
+}
+
+.ritual-doc__goal-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(139, 117, 96, 0.22);
+}
+.ritual-doc__goal-check:last-of-type { border-bottom: 0; }
+.ritual-doc__goal-check input { position: absolute; opacity: 0; pointer-events: none; }
+.ritual-doc__goal-check-box {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(139, 117, 96, 0.45);
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+  transition: all 120ms ease;
+  margin-top: 2px;
+}
+.ritual-doc__goal-check-box svg { opacity: 0; }
+.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box {
+  background: #2D6A4F;
+  border-color: #2D6A4F;
+}
+.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: #FFFBF5; }
+.ritual-doc__goal-check-title {
+  flex: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #3a2e23;
+}
+.ritual-doc__goal-check--done .ritual-doc__goal-check-title {
+  color: #8b7560;
+  text-decoration: line-through;
+  text-decoration-color: rgba(139, 117, 96, 0.45);
+}
+
+/* Sunset wrap (closing card) */
+.ritual-doc--wrap {
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+}
+.ritual-doc__wrap-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(36px, 5vw, 52px);
+  font-weight: 400;
+  color: #2a1f15;
+  margin: 0;
+}
+.ritual-doc__wrap-sub {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  font-style: italic;
+  color: #7a6550;
+  margin: 8px 0 0;
+}
+
+/* Soft edge-to-edge seasonal glow */
+.ritual-doc::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 240px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, #FFE7C2 0%, transparent 70%); }
+.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, #F3CFA6 0%, transparent 70%); }
+.ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, #EEDFC7 0%, transparent 70%); }
+
+/* Softer sunrise/sunset fade-in */
+@keyframes ritualDocFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ritual-doc__page > * { animation: ritualDocFade 0.9s ease-out both; }
+.ritual-doc__page > *:nth-child(2) { animation-delay: 120ms; }
+.ritual-doc__page > *:nth-child(3) { animation-delay: 220ms; }
+.ritual-doc__page > *:nth-child(4) { animation-delay: 320ms; }
+.ritual-doc__page > *:nth-child(5) { animation-delay: 420ms; }
+.ritual-doc__page > *:nth-child(6) { animation-delay: 520ms; }
+
+/* ----- Error affordances ------------------------------------------------- */
+.r-errors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin: 0 12px 8px;
+  font-size: 11px;
+  color: #8b6a1a;
+  background: #fdf6e3;
+  border: 1px solid rgba(139, 106, 26, 0.2);
+  border-radius: 4px;
+}
+.r-errors__dot { font-weight: 900; color: #b8871e; }
+.r-errors__msg { opacity: 0.85; }
+
+.modal__comments-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6b4a2b;
+  background: #faf1e6;
+  border: 1px solid rgba(107, 74, 43, 0.15);
+  border-radius: 6px;
+}
+.modal__comments-error-retry {
+  color: #A8372C;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.modal__comments-error-retry:hover { color: #831F16; }
+
+/* ----- Onboarding (guided first week) ------------------------------------ */
+.onboarding-doc {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: linear-gradient(180deg, #FFFBF5 0%, #FAF2E4 100%);
+}
+.onboarding-doc__page {
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  text-align: center;
+}
+.onboarding-doc__dateline {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 11px;
+  color: #8b7560;
+  font-family: -apple-system, system-ui, sans-serif;
+  font-weight: 500;
+}
+.onboarding-doc__title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 400;
+  line-height: 1.18;
+  color: #2a1f15;
+  margin: 0;
+}
+.onboarding-doc__prose {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.7;
+  color: #3a2e23;
+  margin: 0;
+}
+.onboarding-doc__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+.onboarding-doc__text-input {
+  width: 100%;
+  max-width: 360px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  text-align: center;
+  color: #2a1f15;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(139, 117, 96, 0.28);
+  border-bottom: 2px solid rgba(139, 117, 96, 0.45);
+  border-radius: 6px 6px 2px 2px;
+  padding: 14px 18px;
+  outline: none;
+}
+.onboarding-doc__text-input:focus {
+  border-color: #A8372C;
+  background: rgba(255, 255, 255, 0.9);
+}
+.onboarding-doc__select {
+  width: 100%;
+  max-width: 360px;
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(139, 117, 96, 0.3);
+  border-radius: 6px;
+}
+.onboarding-doc__stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+@media (max-width: 480px) {
+  .onboarding-doc__stamp-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.onboarding-doc__stamp-option {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(139, 117, 96, 0.22);
+  border-radius: 6px;
+  padding: 14px 6px;
+  cursor: pointer;
+  transition: all 140ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.onboarding-doc__stamp-option:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(139, 117, 96, 0.5);
+}
+.onboarding-doc__stamp-option--selected {
+  background: #fff;
+  border-color: #A8372C;
+  box-shadow: 0 0 0 2px rgba(168, 55, 44, 0.15);
+}
+.onboarding-doc__stamp-preview {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(139, 117, 96, 0.3);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.onboarding-doc__stamp-preview-label {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8b7560;
+}
+.onboarding-doc__step-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.onboarding-doc__step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(139, 117, 96, 0.28);
+}
+.onboarding-doc__step-dot--active { background: #A8372C; }
+
+.onboarding-doc__basecamp-icon,
+.onboarding-doc__hey-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  opacity: 0.8;
+}
+.onboarding-doc__feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  color: #3a2e23;
+}
+.onboarding-doc__feature-list li {
+  padding-left: 16px;
+  position: relative;
+  text-align: left;
+}
+.onboarding-doc__feature-list li::before {
+  content: "·";
+  position: absolute;
+  left: 0;
+  color: #A8372C;
+  font-weight: 900;
+}
+.onboarding-doc__closer-preview {
+  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 100%);
+  border: 1px solid rgba(139, 117, 96, 0.22);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: left;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #3a2e23;
+}
+.onboarding-doc__closer-preview-label {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8b7560;
+  margin-bottom: 8px;
+  font-family: -apple-system, system-ui, sans-serif;
+}
+.onboarding-doc__closer-preview-title {
+  font-size: 22px;
+  color: #2a1f15;
+  margin: 0 0 4px;
+}
+.onboarding-doc__closer-preview-sub {
+  font-size: 14px;
+  color: #7a6550;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Onboarding restart footer link (in settings) */
+.onboarding-restart-link {
+  font-size: 12px;
+  color: #8b7560;
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(139, 117, 96, 0.35);
+}
+.onboarding-restart-link:hover { color: #5e4d3b; }
+

@@ -6,7 +6,7 @@ class SyncHeyCalendarJob < ApplicationJob
     return unless user.hey_connected?
 
     client = HeyClient.new(user)
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = user.current_week_start
 
     # Sync HEY todos
     todos = client.todos

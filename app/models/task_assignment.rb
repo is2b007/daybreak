@@ -24,7 +24,7 @@ class TaskAssignment < ApplicationRecord
     update!(
       status: :completed,
       completed_at: Time.current,
-      stamp_rotation_degrees: rotation || rand(-3..3)
+      stamp_rotation_degrees: rotation || rand(-7..7)
     )
   end
 

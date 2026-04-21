@@ -3,13 +3,19 @@ class TaskAssignmentsController < ApplicationController
 
   def show
     @bc_comments = []
+    @bc_comments_error = nil
     @hey_email_body = nil
     if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
       begin
         client = BasecampClient.new(current_user)
         @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
-      rescue StandardError
-        @bc_comments = []
+      rescue BasecampClient::AuthError
+        @bc_comments_error = "Your Basecamp session looks expired."
+      rescue BasecampClient::RateLimitError
+        @bc_comments_error = "Basecamp is throttling — try again in a moment."
+      rescue StandardError => e
+        Rails.logger.warn("Basecamp comments fetch failed: #{e.class}: #{e.message}")
+        @bc_comments_error = "Couldn't reach Basecamp for comments."
       end
     end
     if @task.hey_app_url.present?

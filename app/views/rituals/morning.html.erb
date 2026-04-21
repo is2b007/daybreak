@@ -1,27 +1,26 @@
 <% if @step == 1 %>
   <% content_for(:topbar) do %>
-    <span class="topbar__title">Yesterday</span>
-    <span class="topbar__sub">In review</span>
+    <span class="topbar__title">Sunrise</span>
+    <span class="topbar__sub">A quiet look back</span>
   <% end %>
 <% elsif @step == 2 %>
   <% content_for(:topbar) do %>
-    <span class="topbar__title">Plan today</span>
-    <span class="topbar__sub">Tasks · Calendar · Inbox</span>
+    <span class="topbar__title">Today</span>
+    <span class="topbar__sub">Set the day</span>
   <% end %>
 <% end %>
 
-<div class="ritual ritual--morning <%= @step == 2 ? "ritual--sunrise-step2" : "ritual--sunrise-step1" %>"
-     data-controller="ritual"
-     data-ritual-sunrise-play-value="<%= @play_sunrise ? 'true' : 'false' %>">
-  <% if @step == 1 %>
-    <div class="ritual__content ritual__content--sunrise-review">
-      <h1 class="ritual__greeting ritual__greeting--sunrise"><%= current_user.time_of_day_greeting %>, <%= current_user.greeting_name %>.</h1>
-      <%= render "morning_yesterday_review",
-          wins: @yesterday_wins,
-          tracked_min: @yesterday_tracked_min,
-          scale_min: @yesterday_scale_min %>
-    </div>
-  <% else %>
+<% if @step == 1 %>
+  <div class="ritual-doc ritual-doc--sunrise"
+       data-controller="ritual"
+       data-ritual-sunrise-play-value="<%= @play_sunrise ? 'true' : 'false' %>">
+    <%= render "morning_yesterday_review",
+        wins: @yesterday_wins,
+        tracked_min: @yesterday_tracked_min,
+        scale_min: @yesterday_scale_min %>
+  </div>
+<% else %>
+  <div class="ritual ritual--morning ritual--sunrise-step2" data-controller="ritual">
     <%= render "morning_step_2_plan_today" %>
-  <% end %>
-</div>
+  </div>
+<% end %>

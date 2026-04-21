@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_21_120621) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -165,6 +165,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
     t.string "hey_refresh_token"
     t.datetime "hey_token_expires_at"
     t.date "last_open_date"
+    t.date "last_sunset_played_date"
     t.string "name", null: false
     t.boolean "onboarded", default: false, null: false
     t.string "stamp_choice", default: "red_done", null: false
@@ -179,10 +180,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_14_120000) do
   create_table "weekly_goals", force: :cascade do |t|
     t.boolean "completed", default: false, null: false
     t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.date "week_start_date", null: false
+    t.index ["user_id", "week_start_date", "position"], name: "index_weekly_goals_on_user_week_position", unique: true
     t.index ["user_id", "week_start_date"], name: "index_weekly_goals_on_user_id_and_week_start_date"
     t.index ["user_id"], name: "index_weekly_goals_on_user_id"
   end

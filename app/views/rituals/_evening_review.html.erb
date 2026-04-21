@@ -1,137 +1,107 @@
 <%# locals: (completed_tasks:, remaining_tasks:, actual_minutes:, planned_minutes:, donut_segments:) %>
-<% worked_actual = completed_tasks.sum { |t| t.actual_duration_minutes.to_i } %>
-<% worked_planned = completed_tasks.sum { |t| (t.planned_duration_minutes || 60).to_i } %>
-<% left_planned = remaining_tasks.sum { |t| (t.planned_duration_minutes || 60).to_i } %>
-<% scale_min = [ planned_minutes, (current_user.work_hours_target * 60).to_i ].max %>
-<% scale_min = [ scale_min, 1 ].max %>
-<% bar_pct = [ (100.0 * actual_minutes / scale_min).round, 100 ].min %>
-<% bubble_left = [ [ bar_pct, 8 ].max, 92 ].min %>
+<% today = current_user.today_in_zone %>
+<% scale_min = [ planned_minutes, (current_user.work_hours_target * 60).to_i, 1 ].max %>
+<% pct = [ (100.0 * actual_minutes / scale_min).round, 100 ].min %>
 <% donut_style = sunset_donut_gradient(donut_segments) %>
 
-<%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "sunset-review-form" } do |f| %>
+<%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "ritual-doc__page" } do |f| %>
   <%= f.hidden_field :step, value: 1 %>
 
-  <div class="sunset-review">
-    <aside class="sunset-review__col sunset-review__col--summary">
-      <h1 class="sunset-review__title">Today in review</h1>
-      <p class="sunset-review__subtitle text-muted">How you spent your time today in total.</p>
+  <p class="ritual-doc__dateline"><%= today.strftime("%A, %B %-d") %></p>
+  <h1 class="ritual-doc__title">The day, looking back.</h1>
 
-      <h2 class="sunset-review__section-label">Total time</h2>
-      <div class="sunset-review__meter">
-        <div class="sunset-review__bubble sunset-review__bubble--actual" style="left: <%= bubble_left %>%"><%= format_sunset_hours_badge(actual_minutes) %></div>
-        <div class="sunset-review__track" role="presentation">
-          <div class="sunset-review__fill" style="width: <%= bar_pct %>%;"></div>
-        </div>
-        <div class="sunset-review__planned-badge text-muted"><%= format_sunset_hours_badge(planned_minutes) %> planned</div>
-      </div>
+  <p class="ritual-doc__prose">
+    You tracked <strong><%= format_sunset_hm(actual_minutes) %></strong>
+    of <%= format_sunset_hm(planned_minutes) %> planned.
+    <% if completed_tasks.any? %>
+      <%= pluralize(completed_tasks.size, "thing") %> marked complete.
+    <% else %>
+      Nothing marked complete today.
+    <% end %>
+  </p>
 
-      <h2 class="sunset-review__section-label sunset-review__section-label--spaced">How you spent your time</h2>
-      <% if donut_style.present? %>
-        <div class="sunset-review__donut-block">
-          <div class="sunset-donut" style="background: <%= donut_style %>;">
-            <div class="sunset-donut__hole"></div>
-          </div>
-          <ul class="sunset-donut__legend">
-            <% donut_segments.each do |seg| %>
-              <li class="sunset-donut__legend-item">
-                <span class="sunset-donut__swatch" style="background: <%= seg[:color] %>"></span>
-                <span class="sunset-donut__legend-label"><%= seg[:label] %></span>
-                <span class="sunset-donut__legend-time text-muted"><%= format_sunset_hm(seg[:minutes]) %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      <% else %>
-        <p class="sunset-review__empty-donut text-muted text-sm">No time logged by project yet — timers and completions build this chart.</p>
+  <div class="ritual-doc__meter" aria-label="Time tracked today">
+    <span>tracked</span>
+    <strong><%= format_sunset_hours_badge(actual_minutes) %></strong>
+    <span>of <%= format_sunset_hours_badge(planned_minutes) %></span>
+    <span class="ritual-doc__meter-bar" role="presentation">
+      <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
+    </span>
+  </div>
+
+  <% if donut_style.present? %>
+    <hr class="ritual-doc__divider" />
+    <p class="ritual-doc__prompt">Where the hours went —</p>
+    <ul class="ritual-doc__list">
+      <% donut_segments.each do |seg| %>
+        <li class="ritual-doc__list-item" style="cursor: default;">
+          <span class="ritual-doc__list-mark" aria-hidden="true" style="background: <%= seg[:color] %>; border-radius: 50%; width: 14px; height: 14px; min-width: 14px;"></span>
+          <span class="ritual-doc__list-main">
+            <%= seg[:label] %>
+            <span class="ritual-doc__list-meta">&middot; <%= format_sunset_hm(seg[:minutes]) %></span>
+          </span>
+        </li>
       <% end %>
+    </ul>
+  <% end %>
 
-      <div class="sunset-review__next-wrap">
-        <%= f.submit "Next", class: "btn btn--primary btn--large sunset-review__next" %>
-      </div>
-    </aside>
-
-    <section class="sunset-review__col sunset-review__col--list" aria-labelledby="sunset-worked-heading">
-      <div class="sunset-review__col-head">
-        <h2 id="sunset-worked-heading" class="sunset-review__col-title">Worked on</h2>
-        <span class="sunset-review__col-stat sunset-review__col-stat--worked" title="Actual / planned (completed tasks)">
-          <%= format_sunset_hm(worked_actual) %> / <%= format_sunset_hm(worked_planned) %>
-        </span>
-      </div>
-      <div class="sunset-review__scroll">
-        <% if completed_tasks.any? %>
-          <% completed_tasks.each do |task| %>
-            <%= link_to task_assignment_path(task), class: "sunset-card sunset-card--done", data: { turbo_frame: "modal" } do %>
-              <div class="sunset-card__top">
-                <% if task.source_badge_color %>
-                  <span class="badge badge--<%= task.source %>" title="<%= task.source.capitalize %>"></span>
-                <% end %>
-                <span class="sunset-card__time">
-                  <%= format_sunset_hm(task.actual_duration_minutes.to_i) %> / <%= format_sunset_hm((task.planned_duration_minutes || 60).to_i) %>
-                </span>
-              </div>
-              <div class="sunset-card__title"><%= task.title %></div>
-              <div class="sunset-card__foot">
-                <span class="sunset-card__check" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3.5" fill="#16A34A"/><polyline points="4.5,8.5 7,11 11.5,5.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-                <% if task.project_name.present? %>
-                  <span class="sunset-card__tag text-muted"># <%= truncate(task.project_name, length: 22) %></span>
-                <% end %>
-              </div>
-            <% end %>
+  <% if completed_tasks.any? %>
+    <hr class="ritual-doc__divider" />
+    <p class="ritual-doc__prompt">What you finished —</p>
+    <ul class="ritual-doc__list">
+      <% completed_tasks.each do |task| %>
+        <li>
+          <%= link_to task_assignment_path(task), class: "ritual-doc__list-item", data: { turbo_frame: "modal" } do %>
+            <span class="ritual-doc__list-mark" aria-hidden="true">
+              <%= render "stamps/#{current_user.stamp_choice || 'red_done'}" %>
+            </span>
+            <span class="ritual-doc__list-main">
+              <%= task.title %>
+              <span class="ritual-doc__list-meta">
+                &middot; <%= format_sunset_hm(task.actual_duration_minutes.to_i) %> / <%= format_sunset_hm((task.planned_duration_minutes || 60).to_i) %>
+                <% if task.project_name.present? %>&middot; <%= truncate(task.project_name, length: 22) %><% end %>
+              </span>
+            </span>
           <% end %>
-        <% else %>
-          <p class="sunset-review__col-empty text-muted text-sm">Nothing marked complete today.</p>
-        <% end %>
-      </div>
-    </section>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
 
-    <section class="sunset-review__col sunset-review__col--list" aria-labelledby="sunset-left-heading">
-      <div class="sunset-review__col-head">
-        <h2 id="sunset-left-heading" class="sunset-review__col-title">Didn&rsquo;t get to</h2>
-        <span class="sunset-review__col-stat sunset-review__col-stat--left" title="Planned time still open">
-          Work: <%= format_sunset_hm(left_planned) %>
-        </span>
+  <% if remaining_tasks.any? %>
+    <hr class="ritual-doc__divider" />
+    <p class="ritual-doc__prompt">What stayed open —</p>
+    <% remaining_tasks.each do |task| %>
+      <div class="ritual-doc__card">
+        <div class="ritual-doc__card-title"><%= task.title %></div>
+        <div class="ritual-doc__card-meta">
+          <%= format_sunset_hm((task.planned_duration_minutes || 60).to_i) %> planned
+          <% if task.project_name.present? %>&middot; <%= truncate(task.project_name, length: 22) %><% end %>
+        </div>
+        <div class="ritual-doc__decisions" role="group" aria-label="What to do with <%= task.title %>">
+          <label class="ritual-doc__decision">
+            <input type="radio" name="tasks[<%= task.id %>]" value="tomorrow" checked>
+            <span class="ritual-doc__decision-ui">tomorrow</span>
+          </label>
+          <label class="ritual-doc__decision">
+            <input type="radio" name="tasks[<%= task.id %>]" value="sometime">
+            <span class="ritual-doc__decision-ui">sometime</span>
+          </label>
+          <label class="ritual-doc__decision">
+            <input type="radio" name="tasks[<%= task.id %>]" value="let_go">
+            <span class="ritual-doc__decision-ui">let go</span>
+          </label>
+        </div>
       </div>
-      <div class="sunset-review__scroll">
-        <% if remaining_tasks.any? %>
-          <% remaining_tasks.each do |task| %>
-            <div class="sunset-card sunset-card--open">
-              <div class="sunset-card__top">
-                <% if task.source_badge_color %>
-                  <span class="badge badge--<%= task.source %>"></span>
-                <% end %>
-                <span class="sunset-card__time sunset-card__time--planned"><%= format_sunset_hm((task.planned_duration_minutes || 60).to_i) %></span>
-              </div>
-              <%= link_to task.title, task_assignment_path(task), class: "sunset-card__title sunset-card__title--link", data: { turbo_frame: "modal" } %>
-              <div class="sunset-card__foot sunset-card__foot--decide">
-                <span class="sunset-card__check sunset-card__check--open" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3.5" stroke="currentColor" stroke-width="1.25"/></svg>
-                </span>
-                <% if task.project_name.present? %>
-                  <span class="sunset-card__tag text-muted"># <%= truncate(task.project_name, length: 22) %></span>
-                <% end %>
-              </div>
-              <div class="sunset-card__decisions" role="group" aria-label="What to do with <%= task.title %>">
-                <label class="sunset-decision">
-                  <input type="radio" name="tasks[<%= task.id %>]" value="tomorrow" class="sr-only" checked>
-                  <span class="sunset-decision__ui">Tomorrow</span>
-                </label>
-                <label class="sunset-decision">
-                  <input type="radio" name="tasks[<%= task.id %>]" value="sometime" class="sr-only">
-                  <span class="sunset-decision__ui">Sometime</span>
-                </label>
-                <label class="sunset-decision">
-                  <input type="radio" name="tasks[<%= task.id %>]" value="let_go" class="sr-only">
-                  <span class="sunset-decision__ui">Let go</span>
-                </label>
-              </div>
-            </div>
-          <% end %>
-        <% else %>
-          <p class="sunset-review__col-empty text-muted text-sm">Everything you planned is done.</p>
-        <% end %>
-      </div>
-    </section>
+    <% end %>
+  <% end %>
+
+  <div class="ritual-doc__actions">
+    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+  </div>
+
+  <div class="ritual-doc__stepper" aria-hidden="true">
+    <span class="ritual-doc__stepper-dot ritual-doc__stepper-dot--active"></span>
+    <span class="ritual-doc__stepper-dot"></span>
   </div>
 <% end %>
