@@ -32,6 +32,32 @@ class TaskAssignmentsController < ApplicationController
     @active_timer = current_user.local_timer_sessions.running.find_by(task_assignment: @task)
     @any_running_timer = current_user.local_timer_sessions.running.first
 
+    # Basecamp: pull the full todo (for its description/content) and the
+    # comments thread so the focus view can show both alongside your notes.
+    @bc_todo = nil
+    @bc_comments = []
+    @bc_comments_error = nil
+    if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+      begin
+        client = BasecampClient.new(current_user)
+        @bc_todo = client.todo(@task.external_id)
+        @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
+      rescue BasecampClient::AuthError
+        @bc_comments_error = "Your Basecamp session looks expired."
+      rescue BasecampClient::RateLimitError
+        @bc_comments_error = "Basecamp is throttling — try again in a moment."
+      rescue StandardError => e
+        Rails.logger.warn("Basecamp focus fetch failed: #{e.class}: #{e.message}")
+        @bc_comments_error = "Couldn't reach Basecamp."
+      end
+    end
+
+    # HEY: email body is mirrored into hey_emails at sync time; no live fetch.
+    @hey_email_body = nil
+    if @task.hey_app_url.present?
+      @hey_email_body = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)&.snippet
+    end
+
     respond_to do |format|
       format.turbo_stream { render :focus }
       format.html { render :focus }

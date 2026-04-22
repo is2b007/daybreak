@@ -127,21 +127,6 @@
                 data: { action: "blur->auto-save#save" } %>
         </div>
 
-        <% unless hey_from_email %>
-        <div class="modal__section modal__section--size">
-          <div class="modal__section-label">Size</div>
-          <div class="modal__size-pills">
-            <% TaskAssignment.sizes.keys.each do |s| %>
-              <label class="modal__size-pill <%= 'modal__size-pill--active' if task.size == s %>">
-                <%= f.radio_button :size, s,
-                      class: "modal__size-radio",
-                      data: { action: "change->auto-save#save" } %>
-                <%= s.capitalize %>
-              </label>
-            <% end %>
-          </div>
-        </div>
-        <% end %>
       </div>
     <% end %>
 

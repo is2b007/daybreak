@@ -71,6 +71,7 @@
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
   --font-size-xs: 0.6875rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.875rem;
@@ -103,11 +104,35 @@
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Shadows — none in v5 */
-  --shadow-card: none;
-  --shadow-card-hover: none;
-  --shadow-overlay: none;
+  /* Shadows — soft, used sparingly on cards and pills */
+  --shadow-card: 0 1px 2px rgba(24, 25, 26, 0.04), 0 1px 3px rgba(24, 25, 26, 0.04);
+  --shadow-card-hover: 0 2px 4px rgba(24, 25, 26, 0.06), 0 6px 14px rgba(24, 25, 26, 0.08);
+  --shadow-overlay: 0 10px 30px rgba(24, 25, 26, 0.10), 0 2px 6px rgba(24, 25, 26, 0.05);
   --shadow-stamp: none;
+
+  /* Week view columns: white by default; only today gets pale amber.
+     Day-view sections reuse --col-today-bg as a warm surface accent. */
+  --col-default-bg:      #FFFFFF;
+  --col-default-pill-bg: var(--bg2);
+  --col-default-pill-ink: var(--muted);
+  --col-today-bg:        var(--amber-bg);      /* pale yellow — matches the "today" mark */
+  --col-today-pill-bg:   #FDE8CC;
+  --col-today-pill-ink:  var(--amber-text);
+  /* Dynamic slots read by .kanban__column */
+  --col-bg: var(--col-default-bg);
+  --col-header-bg: var(--col-default-pill-bg);
+  --col-header-text: var(--col-default-pill-ink);
+
+  /* Sunrise/sunset button palette — shared by .btn and ritual decisions */
+  --warm-ink:        #2a1f15; /* primary warm text */
+  --warm-ink-soft:   #7a6550; /* secondary warm text */
+  --warm-line:       rgba(139, 117, 96, 0.35); /* warm brown border */
+  --warm-line-hover: #8b7560;
+  --warm-surface:    #FFF8EF; /* cream paper */
+  --warm-surface-2:  rgba(255, 255, 255, 0.5);
+  --brick:           #A8372C; /* ritual "chosen" brick red */
+  --brick-hover:     #831F16;
+  --brick-ink:       #FFFBF5; /* cream text on brick */
 
   /* Layout */
   --sidebar-width: 188px;
@@ -193,10 +218,10 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   height: 100%;
   max-height: 100%;
   min-height: 0;
-  border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--line);
+  /* Match the right-panel collapse timing so both sides feel the same. */
+  transition: grid-template-columns 0.2s ease;
 }
 
 .shell > .sb,
@@ -653,6 +678,21 @@ img.sb-avatar--photo {
   margin-left: 2px;
 }
 
+/* Editorial variant — used in sundown + weekly check-in topbars so the header
+   matches the Georgia body copy instead of breaking into Inter. */
+.topbar__title--serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.topbar__sub--serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+}
+
 .topbar__right {
   margin-left: auto;
   display: flex;
@@ -1049,7 +1089,7 @@ a.rri:hover {
 }
 
 .r-dot--bc    { background: #F5A623; }  /* Basecamp yellow */
-.r-dot--hey   { background: #7C3AED; }  /* HEY purple */
+.r-dot--hey   { background: var(--hey); }  /* HEY brand green — was stale purple */
 .r-dot--amber { background: var(--amber); }
 
 .r-head-title {
@@ -1397,68 +1437,73 @@ a.rri:hover {
 /* --------------------------------------------------------------------------
    BUTTONS
    -------------------------------------------------------------------------- */
+/* Base button — shares the sunrise/ritual warmth with .ritual-doc__decision-ui */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   font-family: var(--font-sans);
-  padding: 5px 12px;
-  border-radius: 7px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--text);
+  padding: 6px 14px;
+  border-radius: 20px; /* pill by default — matches ritual decision chip */
+  border: 1px solid var(--warm-line);
+  background: var(--warm-surface-2);
+  color: var(--warm-ink);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
   text-decoration: none;
   line-height: 1;
 }
 
 .btn:hover {
-  background: var(--bg2);
+  color: var(--warm-ink);
+  border-color: var(--warm-line-hover);
+  background: var(--warm-surface);
   text-decoration: none;
 }
 
+/* Primary — ritual "chosen" brick red, cream text (like the checked decision) */
 .btn--primary {
-  background: var(--amber-pill);
-  border-color: color-mix(in srgb, var(--amber) 35%, #000 10%);
-  color: #fff;
+  background: var(--brick);
+  border-color: var(--brick);
+  color: var(--brick-ink);
   font-weight: 600;
 }
 
 .btn--primary:hover {
-  background: var(--amber);
-  border-color: var(--amber);
-  color: #fff;
-  text-decoration: none;
+  background: var(--brick-hover);
+  border-color: var(--brick-hover);
+  color: var(--brick-ink);
 }
 
 .btn--primary:active {
-  background: color-mix(in srgb, var(--amber) 88%, #000 12%);
-  border-color: color-mix(in srgb, var(--amber) 88%, #000 12%);
+  background: #6B1A12;
+  border-color: #6B1A12;
 }
 
+/* Secondary — cream paper, warm border (same as base; kept for explicit intent) */
 .btn--secondary {
-  background: var(--bg);
-  color: var(--text);
-  border-color: var(--line);
+  background: var(--warm-surface-2);
+  color: var(--warm-ink);
+  border-color: var(--warm-line);
 }
 
 .btn--secondary:hover {
-  background: var(--bg2);
+  background: var(--warm-surface);
+  border-color: var(--warm-line-hover);
 }
 
 .btn--ghost {
   background: transparent;
-  color: var(--muted);
+  color: var(--warm-ink-soft);
   border-color: transparent;
 }
 
 .btn--ghost:hover {
-  color: var(--text);
-  background: var(--bg2);
+  color: var(--warm-ink);
+  background: var(--warm-surface);
 }
 
 .btn--danger {
@@ -1474,36 +1519,83 @@ a.rri:hover {
 }
 
 .btn--large {
-  padding: var(--space-3) var(--space-6);
+  padding: 10px 20px;
   font-size: var(--font-size-base);
-  border-radius: var(--radius-lg);
+  border-radius: 999px;
 }
 
 .btn--small {
-  padding: var(--space-1) var(--space-2);
+  padding: 4px 10px;
   font-size: var(--font-size-xs);
 }
 
+/* Legacy warm — amber "sunrise" CTA. Remaps to brick-red primary for unified feel
+   but keeps its own class for callers that want a distinct "big warm button" slot. */
 .btn--warm {
-  background: var(--amber-pill);
-  color: #fff;
-  border: 1px solid color-mix(in srgb, var(--amber) 35%, #000 10%);
+  background: var(--brick);
+  color: var(--brick-ink);
+  border: 1px solid var(--brick);
   padding: var(--space-4) var(--space-8);
   font-size: var(--font-size-lg);
-  border-radius: var(--radius-lg);
+  border-radius: 999px;
   font-weight: 600;
 }
 
 .btn--warm:hover {
-  background: var(--amber);
-  border-color: var(--amber);
-  color: #fff;
+  background: var(--brick-hover);
+  border-color: var(--brick-hover);
+  color: var(--brick-ink);
   text-decoration: none;
 }
 
 .btn--warm:active {
-  background: color-mix(in srgb, var(--amber) 88%, #000 12%);
-  border-color: color-mix(in srgb, var(--amber) 88%, #000 12%);
+  background: #6B1A12;
+  border-color: #6B1A12;
+}
+
+/* Pill — same shape as base .btn (which is already pill); kept as a semantic hook
+   so callers can signal "this is a tag/toggle" without other size mods. */
+.btn--pill {
+  border-radius: var(--radius-full);
+  padding: 5px 14px;
+  font-weight: 500;
+}
+
+/* Icon-only square button — the one place we deliberately un-pill to accommodate
+   glyphs. Pair with .btn--ghost for transparent chrome. */
+.btn--icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Success (HEY green) — used for start/begin actions */
+.btn--hey {
+  background: var(--hey);
+  color: #fff;
+  border-color: var(--hey);
+  font-weight: 600;
+}
+.btn--hey:hover {
+  background: #15803d;
+  border-color: #15803d;
+  color: #fff;
+}
+.btn--hey:active {
+  background: #14532d;
+  border-color: #14532d;
+}
+
+/* Active/pressed state for pill-toggle buttons — matches ritual "chosen" chip */
+.btn--pill.is-active,
+.btn--pill[aria-pressed="true"] {
+  background: var(--brick);
+  border-color: var(--brick);
+  color: var(--brick-ink);
 }
 
 /* --------------------------------------------------------------------------
@@ -1583,8 +1675,8 @@ select.form-input {
   position: relative;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 8px 10px 8px 10px;
+  border-radius: var(--radius-xl); /* 12px to match soft-card aesthetic */
+  padding: 10px 12px;
   margin-bottom: 8px;
   cursor: grab;
   display: flex;
@@ -1592,22 +1684,27 @@ select.form-input {
   gap: 0;
   transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .task-card:hover {
   background: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.09);
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
 }
 
 .task-card:active { cursor: grabbing; }
 
-/* Source-colored left accent */
-/* Size variants — height via min-height + padding */
-.card--small  { min-height: 52px;  padding-top: 6px;  padding-bottom: 6px; }
-.card--medium { min-height: 76px;  padding-top: 10px; padding-bottom: 10px; }
-.card--large  { min-height: 108px; padding-top: 18px; padding-bottom: 18px; }
+/* Cards render at a single height now that the size badge is gone.
+   The `card--*` classes still come through from the server (task.size is used
+   elsewhere for planning math) but they no longer visually differ. */
+.card--small,
+.card--medium,
+.card--large {
+  min-height: 64px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
 
 /* Completed */
 .task-card--completed {
@@ -1735,6 +1832,7 @@ select.form-input {
 }
 
 /* Size-specific tints */
+/* Size-specific tints */
 .card--small  .task-card__size-badge { background: #EFF6FF; color: #3B82F6; border-color: #BFDBFE; }
 .card--medium .task-card__size-badge { background: #FFFBEB; color: #D97706; border-color: #FDE68A; }
 .card--large  .task-card__size-badge { background: #F5F3FF; color: #7C3AED; border-color: #DDD6FE; }
@@ -1858,10 +1956,17 @@ select.form-input {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background: #f8f9fc;
+  background: var(--col-bg);
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* All columns white; only the current day gets a warm tint. */
+.kanban__column--today {
+  --col-bg: var(--col-today-bg);
+  --col-header-bg: var(--col-today-pill-bg);
+  --col-header-text: var(--col-today-pill-ink);
 }
 
 .kanban__column--week-start {
@@ -1880,17 +1985,49 @@ select.form-input {
 }
 
 .kanban__column-header {
-  padding: 10px 8px 8px;
+  padding: 12px 10px 10px;
   text-align: center;
   position: sticky;
   top: 0;
-  background: #f8f9fc;
+  background: var(--col-bg);
   z-index: 10;
-  border-bottom: 1px solid var(--line);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 6px;
+}
+
+/* Pill badge wrapping the day name + task count (e.g. "MON 9") */
+.kanban__header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 12px;
+  background: var(--col-header-bg);
+  color: var(--col-header-text);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  min-height: 22px;
+}
+
+.kanban__header-pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.65);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .kanban__column-header--today .kanban__day-name {
@@ -2235,6 +2372,10 @@ select.form-input {
   gap: var(--space-1);
 }
 
+.week-nav__today {
+  margin-left: auto;
+}
+
 /* week-nav__sync removed — sync moved to inbox panel */
 
 .week-nav__sync-form {
@@ -2257,6 +2398,7 @@ select.form-input {
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--line);
+  background: var(--col-today-bg); /* pale yellow, same as today's column */
 }
 
 .day-view__tasks-header {
@@ -2270,6 +2412,50 @@ select.form-input {
   color: var(--text);
   margin-bottom: 2px;
   letter-spacing: -0.3px;
+}
+
+/* Pill section header, matches .kanban__header-pill */
+.day-view__section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 12px;
+  background: var(--col-today-pill-bg);
+  color: var(--col-today-pill-ink);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  min-height: 22px;
+  margin-bottom: 6px;
+}
+
+.day-view__section-pill--progress {
+  background: var(--bg2);
+  color: var(--muted);
+}
+
+.day-view__section-pill--timeline {
+  /* Cream pill on the sunset gradient — high contrast, stays legible on coral/ember */
+  background: #FFF4E3;
+  color: #6B2410;
+}
+
+.day-view__section-pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.7);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .day-view__tasks-subtitle {
@@ -2298,8 +2484,8 @@ select.form-input {
   gap: 8px;
   padding: 6px;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--bg2);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .day-view__quick-add-input {
@@ -2318,24 +2504,10 @@ select.form-input {
   color: var(--muted);
 }
 
+/* Visual style now comes from .btn .btn--icon .btn--secondary; this class
+   only bumps the "+" glyph so it reads at 16px instead of the .btn 14px default. */
 .day-view__quick-add-button {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--bg);
-  color: var(--text);
   font-size: 16px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background 0.1s, color 0.1s;
-}
-
-.day-view__quick-add-button:hover {
-  background: var(--bg3);
 }
 
 .day-view__tasks-list {
@@ -2351,6 +2523,7 @@ select.form-input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  background: #FFFFFF;
 }
 
 .day-view__timeline-column .timeline {
@@ -3206,19 +3379,21 @@ select.form-input {
   padding-bottom: 100px;
 }
 
+/* Journal toolbar icon — inherits .btn--icon .btn--ghost look, redefined here
+   so existing .jrnl-btn markup across the editor stays a single-class hook. */
 .jrnl-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: none;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
   background: transparent;
-  border-radius: 5px;
   color: var(--muted);
   cursor: pointer;
-  padding: 0;
-  transition: background 0.1s, color 0.1s;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .jrnl-btn:hover {
@@ -4586,11 +4761,9 @@ select.form-input {
 
 .modal__close:hover { background: var(--bg2); color: var(--text); }
 
+/* Topbar action buttons — inherit .btn .btn--secondary .btn--small; just keep nowrap */
 .modal__focus-btn,
 .modal__add-today-btn {
-  font-size: 11px;
-  padding: 3px 8px;
-  height: 26px;
   white-space: nowrap;
 }
 
@@ -4761,26 +4934,33 @@ select.form-input {
   gap: var(--space-2);
 }
 
+/* Size pill — matches the unified .btn .btn--pill look */
 .modal__size-pill {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-3);
+  justify-content: center;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--line);
+  border: 1px solid var(--warm-line);
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: var(--muted);
+  color: var(--warm-ink-soft);
   cursor: pointer;
-  background: var(--bg);
+  background: var(--warm-surface-2);
+  line-height: 1;
   transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 }
 
-.modal__size-pill:hover { background: var(--bg2); color: var(--text); }
+.modal__size-pill:hover {
+  background: var(--warm-surface);
+  color: var(--warm-ink);
+  border-color: var(--warm-line-hover);
+}
 
 .modal__size-pill--active {
-  background: var(--amber-bg);
-  border-color: var(--amber);
-  color: var(--amber-text);
+  background: var(--brick);
+  border-color: var(--brick);
+  color: var(--brick-ink);
 }
 
 .modal__size-radio { display: none; }
@@ -5087,27 +5267,17 @@ form[data-save-error="true"] {
   font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
-  color: var(--muted);
-  border: 1px dashed #d8dce5;
+  color: var(--warm-ink-soft);
+  border: 1px dashed var(--warm-line);
   border-radius: 12px;
   margin: 0 0 8px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--warm-surface-2);
   text-align: center;
   overflow: hidden;
 }
 
-.kanban__empty-link {
-  color: var(--amber-text);
-  font-weight: 600;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font: inherit;
-  line-height: inherit;
-}
+/* Style comes from .btn .btn--pill .btn--small; just a semantic hook */
+.kanban__empty-link { /* inherits warm cream pill */ }
 
 .kanban__empty-text {
   opacity: 0.8;
@@ -5547,7 +5717,7 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
   background: var(--line);
   padding: 1px 4px;
   border-radius: 3px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
 }
 
 .connect-hey__cmd-row {
@@ -5566,7 +5736,7 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
 
 .connect-hey__cmd {
   flex: 1;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: var(--ink);
   white-space: nowrap;
@@ -5585,17 +5755,18 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
 
 .connect-hey__copy-btn {
   flex-shrink: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   cursor: pointer;
-  padding: 2px var(--space-1);
-  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  border-radius: 7px;
   color: var(--muted);
   font-size: var(--font-size-xs);
-  transition: color 0.1s, background 0.1s;
+  line-height: 1;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .connect-hey__copy-btn--top {
@@ -5626,7 +5797,7 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
 
 .connect-hey__token-input {
   flex: 1;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
 }
 
@@ -5679,17 +5850,26 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
 }
 
 /* --------------------------------------------------------------------------
-   FOCUS MODE
+   FOCUS MODE — full-screen ritual-flavored overlay with a time-of-day sun.
+   Each phase (dawn/morning/midday/golden/dusk/night) retints --focus-sky,
+   --focus-ground, --focus-sun, --focus-ink via the focus-overlay--<phase> class.
    -------------------------------------------------------------------------- */
+body.focus-open { overflow: hidden; }
+
 .focus-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: focus-fade-in 0.15s ease-out;
+  padding: 48px 24px;
+  overflow-y: auto;
+  color: var(--focus-ink);
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, var(--focus-sun-glow) 0%, transparent 55%),
+    linear-gradient(180deg, var(--focus-sky) 0%, var(--focus-ground) 100%);
+  animation: focus-fade-in 0.35s ease-out;
 }
 
 @keyframes focus-fade-in {
@@ -5697,214 +5877,484 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
   to   { opacity: 1; }
 }
 
-body.focus-open { overflow: hidden; }
-
-.focus {
-  background: var(--bg);
-  border-radius: 16px;
-  width: 580px;
-  max-width: 92vw;
-  max-height: 88vh;
-  overflow-y: auto;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-  animation: focus-scale-in 0.15s ease-out;
+/* The soft sun/moon disc. Big, heavily blurred, very low-contrast against
+   the sky so it reads as a glow rather than a saturated ball of color. */
+.focus-sun {
+  position: absolute;
+  top: -420px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1100px;
+  height: 1100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 60%,
+    var(--focus-sun) 0%,
+    var(--focus-sun-soft) 35%,
+    transparent 72%);
+  filter: blur(18px);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: focus-sun-drift 24s ease-in-out infinite alternate;
 }
 
-@keyframes focus-scale-in {
-  from { transform: scale(0.96); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+.focus-overlay--night .focus-sun {
+  opacity: 0.45;
 }
 
-.focus__topbar {
+@keyframes focus-sun-drift {
+  from { transform: translate(calc(-50% - 12px), 0); opacity: 0.50; }
+  to   { transform: translate(calc(-50% + 12px), 10px); opacity: 0.60; }
+}
+
+/* Time-of-day palettes. Values are intentionally warm and low-contrast —
+   the goal is "quiet room at <hour>", not a saturated wallpaper. */
+/* Sun colors are deliberately close to sky colors — just a few shades
+   warmer/brighter — so the sun reads as a soft luminosity, not a disc. */
+.focus-overlay--dawn {
+  --focus-sky:       #FBE5D2;
+  --focus-ground:    #FFF4E8;
+  --focus-sun:       #FFEED9;
+  --focus-sun-soft:  rgba(255, 238, 217, 0.50);
+  --focus-sun-glow:  rgba(255, 230, 205, 0.35);
+  --focus-ink:       #3A2418;
+  --focus-ink-muted: #8B6B55;
+  --focus-card:      rgba(255, 255, 255, 0.55);
+  --focus-line:      rgba(139, 107, 85, 0.22);
+}
+.focus-overlay--morning {
+  --focus-sky:       #FCEFD6;
+  --focus-ground:    #FFF9EC;
+  --focus-sun:       #FFF3D8;
+  --focus-sun-soft:  rgba(255, 243, 216, 0.50);
+  --focus-sun-glow:  rgba(255, 236, 205, 0.35);
+  --focus-ink:       #3A2A18;
+  --focus-ink-muted: #8B7560;
+  --focus-card:      rgba(255, 255, 255, 0.58);
+  --focus-line:      rgba(139, 117, 96, 0.22);
+}
+.focus-overlay--midday {
+  --focus-sky:       #FCF4E0;
+  --focus-ground:    #FFFBF0;
+  --focus-sun:       #FFF8E3;
+  --focus-sun-soft:  rgba(255, 248, 227, 0.45);
+  --focus-sun-glow:  rgba(255, 244, 220, 0.30);
+  --focus-ink:       #2D2418;
+  --focus-ink-muted: #8B7E6A;
+  --focus-card:      rgba(255, 255, 255, 0.62);
+  --focus-line:      rgba(139, 126, 106, 0.20);
+}
+.focus-overlay--golden {
+  --focus-sky:       #FADABC;
+  --focus-ground:    #FCEED5;
+  --focus-sun:       #FFE5C4;
+  --focus-sun-soft:  rgba(255, 229, 196, 0.55);
+  --focus-sun-glow:  rgba(255, 220, 185, 0.38);
+  --focus-ink:       #3D2414;
+  --focus-ink-muted: #8F6A4D;
+  --focus-card:      rgba(255, 255, 255, 0.52);
+  --focus-line:      rgba(143, 106, 77, 0.24);
+}
+.focus-overlay--dusk {
+  --focus-sky:       #F3B59C;
+  --focus-ground:    #E79B8A;
+  --focus-sun:       #F7C3AE;
+  --focus-sun-soft:  rgba(247, 195, 174, 0.55);
+  --focus-sun-glow:  rgba(243, 180, 160, 0.40);
+  --focus-ink:       #3A1A10;
+  --focus-ink-muted: #7E3E2E;
+  --focus-card:      rgba(255, 248, 242, 0.58);
+  --focus-line:      rgba(126, 62, 46, 0.28);
+}
+.focus-overlay--night {
+  --focus-sky:       #2A2B40;
+  --focus-ground:    #3A2E4A;
+  --focus-sun:       #4C4A68;         /* cool moon, barely brighter than sky */
+  --focus-sun-soft:  rgba(76, 74, 104, 0.55);
+  --focus-sun-glow:  rgba(80, 78, 110, 0.32);
+  --focus-ink:       #F0EAF5;
+  --focus-ink-muted: #B0A8C0;
+  --focus-card:      rgba(20, 18, 32, 0.45);
+  --focus-line:      rgba(240, 234, 245, 0.18);
+}
+
+/* Close button — floats in the top-right, on the ambient background. */
+/* Top-right cluster: optional external-link icon + close. */
+.focus-overlay .focus__corner {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--line2);
+  gap: 2px;
 }
 
-.focus__modes {
-  display: flex;
-  gap: 8px;
-}
-
-.focus__mode {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--muted);
-  padding: 4px 12px;
-  border-radius: 6px;
-  cursor: default;
-}
-
-.focus__mode--active {
-  color: var(--text);
-  background: var(--bg2);
-}
-
-.focus__close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: var(--muted);
-  border-radius: 6px;
-  display: flex;
+.focus-overlay .focus__corner-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  color: var(--focus-ink-muted);
+  opacity: 0.55;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
 }
 
-.focus__close:hover {
-  color: var(--text);
-  background: var(--bg2);
+.focus-overlay .focus__corner-btn:hover {
+  opacity: 1;
+  color: var(--focus-ink);
+  background: var(--focus-card);
 }
 
-.focus__body {
-  padding: 24px 20px 28px;
-}
-
-.focus__main {
+/* Content column — centered, narrow, editorial. */
+.focus {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 560px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+  animation: focus-rise 0.5s ease-out both;
 }
 
-.focus__task-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+@keyframes focus-rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
 }
 
-.focus__check {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--muted2);
-}
-
-.focus__check--done {
-  color: var(--hey);
-}
-
-.focus__title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
-  line-height: 1.3;
+.focus__eyebrow {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--focus-ink-muted);
   margin: 0;
 }
 
-.focus__timer-section {
+.focus__title {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--focus-ink);
+  margin: 0;
+  max-width: 100%;
+}
+
+.focus__timer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: var(--bg2);
-  border-radius: 12px;
+  gap: 14px;
+  width: 100%;
+  padding: 28px 24px;
+  background: var(--focus-card);
+  border: 1px solid var(--focus-line);
+  border-radius: 14px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-.focus__timer-labels {
-  display: flex;
-  gap: 48px;
-}
-
-.focus__timer-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.focus__timer-label {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-
-.focus__timer-value {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text);
+.focus__timer-display {
+  font-family: var(--font-mono);
+  font-size: clamp(44px, 6vw, 64px);
+  font-weight: 300;
+  color: var(--focus-ink);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.focus__timer-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--focus-ink-muted);
+}
+
+.focus__timer-meta-value {
+  font-family: var(--font-mono);
+  font-style: normal;
+  color: var(--focus-ink);
 }
 
 .focus__timer-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-top: 6px;
 }
 
 .focus__timer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  transition: background var(--transition-fast);
-}
-
-.focus__timer-btn--start {
-  background: var(--hey);
-  color: #fff;
-}
-
-.focus__timer-btn--start:hover {
-  background: #15803d;
-}
-
-.focus__timer-btn--stop {
-  background: var(--red);
-  color: #fff;
-}
-
-.focus__timer-btn--stop:hover {
-  background: #b91c1c;
+  padding: 10px 28px;
+  letter-spacing: 0.04em;
 }
 
 .focus__timer-btn-icon {
   font-size: 10px;
+  margin-right: 4px;
 }
 
 .focus__timer-hint {
-  font-size: var(--font-size-sm);
-  color: var(--muted);
+  font-family: var(--font-serif);
   font-style: italic;
+  font-size: 14px;
+  color: var(--focus-ink-muted);
+  margin: 0;
 }
 
 .focus__notes {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
 }
+
+.focus__notes form { width: 100%; }
 
 .focus__notes-input {
   width: 100%;
-  min-height: 120px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: var(--font-size-base);
-  color: var(--text);
-  background: #fff;
-  resize: vertical;
+  min-height: 140px;
+  padding: 16px 18px;
+  border: 1px solid var(--focus-line);
+  border-radius: 12px;
+  font-family: var(--font-serif);
+  font-size: 17px;
   line-height: 1.6;
-  transition: border-color var(--transition-fast);
+  color: var(--focus-ink);
+  background: var(--focus-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .focus__notes-input::placeholder {
-  color: var(--muted2);
+  color: var(--focus-ink-muted);
+  font-style: italic;
 }
 
 .focus__notes-input:focus {
-  outline: none;
-  border-color: var(--amber);
+  border-color: var(--focus-ink-muted);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.focus-overlay--night .focus__notes-input:focus {
+  background: rgba(20, 18, 32, 0.65);
+}
+
+.focus__hint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--focus-ink-muted);
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* --- Tabs ---------------------------------------------------------------- */
+.focus__tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--focus-card);
+  border: 1px solid var(--focus-line);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  align-self: center;
+}
+
+.focus__tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 7px 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--focus-ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.focus__tab:hover {
+  color: var(--focus-ink);
+}
+
+.focus__tab--active {
+  color: var(--focus-ink);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.focus-overlay--night .focus__tab--active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.focus__tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--focus-line);
+  color: var(--focus-ink-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --- Panels -------------------------------------------------------------- */
+.focus__panels {
+  width: 100%;
+}
+
+.focus__panel {
+  width: 100%;
+}
+
+.focus__panel[hidden] { display: none; }
+
+.focus__panel form { width: 100%; }
+
+.focus__panel-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--focus-ink-muted);
+  font-style: italic;
+}
+
+.focus__panel-empty {
+  margin: 0;
+  padding: 24px 4px;
+  color: var(--focus-ink-muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* --- Source body (Basecamp description / HEY body) ----------------------- */
+/* .focus is text-align: center — override everything inside the body so
+   Basecamp's HTML (lists especially) renders like a normal document. */
+.focus__source-body {
+  padding: 18px 22px;
+  border: 1px solid var(--focus-line);
+  border-radius: 12px;
+  background: var(--focus-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--focus-ink);
+  max-height: 50vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.focus__source-body *,
+.focus__source-body *[align] { text-align: left !important; }
+
+.focus__source-body p { margin: 0 0 10px; }
+.focus__source-body p:first-child { margin-top: 0; }
+.focus__source-body p:last-child { margin-bottom: 0; }
+.focus__source-body a { color: var(--focus-ink); text-decoration: underline; }
+.focus__source-body ul,
+.focus__source-body ol {
+  padding-left: 22px;
+  margin: 8px 0;
+  list-style-position: outside;
+}
+.focus__source-body ul { list-style: disc; }
+.focus__source-body ol { list-style: decimal; }
+.focus__source-body li { margin: 2px 0; padding-left: 4px; }
+
+.focus__source-body--plain {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* Comments share the centered layout hazard — left-align content inside. */
+.focus__comment,
+.focus__comments-error,
+.focus__comments-list { text-align: left; }
+
+/* --- Comments ------------------------------------------------------------ */
+.focus__comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 44vh;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+
+.focus__comment {
+  padding: 12px 14px;
+  border: 1px solid var(--focus-line);
+  border-radius: 10px;
+  background: var(--focus-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.focus__comment-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--focus-ink);
+  margin-bottom: 4px;
+}
+
+.focus__comment-content {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--focus-ink);
+  white-space: pre-wrap;
+}
+
+.focus__comment-time {
+  font-size: 11px;
+  color: var(--focus-ink-muted);
+  margin-top: 6px;
+}
+
+.focus__comments-error {
+  padding: 10px 14px;
+  border: 1px solid var(--focus-line);
+  border-radius: 10px;
+  background: var(--focus-card);
+  color: var(--focus-ink-muted);
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.focus__comments-retry {
+  color: var(--focus-ink);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-overlay,
+  .focus,
+  .focus-sun { animation: none; }
 }
 
 /* Task card focus hint */
@@ -5918,9 +6368,9 @@ body.focus-open { overflow: hidden; }
   content: "f";
   position: absolute;
   top: 6px;
-  right: 6px;
+  right: 8px;
   font-size: 10px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   color: var(--fg);
   background: var(--bg);
   border: 1px solid var(--line);
@@ -6039,15 +6489,15 @@ body.focus-open { overflow: hidden; }
   z-index: 1;
 }
 .ritual-doc__dateline {
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  font-size: 11px;
+  letter-spacing: 0.02em;
+  font-size: 13px;
   color: #8b7560;
-  font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
-  font-weight: 500;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
 }
 .ritual-doc__title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: clamp(30px, 4vw, 42px);
   font-weight: 400;
   line-height: 1.18;
@@ -6056,7 +6506,7 @@ body.focus-open { overflow: hidden; }
   margin: 0;
 }
 .ritual-doc__prose {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.7;
   color: #3a2e23;
@@ -6064,7 +6514,7 @@ body.focus-open { overflow: hidden; }
 }
 .ritual-doc__prose--muted { color: #7a6550; font-style: italic; }
 .ritual-doc__prompt {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.5;
   color: #2a1f15;
@@ -6090,7 +6540,7 @@ body.focus-open { overflow: hidden; }
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.55;
   color: #3a2e23;
@@ -6118,7 +6568,7 @@ body.focus-open { overflow: hidden; }
 
 /* Inline metrics line — replaces meter/bar */
 .ritual-doc__meter {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.6;
   color: #3a2e23;
@@ -6143,13 +6593,23 @@ body.focus-open { overflow: hidden; }
 /* Hyperlink-style submit buttons */
 .ritual-doc__actions {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  /* Default: right-align the primary action. The `:has` rule below detects
+     the back-link pattern (back arrow + primary button) and switches to
+     space-between. This is more reliable than `:only-child`, which breaks
+     when the actions container is a <form> with a hidden input sibling
+     (as in sunrise). */
+  justify-content: flex-end;
+  align-items: center;
   gap: 16px;
   margin-top: 8px;
 }
+
+/* Back link present → put back on the left, primary on the right. */
+.ritual-doc__actions:has(> .ritual-doc__link--back) {
+  justify-content: space-between;
+}
 .ritual-doc__link {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 20px;
   font-style: italic;
   color: #A8372C;
@@ -6207,7 +6667,7 @@ body.focus-open { overflow: hidden; }
 }
 .ritual-doc__reflection-input {
   width: 100%;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.6;
   color: #2a1f15;
@@ -6245,7 +6705,7 @@ body.focus-open { overflow: hidden; }
 }
 .ritual-doc__card:last-child { border-bottom: 0; }
 .ritual-doc__card-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 18px;
   color: #2a1f15;
   line-height: 1.4;
@@ -6271,7 +6731,7 @@ body.focus-open { overflow: hidden; }
 }
 .ritual-doc__decision-ui {
   display: inline-block;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-style: italic;
   font-size: 15px;
   color: #7a6550;
@@ -6302,7 +6762,7 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__goal-num {
   width: 20px;
   text-align: right;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-style: italic;
   color: #b5a08a;
   font-size: 16px;
@@ -6310,7 +6770,7 @@ body.focus-open { overflow: hidden; }
 }
 .ritual-doc__goal-input {
   flex: 1;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.5;
   color: #2a1f15;
@@ -6355,7 +6815,7 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: #FFFBF5; }
 .ritual-doc__goal-check-title {
   flex: 1;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.5;
   color: #3a2e23;
@@ -6373,14 +6833,14 @@ body.focus-open { overflow: hidden; }
   min-height: 60vh;
 }
 .ritual-doc__wrap-title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: clamp(36px, 5vw, 52px);
   font-weight: 400;
   color: #2a1f15;
   margin: 0;
 }
 .ritual-doc__wrap-sub {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 19px;
   font-style: italic;
   color: #7a6550;
@@ -6467,15 +6927,15 @@ body.focus-open { overflow: hidden; }
   text-align: center;
 }
 .onboarding-doc__dateline {
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-  font-size: 11px;
+  letter-spacing: 0.02em;
+  font-size: 13px;
   color: #8b7560;
-  font-family: -apple-system, system-ui, sans-serif;
-  font-weight: 500;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
 }
 .onboarding-doc__title {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: clamp(30px, 4vw, 42px);
   font-weight: 400;
   line-height: 1.18;
@@ -6483,7 +6943,7 @@ body.focus-open { overflow: hidden; }
   margin: 0;
 }
 .onboarding-doc__prose {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.7;
   color: #3a2e23;
@@ -6498,7 +6958,7 @@ body.focus-open { overflow: hidden; }
 .onboarding-doc__text-input {
   width: 100%;
   max-width: 360px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 22px;
   text-align: center;
   color: #2a1f15;
@@ -6516,7 +6976,7 @@ body.focus-open { overflow: hidden; }
 .onboarding-doc__select {
   width: 100%;
   max-width: 360px;
-  font-family: -apple-system, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.75);
@@ -6599,7 +7059,7 @@ body.focus-open { overflow: hidden; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 16px;
   color: #3a2e23;
 }
@@ -6621,7 +7081,7 @@ body.focus-open { overflow: hidden; }
   border-radius: 10px;
   padding: 24px;
   text-align: left;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   color: #3a2e23;
 }
 .onboarding-doc__closer-preview-label {
@@ -6630,7 +7090,7 @@ body.focus-open { overflow: hidden; }
   text-transform: uppercase;
   color: #8b7560;
   margin-bottom: 8px;
-  font-family: -apple-system, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 .onboarding-doc__closer-preview-title {
   font-size: 22px;

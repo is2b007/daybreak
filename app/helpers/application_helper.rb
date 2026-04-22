@@ -53,4 +53,20 @@ module ApplicationHelper
     h, r = m.divmod(60)
     "#{h}:#{r.to_s.rjust(2, '0')}:00"
   end
+
+  # Tag the focus overlay with a time-of-day phase so its ambient backdrop can
+  # shift (dawn → morning → midday → golden → dusk → night). Uses the viewer's
+  # timezone so a user in Lisbon sees dusk at 7pm Lisbon, not 7pm UTC.
+  def focus_time_phase(user = current_user)
+    tz = (user && user.timezone.presence) || Time.zone.name
+    hour = Time.current.in_time_zone(tz).hour
+    case hour
+    when 5..7   then "dawn"
+    when 8..11  then "morning"
+    when 12..14 then "midday"
+    when 15..17 then "golden"
+    when 18..20 then "dusk"
+    else             "night"
+    end
+  end
 end
