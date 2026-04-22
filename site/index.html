@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daybreak: a calm planner that bridges Basecamp and HEY</title>
+  <meta name="description" content="Daybreak is a daily and weekly planner that bridges Basecamp and HEY into one opinionated workspace. Open source. Self-hostable. Built on the 37signals stack.">
+  <meta name="theme-color" content="#FDFCFA">
+
+  <meta property="og:title" content="Daybreak: a calm planner that bridges Basecamp and HEY">
+  <meta property="og:description" content="A daily and weekly planner that bridges Basecamp and HEY. Open source. Self-hostable.">
+  <meta property="og:url" content="https://daybreakplanner.com">
+  <meta property="og:type" content="website">
+
+  <link rel="icon" type="image/svg+xml" href="assets/daybreak-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="Daybreak home">
+      <img src="assets/daybreak-logo.svg" alt="" width="28" height="26">
+      <span>Daybreak</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#self-host">Self-host</a>
+      <a href="https://github.com/is2b007/daybreak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>A calm planner that bridges <span class="tag tag-bc"><img class="brand-mark" src="assets/logos/basecamp-mark.svg" alt="" width="16" height="16">Basecamp</span> and <span class="tag tag-hey"><img class="brand-mark" src="assets/logos/hey-mark.svg" alt="" width="16" height="16">HEY</span>.</h1>
+      <p class="lede">
+        Daybreak pulls your Basecamp assignments, schedules, and HEY inputs into one quiet workspace so you can shape a realistic day, run a morning and evening ritual, and keep momentum, without creating another task silo.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/is2b007/daybreak">Self-host it on GitHub</a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+      <p class="microcopy">Open source &middot; MIT licensed &middot; Single-user &middot; No account required &middot; No tracking</p>
+    </div>
+  </section>
+
+  <section class="mock">
+    <div class="wrap">
+      <div class="board" aria-hidden="true">
+        <div class="col today">
+          <div class="col-head"><span class="pill amber">Mon &middot; today</span></div>
+          <div class="card"><span class="dot bc"></span>Ship onboarding copy review</div>
+          <div class="card"><span class="dot bc"></span>Respond to Q2 roadmap thread</div>
+          <div class="card"><span class="dot hey"></span>Reply to Dia: dinner</div>
+          <div class="card done"><span class="dot"></span>Morning ritual</div>
+        </div>
+        <div class="col">
+          <div class="col-head"><span class="pill">Tue</span></div>
+          <div class="card"><span class="dot bc"></span>Basecamp sync follow-up</div>
+          <div class="card"><span class="dot"></span>Walk before lunch</div>
+        </div>
+        <div class="col">
+          <div class="col-head"><span class="pill">Wed</span></div>
+          <div class="card"><span class="dot bc"></span>Design review</div>
+        </div>
+        <div class="col">
+          <div class="col-head"><span class="pill">Thu</span></div>
+          <div class="card"><span class="dot hey"></span>Draft: monthly reflection</div>
+        </div>
+        <div class="col hide-sm">
+          <div class="col-head"><span class="pill">Fri</span></div>
+          <div class="card"><span class="dot"></span>Shut down week</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature" id="how">
+    <div class="wrap">
+      <h2>Three views. Nothing else.</h2>
+      <p class="lede">
+        Daybreak is deliberately small. You get a week, you get a day, and you get a focus view for the task in front of you. No dashboards, no reports, no team layer, no AI.
+      </p>
+
+      <div class="grid-3">
+        <div class="card-feature">
+          <h3>Week</h3>
+          <p>A kanban of seven days plus a "sometime" bucket. Drag tasks between days. See what's coming before it arrives.</p>
+        </div>
+        <div class="card-feature">
+          <h3>Day</h3>
+          <p>Today's tasks with timeboxes, pinned alongside your HEY calendar events. A daily log lives here too.</p>
+        </div>
+        <div class="card-feature">
+          <h3>Focus</h3>
+          <p>One task at a time. A quiet timer. A single place to work until the thing is done.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature feature-tinted feature-bc">
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <span class="eyebrow eyebrow-bc">Basecamp integration</span>
+          <h2>Your Basecamp work, already planned.</h2>
+          <p>Sign in once with your Basecamp account. Daybreak pulls in your assignments and schedules, preserves project names, and lets you triage your Basecamp inbox straight into a day or a week. Rate-limited and cached so you stay under Basecamp's 50 req / 10s limit.</p>
+          <ul class="checklist">
+            <li>OAuth sign-in via Launchpad</li>
+            <li>Auto-sync assignments and schedules</li>
+            <li>Triage to today, a specific day, or "sometime"</li>
+            <li>Back-links to the original Basecamp card</li>
+          </ul>
+        </div>
+        <div class="mini-mock mini-bc" aria-hidden="true">
+          <div class="mini-head"><img class="brand-mark" src="assets/logos/basecamp-mark.svg" alt="" width="16" height="16">Basecamp &middot; assignment</div>
+          <div class="mini-title">Ship onboarding copy review</div>
+          <div class="mini-meta">Project &middot; Daybreak website</div>
+          <div class="mini-actions">
+            <span class="chip">Today</span>
+            <span class="chip chip-ghost">Tomorrow</span>
+            <span class="chip chip-ghost">Sometime</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature feature-tinted feature-hey">
+    <div class="wrap">
+      <div class="split split-reverse">
+        <div>
+          <span class="eyebrow eyebrow-hey">HEY integration &middot; optional</span>
+          <h2>Your email and calendar, made plannable.</h2>
+          <p>Connect HEY with a secure PKCE OAuth flow and Daybreak layers in calendar events, journal updates, and email triage (Imbox, Reply Later, and Set Aside) where you can turn a message into a task in one click. HEY is entirely optional; every feature has a local fallback.</p>
+          <ul class="checklist">
+            <li>Calendar events pinned to your day view</li>
+            <li>Triage Reply Later or Set Aside into planned work</li>
+            <li>HEY journal digest pushes to your reflections</li>
+            <li>No secret required, uses HEY's public PKCE client</li>
+          </ul>
+        </div>
+        <div class="mini-mock mini-hey" aria-hidden="true">
+          <div class="mini-head"><img class="brand-mark" src="assets/logos/hey-mark.svg" alt="" width="16" height="16">HEY &middot; Reply Later</div>
+          <div class="mini-title">Dia: dinner on Friday?</div>
+          <div class="mini-meta">From Dia &middot; 2 hours ago</div>
+          <div class="mini-actions">
+            <span class="chip chip-hey">Make it a task</span>
+            <span class="chip chip-ghost">Snooze</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="wrap">
+      <h2>A morning ritual. An evening ritual.</h2>
+      <p class="lede">Planning is a practice, not a preference. Daybreak opens with a morning ritual to shape the day and closes with an evening one to log it.</p>
+      <div class="grid-2">
+        <div class="card-feature">
+          <h3>Morning</h3>
+          <p><strong>Review</strong> yesterday's open items. <strong>Plan</strong> today: pull in assignments, add calendar events, set a single focus. The ritual marks your day as planned when you're done.</p>
+        </div>
+        <div class="card-feature">
+          <h3>Evening</h3>
+          <p><strong>Close out</strong> open tasks: finish, defer, or drop. <strong>Reflect</strong> in a short journal prompt. The ritual logs the day's completion so tomorrow starts clean.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature feature-dark" id="self-host">
+    <div class="wrap">
+      <span class="eyebrow">Self-host</span>
+      <h2>Run it yourself in one command.</h2>
+      <p class="lede">Daybreak is single-user and made to run on your own machine or a small server. No account to create, no usage to meter, no one watching what you plan.</p>
+      <pre class="code"><code>git clone https://github.com/is2b007/daybreak.git
+cd daybreak
+cp .env.example .env     # add your Basecamp credentials
+docker compose up -d
+open http://localhost:3000</code></pre>
+      <p class="microcopy">Your SQLite database and files live in <code>./storage</code> on the host. Back up that folder, that's your whole data set.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/is2b007/daybreak">Read the setup guide</a>
+        <a class="btn btn-ghost" href="https://github.com/is2b007/daybreak/blob/main/CONTRIBUTING.md">Contribute</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="wrap narrow">
+      <span class="eyebrow">Philosophy</span>
+      <h2>Opinionated, not optional.</h2>
+      <p>
+        Daybreak was built to replace a $240-a-year planner with something calmer, more opinionated, and shaped around how Basecamp and HEY already work. It follows the 37signals stack: Rails 8, Hotwire, SQLite. No React. No Tailwind. No TypeScript. No bundler. No team features, no AI, no analytics, no notifications.
+      </p>
+      <p>
+        Software should have opinions. This one does. If you disagree with the opinions, the code is open. Fork it and build the planner you actually want.
+      </p>
+    </div>
+  </section>
+
+  <section class="feature feature-sponsor">
+    <div class="wrap narrow">
+      <span class="eyebrow">Support the work</span>
+      <h2>Daybreak is free. Sponsors keep it that way.</h2>
+      <p>If Daybreak is useful to you and you'd like it to keep getting better, consider sponsoring on GitHub. Any amount helps cover the time it takes to maintain the project and the domain.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/sponsors/is2b007">Sponsor on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/is2b007/daybreak">Star the repo</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-cols">
+      <div>
+        <a class="logo" href="/" aria-label="Daybreak home">
+          <img src="assets/daybreak-logo.svg" alt="" width="24" height="22">
+          <span>Daybreak</span>
+        </a>
+        <p class="microcopy">A calm planner that bridges Basecamp and HEY.</p>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <a href="https://github.com/is2b007/daybreak">GitHub</a>
+        <a href="https://github.com/is2b007/daybreak/blob/main/LICENSE">MIT license</a>
+        <a href="https://github.com/is2b007/daybreak/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://github.com/is2b007/daybreak/blob/main/SECURITY.md">Security</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="https://github.com/sponsors/is2b007">Sponsor</a>
+        <a href="https://github.com/is2b007/daybreak/issues">Report an issue</a>
+        <a href="mailto:kostac@hey.com">Email</a>
+      </div>
+    </div>
+    <p class="microcopy copyright">&copy; 2026 Kosta Canatselis. Daybreak is open source, MIT licensed.</p>
+  </div>
+</footer>
+
+</body>
+</html>

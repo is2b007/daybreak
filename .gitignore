@@ -7,8 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
+# Ignore all environment files (but keep the template).
 /.env*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -32,6 +33,9 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
+# Defensive: only the encrypted `.enc` variant should ever be committed.
+/config/credentials.yml
+/config/credentials/*.yml
 
 # Claude Code local settings and worktree checkouts
 /.claude/

@@ -1,113 +1,110 @@
 # Daybreak
 
-Daybreak is a personal planning layer between Basecamp and HEY.
+A calm daily and weekly planner that bridges [Basecamp](https://basecamp.com) and [HEY](https://hey.com) into one opinionated workspace.
 
-It pulls your assignments, schedules, and HEY inputs into one calm workspace so you can shape a realistic day, run a morning/evening ritual, and keep momentum without creating another task silo.
+**Website:** [daybreakplanner.com](https://daybreakplanner.com)
+
+Daybreak pulls your Basecamp assignments and schedules, optionally layers HEY calendar events and email triage on top, and gives you a week view, a day view, and a focus mode for working on a single task. That's it. No team features, no AI, no notifications, no analytics.
+
+Built on the 37signals stack (Rails 8, Hotwire, SQLite). Designed for self-hosting.
 
 ## What Daybreak does
 
-- Signs in with your Basecamp account (OAuth) and syncs assignments/schedules.
-- Optionally connects HEY for calendar events, journal sync, and email triage.
-- Gives you week and day planning views with drag/drop task flow.
-- Includes daily rituals, timeboxing, and a lightweight focus timer.
-- Supports personal local tasks alongside synced tasks.
+- **Week view:** kanban of days across the week, plus a "sometime" bucket. Drag tasks between days.
+- **Day view:** today's tasks with timeboxing, calendar events pinned from HEY, and a daily log.
+- **Focus mode:** single-task view with a lightweight timer for deep work.
+- **Morning ritual:** review yesterday, plan today, add events to the week.
+- **Evening ritual:** close out open items, reflect, log the day.
+- **Basecamp sync:** OAuth sign-in; auto-syncs your assignments and schedules; triage your Basecamp inbox into day or week.
+- **HEY integration (optional):** calendar events, email triage (Imbox / Reply Later / Set Aside), journal digest, email-to-task.
 
-## Tech stack
+## Self-host it
 
-- Ruby on Rails `8.1`
-- SQLite (default)
-- Hotwire (`turbo-rails`, `stimulus-rails`)
-- Importmap + Propshaft
-- Solid Queue / Solid Cache / Solid Cable
-- Minitest + Capybara + Selenium
+Daybreak is single-user and made to run on your own machine or small server. The easiest path is Docker Compose.
 
-## Prerequisites
-
-- Ruby (matching `.ruby-version` if present, or current Rails 8-compatible Ruby)
-- Bundler
-- SQLite 3
-
-## Getting started
+### Quick start
 
 ```bash
 git clone https://github.com/is2b007/daybreak.git
 cd daybreak
-bundle install
-bin/rails db:prepare
-bin/rails server
+cp .env.example .env            # fill in BASECAMP_CLIENT_ID / SECRET / RAILS_MASTER_KEY
+docker compose up -d
+open http://localhost:3000
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+### Get Basecamp credentials
 
-## Configuration
+1. Go to [launchpad.37signals.com/integrations](https://launchpad.37signals.com/integrations) and create a new integration.
+2. Set the redirect URL to `http://localhost:3000/auth/basecamp/callback` (or your real host when deploying).
+3. Copy the Client ID and Client Secret into your `.env` file as `BASECAMP_CLIENT_ID` and `BASECAMP_CLIENT_SECRET`.
 
-### Basecamp OAuth (required for sign-in)
+### Generate a Rails master key
 
-Daybreak needs Basecamp OAuth credentials. You can provide them either via encrypted Rails credentials or environment variables.
-
-Environment variable fallback:
+If you're starting fresh and don't have a `config/master.key`:
 
 ```bash
-export BASECAMP_CLIENT_ID="..."
-export BASECAMP_CLIENT_SECRET="..."
+bin/rails credentials:edit
 ```
 
-Credentials alternative (`bin/rails credentials:edit`):
+That creates `config/master.key`. Copy the contents into `.env` as `RAILS_MASTER_KEY`.
 
-```yml
-basecamp:
-  client_id: ...
-  client_secret: ...
-```
+### Data persistence
 
-### HEY integration (optional)
+The `docker-compose.yml` mounts `./storage` from the host into the container, so your SQLite databases and Active Storage blobs survive restarts. Back up this folder and you've backed up everything.
 
-HEY uses PKCE with Daybreak's built-in public client and can be connected from the app UI (`/auth/hey`).
+## Develop it
 
-When connected, Daybreak can sync:
-
-- Calendar events
-- HEY journal updates
-- HEY email triage (Imbox, Reply Later, Set Aside)
-
-## Running tests
+If you want to hack on Daybreak instead of just run it:
 
 ```bash
-bin/rails test
+git clone https://github.com/is2b007/daybreak.git
+cd daybreak
+bin/setup
+bin/dev
 ```
 
-## Background jobs
+See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions, stack constraints, and how to submit changes.
 
-Daybreak uses Solid Queue. In development, jobs can run in Puma with `SOLID_QUEUE_IN_PUMA=true` or via:
+## Stack
+
+- Ruby on Rails 8.1
+- SQLite (Solid Queue / Solid Cache / Solid Cable all on SQLite too)
+- Hotwire (Turbo + Stimulus)
+- Propshaft + Import Maps, no bundler
+- Minitest + Capybara
+- Kamal for deployment (optional)
+
+No React, Tailwind, TypeScript, or CSS framework. By design.
+
+## Tests
 
 ```bash
-bin/jobs
+bin/rails test            # unit + integration
+bin/rails test:system     # headless browser
 ```
 
-## Deployment
+## Deploying to a real server
 
-The project includes Kamal deployment config in `config/deploy.yml` (template values should be updated for your server/domain).
-
-Typical deploy flow:
+A Kamal config lives in `config/deploy.yml` with placeholder IP and domain values. Fill those in with your own server and domain, then:
 
 ```bash
 bin/kamal setup
 bin/kamal deploy
 ```
 
-## Project structure
+Kamal expects Docker on the target host and uses the same Dockerfile as the local compose setup.
 
-- `app/` - Rails MVC app code, jobs, and services
-- `specs/` - implementation specs and scoped product work docs
-- `TODOS.md` - follow-up engineering/security tasks
-- `CHANGELOG.md` - release history
+## Project layout
 
-## Security and operational notes
-
-- Never commit plaintext secrets.
-- Keep `config/credentials.yml.enc` and your `RAILS_MASTER_KEY` secure.
-- Review `TODOS.md` for known deferred hardening items.
+- `app/` : Rails MVC code, jobs, services
+- `site/` : static marketing site served at [daybreakplanner.com](https://daybreakplanner.com)
+- `specs/` : implementation specs and product docs
+- `CHANGELOG.md` : release history
 
 ## License
 
-Proprietary (unless you choose to add an OSS license).
+[MIT](LICENSE). Do what you want; attribution appreciated.
+
+## Support the work
+
+If Daybreak is useful to you, [sponsor the project on GitHub](https://github.com/sponsors/is2b007). Sponsorships keep the site online and pay for the time to maintain it.
