@@ -22,6 +22,15 @@ export default class extends Controller {
     }, 2000)
   }
 
+  // Cancel the debounce and submit immediately — call on blur or before the
+  // form is torn down (e.g. closing the focus overlay) so edits aren't lost.
+  flush() {
+    clearTimeout(this.timeout)
+    if (this.element.tagName === "FORM") {
+      this.element.requestSubmit()
+    }
+  }
+
   /** Title is a wrapping textarea; grow height to fit content (caps at max-height CSS). */
   resizeTitle(event) {
     const ta = event?.target ?? this.element.querySelector("textarea.modal__title-input")

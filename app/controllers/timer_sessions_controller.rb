@@ -23,7 +23,7 @@ class TimerSessionsController < ApplicationController
       end
     end
 
-    redirect_back fallback_location: day_path(Date.current)
+    redirect_after_timer_change(task)
   end
 
   def update
@@ -40,6 +40,21 @@ class TimerSessionsController < ApplicationController
     end
 
     @timer.stop!
-    redirect_back fallback_location: day_path(Date.current)
+    redirect_after_timer_change(@timer.task_assignment)
+  end
+
+  private
+
+  # Submissions from the focus overlay come through the "focus" turbo-frame.
+  # redirect_back would land on the underlying day/week page — whose `focus`
+  # frame is empty — and silently close the modal. Detect the frame and
+  # redirect to the task's focus URL so the frame re-renders with updated
+  # timer state instead.
+  def redirect_after_timer_change(task)
+    if request.headers["Turbo-Frame"] == "focus" && task
+      redirect_to task_assignment_focus_path(task), status: :see_other
+    else
+      redirect_back fallback_location: day_path(Date.current)
+    end
   end
 end

@@ -12,6 +12,9 @@
       <% end %>
     </div>
     <span class="topbar__sub"><%= @window_start.strftime("%Y") %></span>
+    <% unless @window_dates.include?(Date.current) %>
+      <%= link_to "Today", root_path, class: "btn btn--pill btn--small week-nav__today" %>
+    <% end %>
   </div>
 <% end %>
 

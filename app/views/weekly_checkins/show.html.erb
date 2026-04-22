@@ -1,10 +1,10 @@
 <% content_for(:topbar) do %>
   <% if @step == 1 %>
-    <span class="topbar__title">Weekly check-in</span>
-    <span class="topbar__sub">Last week in review</span>
+    <span class="topbar__title topbar__title--serif">Weekly check-in</span>
+    <span class="topbar__sub topbar__sub--serif">Last week in review</span>
   <% else %>
-    <span class="topbar__title">Weekly check-in</span>
-    <span class="topbar__sub">Heading into the week</span>
+    <span class="topbar__title topbar__title--serif">Weekly check-in</span>
+    <span class="topbar__sub topbar__sub--serif">Heading into the week</span>
   <% end %>
 <% end %>
 
@@ -51,11 +51,9 @@
 
         <div class="ritual-doc__actions">
           <% if @last_week_goals.any? %>
-            <button type="submit" class="ritual-doc__link">mark &amp; continue <span aria-hidden="true">&rarr;</span></button>
+            <button type="submit" class="btn btn--primary btn--large">Mark & continue</button>
           <% else %>
-            <%= link_to weekly_checkin_path(step: 2), class: "ritual-doc__link", data: { turbo_frame: "_top" } do %>
-              set this week&rsquo;s goals <span aria-hidden="true">&rarr;</span>
-            <% end %>
+            <%= link_to "Set this week's goals", weekly_checkin_path(step: 2), class: "btn btn--primary btn--large", data: { turbo_frame: "_top" } %>
           <% end %>
         </div>
       <% end %>
@@ -96,8 +94,8 @@
         <% end %>
 
         <div class="ritual-doc__actions">
-          <%= link_to "back", weekly_checkin_path(step: 1), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "_top" } %>
-          <button type="submit" class="ritual-doc__link">set the week <span aria-hidden="true">&rarr;</span></button>
+          <%= link_to "Back", weekly_checkin_path(step: 1), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "_top" } %>
+          <button type="submit" class="btn btn--primary btn--large">Set the week</button>
         </div>
       <% end %>
 

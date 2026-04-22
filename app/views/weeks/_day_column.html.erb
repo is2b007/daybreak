@@ -1,10 +1,16 @@
+<% pending_count = tasks.count { |t| !t.completed? } %>
 <%= turbo_frame_tag "day_#{date}" do %>
-  <div class="kanban__column <%= 'kanban__column--week-start' if date.monday? %>"
+  <div class="kanban__column <%= 'kanban__column--today' if date == Date.current %> <%= 'kanban__column--week-start' if date.monday? %>"
        data-sortable-target="column"
        data-date="<%= date %>">
 
     <div class="kanban__column-header <%= 'kanban__column-header--today' if date == Date.current %>">
-      <div class="kanban__day-name"><%= date.strftime("%a") %></div>
+      <div class="kanban__header-pill" aria-label="<%= date.strftime('%A') %>, <%= pending_count %> tasks">
+        <span><%= date.strftime("%a") %></span>
+        <% if pending_count.positive? %>
+          <span class="kanban__header-pill-count"><%= pending_count %></span>
+        <% end %>
+      </div>
       <% if date == Date.current %>
         <div class="kanban__day-date kanban__day-date--today">
           <%= link_to day_path(date), class: "kanban__day-date-link", data: { turbo_frame: "_top" } do %>
@@ -32,7 +38,7 @@
       <% if pending.empty? %>
         <div class="kanban__empty">
           <% if date == Date.current && events.empty? %>
-            <%= link_to "Plan today", ritual_morning_path, class: "kanban__empty-link" %>
+            <%= link_to "Plan today", ritual_morning_path, class: "btn btn--pill btn--small kanban__empty-link", data: { turbo_frame: "_top" } %>
           <% elsif date < Date.current %>
             <span class="kanban__empty-text">&mdash;</span>
           <% else %>

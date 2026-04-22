@@ -10,12 +10,6 @@
      data-action="click->task-card#openModal keydown->task-card#handleKeydown dragstart->sortable#dragstart dragend->sortable#dragend"
      style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
 
-  <button class="task-card__size-badge"
-          data-action="click->task-card#cycleSize"
-          title="Click to change size">
-    <%= task.size.first.upcase %>
-  </button>
-
   <div class="task-card__title"><%= task.title %></div>
   <% if task.timeboxed? && task.week_bucket != "sometime" %>
     <div class="task-card__dedicated"><%= TimelineLayout.format_duration_hm(task.planned_duration_minutes || 60) %> on timeline</div>

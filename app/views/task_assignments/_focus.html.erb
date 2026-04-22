@@ -1,74 +1,181 @@
-<%# locals: (task:, active_timer: nil, any_running_timer: nil) %>
-<div class="focus-overlay" data-controller="focus" data-action="keydown@document->focus#keydown">
+<%# locals: (task:, active_timer: nil, any_running_timer: nil,
+    bc_todo: nil, bc_comments: [], bc_comments_error: nil, hey_email_body: nil) %>
+<% phase = focus_time_phase %>
+<% bc_web_url = task.basecamp_web_url %>
+<% hey_url = task.safe_hey_app_url %>
+<% is_basecamp = task.basecamp? %>
+<% is_hey = task.hey? || task.hey_app_url.present? %>
+<% has_details_tab = (is_basecamp && bc_todo.present?) || (is_hey && hey_email_body.present?) %>
+<% has_comments_tab = is_basecamp %>
+<% has_tabs = has_details_tab || has_comments_tab %>
+<div class="focus-overlay focus-overlay--<%= phase %>"
+     data-controller="focus"
+     data-action="keydown@document->focus#keydown">
+  <div class="focus-sun" aria-hidden="true"></div>
+
+  <div class="focus__corner">
+    <% if bc_web_url.present? %>
+      <%= link_to bc_web_url, target: "_blank", rel: "noopener noreferrer",
+            class: "focus__corner-btn", title: "Open in Basecamp", aria: { label: "Open in Basecamp" } do %>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      <% end %>
+    <% elsif hey_url.present? %>
+      <%= link_to hey_url, target: "_blank", rel: "noopener noreferrer",
+            class: "focus__corner-btn", title: "Open in HEY", aria: { label: "Open in HEY" } do %>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      <% end %>
+    <% end %>
+    <button type="button" class="focus__close focus__corner-btn" data-action="click->focus#close" aria-label="Close (Escape)" title="Close (Esc)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
   <div class="focus">
-    <div class="focus__topbar">
-      <div class="focus__modes">
-        <span class="focus__mode focus__mode--active">Focus</span>
+    <p class="focus__eyebrow">
+      Focus &middot; <%= phase.capitalize %>
+      <% if is_basecamp && task.project_name.present? %>
+        &middot; <%= task.project_name %>
+      <% elsif is_hey %>
+        &middot; HEY
+      <% end %>
+    </p>
+    <h1 class="focus__title"><%= task.title %></h1>
+
+    <div class="focus__timer">
+      <div class="focus__timer-display">
+        <% if active_timer %>
+          <span data-controller="timer" data-timer-started-at-value="<%= active_timer.started_at.iso8601 %>">
+            <span data-timer-target="display">0:00:00</span>
+          </span>
+        <% else %>
+          <%= format_focus_duration(task.actual_duration_minutes || 0) %>
+        <% end %>
       </div>
-      <button type="button" class="focus__close" data-action="click->focus#close" aria-label="Close (Escape)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
 
-    <div class="focus__body">
-      <div class="focus__main">
-        <div class="focus__task-row">
-          <div class="focus__check <%= 'focus__check--done' if task.completed? %>">
-            <% if task.completed? %>
-              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="4.5" fill="#16A34A"/><polyline points="5.5,10.5 8.5,13.5 14.5,7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            <% else %>
-              <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="4.5" stroke="currentColor" stroke-width="1.5"/></svg>
-            <% end %>
-          </div>
-          <h1 class="focus__title"><%= task.title %></h1>
-        </div>
+      <div class="focus__timer-meta">
+        <span class="focus__timer-meta-label">Planned</span>
+        <span class="focus__timer-meta-value"><%= format_focus_duration(task.planned_duration_minutes || 0) %></span>
+      </div>
 
-        <div class="focus__timer-section">
-          <div class="focus__timer-labels">
-            <div class="focus__timer-col">
-              <span class="focus__timer-label">ACTUAL</span>
-              <% if active_timer %>
-                <span class="focus__timer-value" data-controller="timer" data-timer-started-at-value="<%= active_timer.started_at.iso8601 %>">
-                  <span data-timer-target="display">0:00:00</span>
-                </span>
-              <% else %>
-                <span class="focus__timer-value"><%= format_focus_duration(task.actual_duration_minutes || 0) %></span>
-              <% end %>
-            </div>
-            <div class="focus__timer-col">
-              <span class="focus__timer-label">PLANNED</span>
-              <span class="focus__timer-value"><%= format_focus_duration(task.planned_duration_minutes || 0) %></span>
-            </div>
-          </div>
-
-          <div class="focus__timer-controls">
-            <% if active_timer %>
-              <%= button_to timer_session_path(active_timer), method: :patch,
-                    class: "focus__timer-btn focus__timer-btn--stop" do %>
-                <span class="focus__timer-btn-icon">&#9632;</span> STOP
-              <% end %>
-            <% elsif any_running_timer %>
-              <div class="focus__timer-hint">Timer running on another task</div>
-            <% else %>
-              <%= button_to timer_sessions_path, params: { task_assignment_id: task.id },
-                    class: "focus__timer-btn focus__timer-btn--start" do %>
-                <span class="focus__timer-btn-icon">&#9654;</span> START
-              <% end %>
-            <% end %>
-          </div>
-        </div>
-
-        <div class="focus__notes">
-          <%= form_with model: task,
-                data: { controller: "auto-save", turbo: true, turbo_stream: true } do |f| %>
-            <%= f.text_area :description,
-                  class: "focus__notes-input",
-                  placeholder: "Notes...",
-                  rows: 6,
-                  data: { action: "input->auto-save#save" } %>
+      <div class="focus__timer-controls">
+        <% if active_timer %>
+          <%= button_to timer_session_path(active_timer), method: :patch,
+                class: "btn btn--primary btn--large focus__timer-btn" do %>
+            <span class="focus__timer-btn-icon">&#9632;</span> Stop
           <% end %>
-        </div>
+        <% elsif any_running_timer %>
+          <p class="focus__timer-hint">A timer is running on another task.</p>
+        <% else %>
+          <%= button_to timer_sessions_path, params: { task_assignment_id: task.id },
+                class: "btn btn--primary btn--large focus__timer-btn" do %>
+            <span class="focus__timer-btn-icon">&#9654;</span> Start
+          <% end %>
+        <% end %>
       </div>
     </div>
+
+    <% if has_tabs %>
+      <div class="focus__tabs" role="tablist">
+        <button type="button" class="focus__tab focus__tab--active"
+                role="tab" aria-selected="true"
+                data-action="click->focus#switchTab"
+                data-focus-tab-param="notes">
+          Your notes
+        </button>
+        <% if has_details_tab %>
+          <button type="button" class="focus__tab"
+                  role="tab" aria-selected="false"
+                  data-action="click->focus#switchTab"
+                  data-focus-tab-param="details">
+            <%= is_basecamp ? "Description" : "Email" %>
+          </button>
+        <% end %>
+        <% if has_comments_tab %>
+          <button type="button" class="focus__tab"
+                  role="tab" aria-selected="false"
+                  data-action="click->focus#switchTab"
+                  data-focus-tab-param="comments">
+            Comments
+            <% if bc_comments.any? %>
+              <span class="focus__tab-count"><%= bc_comments.size %></span>
+            <% end %>
+          </button>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="focus__panels">
+      <%# Your notes — always editable, auto-saves (flushed on blur + close). %>
+      <section class="focus__panel focus__panel--active" data-focus-panel="notes" role="tabpanel">
+        <%= form_with model: task,
+              data: { controller: "auto-save", turbo: true, turbo_stream: true } do |f| %>
+          <%= f.text_area :description,
+                class: "focus__notes-input",
+                placeholder: "Your notes on this task",
+                rows: 6,
+                data: { action: "input->auto-save#save blur->auto-save#flush", auto_save_target: "input" } %>
+        <% end %>
+        <% if is_basecamp %>
+          <p class="focus__panel-hint">Private to you. Comments you want the team to see go in the Comments tab.</p>
+        <% end %>
+      </section>
+
+      <% if has_details_tab %>
+        <section class="focus__panel" data-focus-panel="details" role="tabpanel" hidden>
+          <% if is_basecamp && bc_todo.present? %>
+            <% bc_content = bc_todo["description"].presence || bc_todo["content"].to_s %>
+            <% if bc_content.present? %>
+              <div class="focus__source-body">
+                <%= sanitize bc_content, tags: %w[p br a ul ol li strong em b i div span h1 h2 h3 h4 blockquote code pre],
+                                         attributes: %w[href target rel] %>
+              </div>
+            <% else %>
+              <p class="focus__panel-empty">No description on this Basecamp to-do.</p>
+            <% end %>
+          <% elsif is_hey && hey_email_body.present? %>
+            <div class="focus__source-body focus__source-body--plain">
+              <%= simple_format(hey_email_body) %>
+            </div>
+          <% end %>
+        </section>
+      <% end %>
+
+      <% if has_comments_tab %>
+        <section class="focus__panel" data-focus-panel="comments" role="tabpanel" hidden>
+          <% if bc_comments_error.present? %>
+            <div class="focus__comments-error" role="status">
+              <span><%= bc_comments_error %></span>
+              <%= link_to "Retry", focus_task_assignment_path(task), data: { turbo_frame: "focus" }, class: "focus__comments-retry" %>
+            </div>
+          <% elsif bc_comments.any? %>
+            <div class="focus__comments-list">
+              <% bc_comments.each do |c| %>
+                <div class="focus__comment">
+                  <div class="focus__comment-author"><%= c.dig("creator", "name") %></div>
+                  <div class="focus__comment-content"><%= c["content"]&.gsub(/<[^>]+>/, "") %></div>
+                  <% if c["created_at"].present? %>
+                    <div class="focus__comment-time"><%= time_ago_in_words(Time.parse(c["created_at"])) %> ago</div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="focus__panel-empty">No comments yet. Be the first to leave one.</p>
+          <% end %>
+
+          <%= render "task_assignments/comment_form", task: task %>
+        </section>
+      <% end %>
+    </div>
+
+    <p class="focus__hint">Esc to close</p>
   </div>
 </div>

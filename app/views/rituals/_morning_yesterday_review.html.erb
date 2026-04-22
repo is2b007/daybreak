@@ -57,7 +57,7 @@
 
   <%= form_with url: ritual_morning_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "ritual-doc__actions" } do |f| %>
     <%= f.hidden_field :step, value: 1 %>
-    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+    <button type="submit" class="btn btn--primary btn--large">Plan today</button>
   <% end %>
 
   <div class="ritual-doc__stepper" aria-hidden="true">

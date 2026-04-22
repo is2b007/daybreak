@@ -1,3 +1,10 @@
 <%= turbo_frame_tag "focus" do %>
-  <%= render "focus", task: @task, active_timer: @active_timer, any_running_timer: @any_running_timer %>
+  <%= render "focus",
+        task: @task,
+        active_timer: @active_timer,
+        any_running_timer: @any_running_timer,
+        bc_todo: @bc_todo,
+        bc_comments: @bc_comments,
+        bc_comments_error: @bc_comments_error,
+        hey_email_body: @hey_email_body %>
 <% end %>
