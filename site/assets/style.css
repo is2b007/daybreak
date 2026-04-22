@@ -37,11 +37,6 @@
   --brick-hover: #831F16;
   --brick-ink: #FFFBF5;
 
-  /* Size-badge tints (small/medium/large), from app */
-  --size-s-bg: #EFF6FF; --size-s-text: #3B82F6; --size-s-line: #BFDBFE;
-  --size-m-bg: #FFFBEB; --size-m-text: #D97706; --size-m-line: #FDE68A;
-  --size-l-bg: #F5F3FF; --size-l-text: #7C3AED; --size-l-line: #DDD6FE;
-
   /* Gradients */
   --gradient-amber: linear-gradient(135deg, #F5A623 0%, #E8852A 100%);
   --gradient-sunrise: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 55%, #FAF2E4 100%);
@@ -190,6 +185,16 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg2); 
 .btn-amber:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 10px 20px rgba(232, 133, 42, 0.30); }
 .btn-ghost { background: transparent; color: var(--text); border-color: var(--warm-line); }
 .btn-ghost:hover { border-color: var(--warm-ink); }
+.btn-github {
+  background: #1F2328;
+  color: #fff;
+  border-color: #1F2328;
+  gap: 8px;
+}
+.btn-github:hover { background: #000; border-color: #000; color: #fff; }
+.btn-github svg { flex-shrink: 0; }
+.feature-dark .btn-github { background: #fff; color: #1F2328; border-color: #fff; }
+.feature-dark .btn-github:hover { background: #E8E4DC; border-color: #E8E4DC; color: #1F2328; }
 
 .microcopy { color: var(--muted); font-size: 0.875rem; }
 
@@ -268,7 +273,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg2); 
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 .mock-task:hover { transform: translateY(-1px); box-shadow: var(--shadow-card-hover); }
-.mock-task__title { padding-right: 42px; color: var(--text); }
+.mock-task__title { color: var(--text); }
 .mock-task__bottom { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.7rem; }
 .mock-task__check {
   width: 14px; height: 14px; border-radius: 50%;
@@ -297,24 +302,6 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg2); 
 
 .mock-task--completed { opacity: 0.6; }
 .mock-task--completed .mock-task__title { text-decoration: line-through; color: var(--muted); }
-
-/* Size badge (top-right corner of task card), tinted by size */
-.mock-size-badge {
-  position: absolute;
-  top: 8px; right: 8px;
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  padding: 2px 5px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
-  background: var(--bg2);
-  color: var(--muted);
-}
-.mock-size-badge--s { background: var(--size-s-bg); color: var(--size-s-text); border-color: var(--size-s-line); }
-.mock-size-badge--m { background: var(--size-m-bg); color: var(--size-m-text); border-color: var(--size-m-line); }
-.mock-size-badge--l { background: var(--size-l-bg); color: var(--size-l-text); border-color: var(--size-l-line); }
 
 /* Stamp overlay on completed card */
 .mock-stamp {
