@@ -196,6 +196,17 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg2); 
 .feature-dark .btn-github { background: #fff; color: #1F2328; border-color: #fff; }
 .feature-dark .btn-github:hover { background: #E8E4DC; border-color: #E8E4DC; color: #1F2328; }
 
+.btn-railway {
+  background: #0B0D0E;
+  color: #fff;
+  border-color: #0B0D0E;
+  gap: 8px;
+}
+.btn-railway:hover { background: #1C1E21; border-color: #1C1E21; color: #fff; }
+.btn-railway svg, .btn-railway img { flex-shrink: 0; }
+.feature-dark .btn-railway { background: #fff; color: #0B0D0E; border-color: #fff; }
+.feature-dark .btn-railway:hover { background: #E8E4DC; border-color: #E8E4DC; color: #0B0D0E; }
+
 .microcopy { color: var(--muted); font-size: 0.875rem; }
 
 /* --------------------------------------------------------------------------

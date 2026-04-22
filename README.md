@@ -32,6 +32,32 @@ docker compose up -d
 open http://localhost:3000
 ```
 
+### Deploy to Railway (1-click)
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy?template=https://github.com/is2b007/daybreak)
+
+Before you click: Daybreak needs its own Basecamp OAuth app. There's no shared
+public client, each self-hoster creates their own.
+
+1. Create a Basecamp integration at
+   [launchpad.37signals.com/integrations](https://launchpad.37signals.com/integrations).
+   Use a placeholder redirect URL for now (e.g. `https://example.com/auth/basecamp/callback`).
+   Copy the Client ID and Client Secret.
+2. Click the Deploy on Railway button above. Railway builds the Dockerfile and
+   prompts for the three required env vars:
+   - `RAILS_MASTER_KEY` (generate locally with `bin/rails credentials:edit`, copy `config/master.key`)
+   - `BASECAMP_CLIENT_ID`
+   - `BASECAMP_CLIENT_SECRET`
+3. After the build finishes, Railway assigns a domain
+   (e.g. `daybreak-production.up.railway.app`). Go back to your Basecamp
+   integration and update the redirect URL to
+   `https://<your-railway-domain>/auth/basecamp/callback`.
+4. Add a persistent volume so your data survives restarts:
+   service → **Settings → Volumes** → **New Volume**, mount path `/rails/storage`.
+   Restart the service.
+
+Expect roughly $5/mo on Railway's Hobby plan for a single-user deploy.
+
 ### Get Basecamp credentials
 
 1. Go to [launchpad.37signals.com/integrations](https://launchpad.37signals.com/integrations) and create a new integration.
