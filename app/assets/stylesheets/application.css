@@ -2510,6 +2510,37 @@ select.form-input {
   font-size: 16px;
 }
 
+.kanban__quick-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 8px 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.kanban__quick-add-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  outline: none;
+  padding: 2px 4px;
+}
+
+.kanban__quick-add-input::placeholder {
+  color: var(--muted);
+}
+
+.kanban__quick-add-button {
+  font-size: 16px;
+}
+
 .day-view__tasks-list {
   flex: 1;
   overflow-y: auto;
@@ -5262,16 +5293,11 @@ form[data-save-error="true"] {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: 88px;
   padding: 0 10px;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
   color: var(--warm-ink-soft);
-  border: 1px dashed var(--warm-line);
-  border-radius: 12px;
-  margin: 0 0 8px;
-  background: var(--warm-surface-2);
   text-align: center;
   overflow: hidden;
 }
@@ -6470,21 +6496,20 @@ body.focus-open { overflow: hidden; }
 
 /* ----- Ritual: Calm Document (shared) ------------------------------------ */
 .ritual-doc {
-  min-height: 100%;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: clamp(40px, 6vh, 88px) 24px clamp(48px, 8vh, 120px);
+  padding: clamp(40px, 6svh, 88px) 24px clamp(48px, 8svh, 120px);
   color: #3a2e23;
   position: relative;
-  overflow: hidden;
 }
 .ritual-doc__page {
   max-width: 640px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(32px, 4vh, 56px);
+  gap: clamp(32px, 4svh, 56px);
   position: relative;
   z-index: 1;
 }
@@ -6865,7 +6890,7 @@ body.focus-open { overflow: hidden; }
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.ritual-doc__page > * { animation: ritualDocFade 0.9s ease-out both; }
+.ritual-doc__page > * { opacity: 0; animation: ritualDocFade 0.9s ease-out both; }
 .ritual-doc__page > *:nth-child(2) { animation-delay: 120ms; }
 .ritual-doc__page > *:nth-child(3) { animation-delay: 220ms; }
 .ritual-doc__page > *:nth-child(4) { animation-delay: 320ms; }

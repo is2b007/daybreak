@@ -78,7 +78,23 @@ class TaskAssignmentsController < ApplicationController
     )
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.append("day_#{day_plan.date}", partial: "shared/task_card", locals: { task: @task, compact: true }) }
+      format.turbo_stream do
+        date = day_plan.date
+        tasks = current_user.task_assignments
+          .includes(:day_plan).left_joins(:day_plan)
+          .where(day_plans: { date: date }).for_day.ordered
+        events = current_user.calendar_events
+          .pinned_to_week_board
+          .where(starts_at: date.beginning_of_day..date.end_of_day)
+          .chronological
+          .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
+          .transform_values { |evs| evs.map(&:to_view_hash) }
+        render turbo_stream: turbo_stream.replace(
+          "day_#{date}",
+          partial: "weeks/day_column",
+          locals: { date: date, tasks: tasks, events: events[date] || [] }
+        )
+      end
       format.html { redirect_back fallback_location: root_path }
     end
   end

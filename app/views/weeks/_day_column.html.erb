@@ -33,10 +33,10 @@
       </div>
     <% end %>
 
-    <div class="kanban__tasks" data-sortable-target="taskList" data-date="<%= date %>">
+    <div id="day_pending_list_<%= date %>" class="kanban__tasks" data-sortable-target="taskList" data-date="<%= date %>">
       <% pending = tasks.reject(&:completed?) %>
       <% if pending.empty? %>
-        <div class="kanban__empty">
+        <div id="kanban_empty_<%= date %>" class="kanban__empty">
           <% if date == Date.current && events.empty? %>
             <%= link_to "Plan today", ritual_morning_path, class: "btn btn--pill btn--small kanban__empty-link", data: { turbo_frame: "_top" } %>
           <% elsif date < Date.current %>
@@ -51,6 +51,13 @@
         <% end %>
       <% end %>
     </div>
+
+    <%= form_with url: task_assignments_path, method: :post, class: "kanban__quick-add" do |f| %>
+      <%= hidden_field_tag :date, date.to_s %>
+      <%= hidden_field_tag :size, "medium" %>
+      <%= f.text_field :title, name: :title, class: "kanban__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
+      <%= f.submit "+", class: "btn btn--icon btn--secondary kanban__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
+    <% end %>
 
     <div class="kanban__tasks kanban__tasks--completed" id="day_<%= date %>_completed">
       <% tasks.select(&:completed?).each do |task| %>

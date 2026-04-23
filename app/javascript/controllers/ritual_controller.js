@@ -9,11 +9,9 @@ export default class extends Controller {
 
   connect() {
     this.element.style.opacity = "0"
-    this.element.style.transform = "translateY(6px)"
     requestAnimationFrame(() => {
-      this.element.style.transition = "opacity 2.4s ease, transform 2.4s ease"
+      this.element.style.transition = "opacity 2.4s ease"
       this.element.style.opacity = "1"
-      this.element.style.transform = "translateY(0)"
     })
 
     if (this.sunrisePlayValue) {
