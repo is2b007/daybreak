@@ -268,14 +268,14 @@
     <div class="wrap">
       <div class="split">
         <div>
-          <span class="eyebrow eyebrow-bc">Basecamp integration</span>
+          <span class="eyebrow eyebrow-bc">Basecamp</span>
           <h2>Your Basecamp work, <span class="serif">already planned</span>.</h2>
-          <p>Sign in once with your Basecamp account. Daybreak pulls in your assignments and schedules, preserves project names, and lets you triage your Basecamp inbox straight into a day or a week. Rate-limited and cached so you stay under Basecamp's 50 req / 10s limit.</p>
+          <p>Sign in with Basecamp and every assignment lands in your Daybreak inbox. Drag the ones you'll actually do onto today, a specific day, or "sometime". The rest stay parked until you're ready. Finish a task in Daybreak, it's done in Basecamp too.</p>
           <ul class="checklist">
-            <li>OAuth sign-in via Launchpad</li>
-            <li>Auto-sync assignments and schedules</li>
-            <li>Triage to today, a specific day, or "sometime"</li>
-            <li>Back-links to the original Basecamp card</li>
+            <li>Your Basecamp assignments arrive in an inbox, not your calendar</li>
+            <li>Drag what you'll do onto the day you'll do it; leave the rest</li>
+            <li>Project names, due dates, and back-links come along for the ride</li>
+            <li>Check it off here, it checks off in Basecamp too</li>
           </ul>
         </div>
         <div class="mock-modal" aria-hidden="true">
@@ -302,14 +302,14 @@
     <div class="wrap">
       <div class="split split-reverse">
         <div>
-          <span class="eyebrow eyebrow-hey">HEY integration &middot; optional</span>
+          <span class="eyebrow eyebrow-hey">HEY &middot; optional</span>
           <h2>Your email and calendar, <span class="serif">made plannable</span>.</h2>
-          <p>Connect HEY with a secure PKCE OAuth flow and Daybreak layers in calendar events and email triage (Imbox, Reply Later, Set Aside) where you can turn a message into a task in one click. HEY is entirely optional; every feature has a local fallback.</p>
+          <p>Connect HEY and today's calendar events sit next to your tasks. Turn a Reply Later message into a planned task, keep a meeting pinned to your timebox, and stop watching Set Aside emails slip through the cracks. HEY is optional, the planner still works without it.</p>
           <ul class="checklist">
-            <li>Calendar events pinned to your day view</li>
-            <li>Triage Reply Later or Set Aside into planned work</li>
-            <li>Journal entries sync automatically to HEY Journal</li>
-            <li>No secret required, uses HEY's public PKCE client</li>
+            <li>Today's calendar events pinned next to your tasks</li>
+            <li>Turn an email into something you plan around, in one click</li>
+            <li>Reply Later and Set Aside surface where you actually work</li>
+            <li>Evening reflections and daily notes push to HEY Journal automatically</li>
           </ul>
         </div>
         <div class="mock-modal" aria-hidden="true">
@@ -426,6 +426,20 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="wrap narrow">
+      <span class="eyebrow">Under the hood</span>
+      <h2>How the integrations actually connect.</h2>
+      <p>For the curious and the careful, here's what's happening behind the scenes.</p>
+      <ul class="plain-list">
+        <li><strong>Basecamp.</strong> Standard OAuth sign-in via Launchpad. Daybreak caches responses and stays well under Basecamp's 50 requests per 10 seconds rate limit, so nothing you do here slows down anyone else on your account.</li>
+        <li><strong>HEY.</strong> PKCE OAuth, no client secret to manage or leak. Your data moves between HEY and your Daybreak instance directly, it does not pass through a third-party server.</li>
+        <li><strong>HEY Journal.</strong> Every journal save pushes to HEY within about a second. If HEY is unreachable, notes stay in Daybreak and re-sync automatically once the connection returns.</li>
+        <li><strong>Your data.</strong> Everything lives in a local SQLite database and a <code>./storage</code> folder. Back up that folder and you've backed up Daybreak.</li>
+      </ul>
     </div>
   </section>
 

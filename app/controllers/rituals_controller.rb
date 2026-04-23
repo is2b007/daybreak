@@ -209,9 +209,9 @@ class RitualsController < ApplicationController
 
       label = project_name.presence
       label ||= case source
-                when hey_source then "HEY"
-                when local_source then "Local"
-                else TaskAssignment.sources.key(source).to_s.titleize
+      when hey_source then "HEY"
+      when local_source then "Local"
+      else TaskAssignment.sources.key(source).to_s.titleize
       end
       hash[label] += mins
     end
