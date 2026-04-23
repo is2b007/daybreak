@@ -6,12 +6,15 @@
 <div class="ritual-doc ritual-doc--sunset ritual-doc--wrap"
      data-controller="ritual"
      data-ritual-sunset-play-value="<%= @play_sunset ? 'true' : 'false' %>"
-     data-ritual-redirect-url-value="<%= root_path %>">
+     data-ritual-redirect-url-value="<%= @ritual_revisit ? '' : root_path %>">
   <div class="ritual-doc__page">
     <h1 class="ritual-doc__wrap-title">The day is closed.</h1>
     <p class="ritual-doc__wrap-sub">Rest well. Tomorrow begins at sunrise.</p>
     <div class="ritual-doc__actions">
       <%= link_to "back to week", root_path, class: "ritual-doc__link ritual-doc__link--back" %>
+      <% if @ritual_revisit %>
+        <%= link_to "Reflect again", ritual_evening_path(restart: 1), class: "ritual-doc__link" %>
+      <% end %>
     </div>
   </div>
 </div>

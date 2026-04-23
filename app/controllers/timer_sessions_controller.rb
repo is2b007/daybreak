@@ -52,7 +52,7 @@ class TimerSessionsController < ApplicationController
   # timer state instead.
   def redirect_after_timer_change(task)
     if request.headers["Turbo-Frame"] == "focus" && task
-      redirect_to task_assignment_focus_path(task), status: :see_other
+      redirect_to focus_task_assignment_path(task), status: :see_other
     else
       redirect_back fallback_location: day_path(Date.current)
     end

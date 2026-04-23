@@ -56,6 +56,15 @@ class RitualsController < ApplicationController
     @step = (params[:step] || 1).to_i
     @day_plan = current_user.day_plans.find_by(date: @date)
 
+    # Once the day is closed, revisiting /ritual/evening shows the wrap screen
+    # for the rest of the day. An explicit `step` (mid-flow redirect) or
+    # `restart` (Reflect again) opt-in sends them back into the ritual.
+    if @day_plan&.evening_ritual_done? && params[:step].blank? && params[:restart].blank?
+      @ritual_revisit = true
+      @play_sunset = false
+      render :evening_wrap and return
+    end
+
     case @step
     when 1
       load_evening_dashboard

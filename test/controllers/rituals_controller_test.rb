@@ -42,10 +42,10 @@ class RitualsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "POST evening/complete records last_sunset_played_date on first hit of the day" do
+  test "GET evening/complete records last_sunset_played_date on first hit of the day" do
     @user.update_column(:last_sunset_played_date, nil)
 
-    post :evening_complete
+    get :evening_complete
     assert_equal @today, @user.reload.last_sunset_played_date
   end
 end

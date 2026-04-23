@@ -92,7 +92,7 @@ Rails.application.routes.draw do
   post "ritual/morning/complete", to: "rituals#morning_complete"
   get  "ritual/evening",          to: "rituals#evening"
   post "ritual/evening",          to: "rituals#evening_update"
-  post "ritual/evening/complete", to: "rituals#evening_complete"
+  get  "ritual/evening/complete", to: "rituals#evening_complete"
 
   # Weekly check-in
   resource :weekly_checkin, only: [ :show, :update ], controller: "weekly_checkins"
