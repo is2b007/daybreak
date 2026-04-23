@@ -1,0 +1,32 @@
+# Daybreak: single-container self-host via Docker Compose.
+#
+# Usage:
+#   cp .env.example .env              # fill in real values
+#   docker compose up -d
+#   open http://localhost:3000
+#
+# This runs the web + background jobs in one process via SOLID_QUEUE_IN_PUMA.
+# SQLite databases and Active Storage blobs live in ./storage on the host,
+# so your data survives `docker compose down`.
+
+services:
+  web:
+    build: .
+    image: daybreak:local
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    env_file:
+      - .env
+    environment:
+      SOLID_QUEUE_IN_PUMA: "true"
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+    volumes:
+      - ./storage:/rails/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
