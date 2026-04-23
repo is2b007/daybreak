@@ -42,3 +42,4 @@
 
 .gstack/
 /.cursor/*.log
+.vercel
