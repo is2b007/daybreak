@@ -152,20 +152,27 @@ export default class extends Controller {
       duration_minutes: String(durationMinutes)
     })
 
-    const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
-      method: "PATCH",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "text/vnd.turbo-stream.html"
-      },
-      body
-    })
+    // A dropped connection must snap the block back to where it was, not leave it
+    // parked at the dragged position as though the move had been saved.
+    try {
+      const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
+        method: "PATCH",
+        headers: {
+          "X-CSRF-Token": csrfToken,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "text/vnd.turbo-stream.html"
+        },
+        body
+      })
 
-    if (res.ok) {
+      if (!res.ok) {
+        this._revertLayout()
+        return
+      }
+
       const html = await res.text()
       if (html) Turbo.renderStreamMessage(html)
-    } else {
+    } catch (_) {
       this._revertLayout()
     }
   }
@@ -198,20 +205,25 @@ export default class extends Controller {
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = new URLSearchParams({ date: this.dateValue, clear: "1" })
 
-    const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
-      method: "PATCH",
-      headers: {
-        "X-CSRF-Token": csrfToken,
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "text/vnd.turbo-stream.html"
-      },
-      body
-    })
+    try {
+      const res = await fetch(`/task_assignments/${this.assignmentIdValue}/timebox`, {
+        method: "PATCH",
+        headers: {
+          "X-CSRF-Token": csrfToken,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "text/vnd.turbo-stream.html"
+        },
+        body
+      })
 
-    if (res.ok) {
+      if (!res.ok) {
+        window.alert("Could not clear the timebox.")
+        return
+      }
+
       const html = await res.text()
       if (html) Turbo.renderStreamMessage(html)
-    } else {
+    } catch (_) {
       window.alert("Could not clear the timebox.")
     }
   }

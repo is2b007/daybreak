@@ -154,25 +154,32 @@ export default class extends Controller {
     endMinFromMidnight = startMinFromMidnight + durationMinutes
 
     const token = document.querySelector("meta[name='csrf-token']")?.content
-    const res = await fetch(this.updateUrlValue, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
-        "X-CSRF-Token": token || ""
-      },
-      body: JSON.stringify({
-        date: dateStr,
-        start_minutes_from_midnight: startMinFromMidnight,
-        duration_minutes: durationMinutes
+
+    // A dropped connection must snap the block back to where it was, not leave it
+    // parked at the dragged position as though the move had been saved.
+    try {
+      const res = await fetch(this.updateUrlValue, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
+          "X-CSRF-Token": token || ""
+        },
+        body: JSON.stringify({
+          date: dateStr,
+          start_minutes_from_midnight: startMinFromMidnight,
+          duration_minutes: durationMinutes
+        })
       })
-    })
 
-    const txt = await res.text()
+      const txt = await res.text()
 
-    if (res.ok) {
-      if (txt) Turbo.renderStreamMessage(txt)
-      return
+      if (res.ok) {
+        if (txt) Turbo.renderStreamMessage(txt)
+        return
+      }
+    } catch (_) {
+      /* fall through to revert */
     }
     this._revertLayout()
   }
@@ -213,18 +220,22 @@ export default class extends Controller {
     if (!window.confirm("Remove this calendar event from HEY and Daybreak?")) return
 
     const token = document.querySelector("meta[name='csrf-token']")?.content
-    const res = await fetch(this.updateUrlValue, {
-      method: "DELETE",
-      headers: {
-        Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
-        "X-CSRF-Token": token || ""
-      }
-    })
+    try {
+      const res = await fetch(this.updateUrlValue, {
+        method: "DELETE",
+        headers: {
+          Accept: "text/vnd.turbo-stream.html, application/json;q=0.1",
+          "X-CSRF-Token": token || ""
+        }
+      })
 
-    const txt = await res.text()
-    if (res.ok) {
+      const txt = await res.text()
+      if (!res.ok) {
+        window.alert("Could not delete the event. Try again.")
+        return
+      }
       if (txt) Turbo.renderStreamMessage(txt)
-    } else {
+    } catch (_) {
       window.alert("Could not delete the event. Try again.")
     }
   }

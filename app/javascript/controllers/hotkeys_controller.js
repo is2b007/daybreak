@@ -22,6 +22,7 @@ export default class extends Controller {
 
   #onKeydown(event) {
     if (event.metaKey || event.ctrlKey || event.altKey) return
+    if (typeof event.key !== "string") return
     if (this.#isTyping(event)) return
 
     // Panel toggles: "<" opens/closes the left sidebar, ">" the right panel.
@@ -86,8 +87,12 @@ export default class extends Controller {
 
   #isTyping(event) {
     const el = event.target
+    if (!el) return false
     if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT") return true
     if (el.isContentEditable) return true
+    // The journal scratchpad and focus notes are contenteditable wrappers; a
+    // caret inside one of their child nodes must still count as typing.
+    if (typeof el.closest === "function" && el.closest("[contenteditable='true']")) return true
     return false
   }
 }
