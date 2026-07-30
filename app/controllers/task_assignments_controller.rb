@@ -1,6 +1,11 @@
 class TaskAssignmentsController < ApplicationController
   before_action :set_task, only: [ :show, :focus, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment, :restore_hey_email ]
 
+  # Drag-and-drop posts dates from the DOM. A malformed one is a bad request, not a
+  # 500 — and a validation failure on a rename should tell the user, not blow up.
+  rescue_from Date::Error, with: :render_bad_request
+  rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
+
   def show
     @bc_comments = []
     @bc_comments_error = nil
@@ -113,7 +118,7 @@ class TaskAssignmentsController < ApplicationController
 
   def destroy
     plan_date = @task.day_plan&.date
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     was_sometime = @task.week_bucket == "sometime"
     day_ctx = day_view_stream_context?
     had_timebox = @task.timeboxed?
@@ -155,7 +160,7 @@ class TaskAssignmentsController < ApplicationController
 
   def move
     from_inbox = params[:from_inbox] == "1"
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     day_ctx = day_view_stream_context?
 
     if params[:target_bucket] == "inbox"
@@ -366,22 +371,20 @@ class TaskAssignmentsController < ApplicationController
       "Cannot comment on this task."
     end
 
-    if error
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            "task_comment_#{@task.id}",
-            partial: "task_assignments/comment_form",
-            locals: { task: @task, error: error }
-          ), status: :unprocessable_entity
-        end
-        format.html { redirect_back fallback_location: root_path, alert: error }
-      end
-      return
-    end
+    return render_comment_error(error) if error
 
-    client = BasecampClient.new(current_user)
-    client.create_comment(@task.basecamp_bucket_id, @task.external_id, content: content)
+    begin
+      BasecampClient.new(current_user).create_comment(
+        @task.basecamp_bucket_id, @task.external_id, content: content
+      )
+    rescue BasecampClient::AuthError
+      return render_comment_error("Your Basecamp session looks expired.")
+    rescue BasecampClient::RateLimitError
+      return render_comment_error("Basecamp is throttling — try again in a moment.")
+    rescue StandardError => e
+      Rails.logger.warn("Basecamp comment post failed: #{e.class}: #{e.message}")
+      return render_comment_error("Couldn't reach Basecamp. Your comment wasn't posted.")
+    end
 
     respond_to do |format|
       format.turbo_stream do
@@ -402,7 +405,7 @@ class TaskAssignmentsController < ApplicationController
     email = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)
     return head :not_found unless email
 
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     day_ctx    = day_view_stream_context?
     prev_date  = @task.day_plan&.date
     was_sometime = @task.week_bucket == "sometime"
@@ -461,10 +464,12 @@ class TaskAssignmentsController < ApplicationController
       return
     end
 
-    hour = params[:hour].to_i
-    minute = params[:minute].to_i
+    # Clamp before TimeZone#local — an out-of-range hour/minute raises ArgumentError
+    # there and 500s the drag instead of snapping into the day.
+    hour = params[:hour].to_i.clamp(0, 23)
+    minute = params[:minute].to_i.clamp(0, 59)
 
-    starts_at = ActiveSupport::TimeZone[current_user.timezone].local(
+    starts_at = (ActiveSupport::TimeZone[current_user.timezone] || Time.zone).local(
       date.year, date.month, date.day, hour, minute
     )
     starts_at = TimelineLayout.snap_zoned_time_to_grid(starts_at, current_user.timezone)
@@ -488,6 +493,37 @@ class TaskAssignmentsController < ApplicationController
   end
 
   private
+
+  # Re-renders the comment form with the failure inline so the typed comment survives.
+  def render_comment_error(message)
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "task_comment_#{@task.id}",
+          partial: "task_assignments/comment_form",
+          locals: { task: @task, error: message }
+        ), status: :unprocessable_entity
+      end
+      format.html { redirect_back fallback_location: root_path, alert: message }
+    end
+  end
+
+  def render_bad_request
+    respond_to do |format|
+      format.turbo_stream { head :bad_request }
+      format.json { render json: { error: "That date didn't look right." }, status: :bad_request }
+      format.html { redirect_back fallback_location: root_path, alert: "That date didn't look right." }
+    end
+  end
+
+  def render_record_invalid(exception)
+    message = exception.record&.errors&.full_messages&.to_sentence.presence || "Could not save. Try again?"
+    respond_to do |format|
+      format.turbo_stream { head :unprocessable_entity }
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+      format.html { redirect_back fallback_location: root_path, alert: message }
+    end
+  end
 
   def clear_timebox_for!(date)
     CalendarEvent.destroy_daybreak_timebox_mirror!(current_user, @task.id)

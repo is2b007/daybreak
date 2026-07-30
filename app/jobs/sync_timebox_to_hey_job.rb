@@ -2,7 +2,10 @@ class SyncTimeboxToHeyJob < ApplicationJob
   queue_as :default
 
   def perform(task_assignment_id)
-    task = TaskAssignment.find(task_assignment_id)
+    # find_by, not find: the task can be deleted or its timebox cleared between
+    # enqueue and run, and that shouldn't surface as a failed job.
+    task = TaskAssignment.find_by(id: task_assignment_id)
+    return if task.nil?
     return unless task.user.hey_connected? && task.timeboxed?
 
     user = task.user

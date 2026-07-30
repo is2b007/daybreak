@@ -37,14 +37,16 @@ class TaskAssignment < ApplicationRecord
     update!(size: next_size)
   end
 
+  # Anchor "tomorrow" and "this week" to the owner's timezone, not the server's, so
+  # deferring near midnight lands on the day the user actually means (and so these
+  # stay correct when called from a background job, which has no request timezone).
   def defer_to_tomorrow!
-    tomorrow_plan = user.day_plans.find_or_create_by!(date: Date.tomorrow)
+    tomorrow_plan = user.day_plans.find_or_create_by!(date: user.today_in_zone + 1.day)
     update!(day_plan: tomorrow_plan, status: :pending)
   end
 
   def defer_to_sometime!
-    ws = Date.current.beginning_of_week(:monday)
-    update!(day_plan: nil, week_bucket: "sometime", week_start_date: ws, status: :deferred)
+    update!(day_plan: nil, week_bucket: "sometime", week_start_date: user.current_week_start, status: :deferred)
   end
 
   def source_badge_color

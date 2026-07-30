@@ -2,8 +2,8 @@ class SyncHeyCalendarJob < ApplicationJob
   queue_as :sync
 
   def perform(user_id)
-    user = User.find(user_id)
-    return unless user.hey_connected?
+    user = User.find_by(id: user_id)
+    return unless user&.hey_connected?
 
     client = HeyClient.new(user)
     week_start = user.current_week_start

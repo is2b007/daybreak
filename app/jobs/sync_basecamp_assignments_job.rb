@@ -2,7 +2,9 @@ class SyncBasecampAssignmentsJob < ApplicationJob
   queue_as :sync
 
   def perform(user_id, basecamp_client_class: BasecampClient)
-    user = User.find(user_id)
+    user = User.find_by(id: user_id)
+    return if user.nil?
+
     client = basecamp_client_class.new(user)
 
     assignments = client.my_assignments
