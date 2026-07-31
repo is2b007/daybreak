@@ -37,6 +37,10 @@ class OnboardingController < ApplicationController
       redirect_to onboarding_path(step: 7)
     when 7
       complete
+    else
+      # Out-of-range step (stale form, hand-edited param): fall back to the start
+      # rather than trying to render a non-existent `update` template.
+      redirect_to onboarding_path(step: 1)
     end
   end
 

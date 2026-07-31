@@ -2,6 +2,9 @@ require "net/http"
 require "json"
 
 class BasecampClient
+  extend HttpTimeouts
+  include HttpTimeouts
+
   BASE_AUTH_URL = "https://launchpad.37signals.com"
   BASE_API_URL = "https://3.basecampapi.com"
   # Avatar GET may 302 to arbitrary CDNs; Bearer auth is only for these API hosts.
@@ -30,7 +33,7 @@ class BasecampClient
 
   def self.exchange_code(code, redirect_uri)
     uri = URI("#{BASE_AUTH_URL}/authorization/token")
-    response = Net::HTTP.post_form(uri, {
+    response = http_post_form(uri, {
       type: "web_server",
       client_id: credentials[:client_id],
       client_secret: credentials[:client_secret],
@@ -48,14 +51,14 @@ class BasecampClient
     request["Authorization"] = "Bearer #{access_token}"
     request["User-Agent"] = user_agent
 
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    response = http_start(uri) { |http| http.request(request) }
     raise AuthError, "Identity fetch failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
     JSON.parse(response.body)
   end
 
   def self.refresh_token(refresh_token)
     uri = URI("#{BASE_AUTH_URL}/authorization/token")
-    response = Net::HTTP.post_form(uri, {
+    response = http_post_form(uri, {
       type: "refresh",
       client_id: credentials[:client_id],
       client_secret: credentials[:client_secret],
@@ -184,13 +187,7 @@ class BasecampClient
     req["User-Agent"] = self.class.user_agent
 
     # Match #request — Net::HTTP.new(uri.host) can mishandle TLS compared to Net::HTTP.start.
-    response = Net::HTTP.start(
-      uri.hostname,
-      uri.port,
-      use_ssl: uri.scheme == "https",
-      open_timeout: 10,
-      read_timeout: 30
-    ) { |http| http.request(req) }
+    response = http_start(uri) { |http| http.request(req) }
     code = response.code.to_i
 
     if code >= 200 && code < 300
@@ -264,7 +261,7 @@ class BasecampClient
       req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
       req["User-Agent"] = self.class.user_agent
 
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+      response = http_start(uri) { |http| http.request(req) }
 
       case response
       when Net::HTTPSuccess
@@ -279,7 +276,7 @@ class BasecampClient
       when Net::HTTPUnauthorized
         perform_token_refresh!
         req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
-        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+        response = http_start(uri) { |http| http.request(req) }
         raise AuthError, "Session expired. Please sign in again." unless response.is_a?(Net::HTTPSuccess)
         page = JSON.parse(response.body) if response.body.present?
         results.concat(Array(page))
@@ -333,7 +330,7 @@ class BasecampClient
     req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
     req["User-Agent"] = self.class.user_agent
 
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    response = http_start(uri) { |http| http.request(req) }
 
     case response
     when Net::HTTPSuccess

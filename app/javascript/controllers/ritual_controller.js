@@ -8,11 +8,18 @@ export default class extends Controller {
   }
 
   connect() {
-    this.element.style.opacity = "0"
-    requestAnimationFrame(() => {
-      this.element.style.transition = "opacity 2.4s ease"
-      this.element.style.opacity = "1"
-    })
+    // The fade is applied as an inline style, so the stylesheet's
+    // prefers-reduced-motion rules can't reach it — check the query here instead.
+    // Without this, every ritual screen fades in over 2.4s regardless.
+    this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
+
+    if (!this.reducedMotion) {
+      this.element.style.opacity = "0"
+      requestAnimationFrame(() => {
+        this.element.style.transition = "opacity 2.4s ease"
+        this.element.style.opacity = "1"
+      })
+    }
 
     if (this.sunrisePlayValue) {
       this.#playSunrise()
@@ -23,8 +30,14 @@ export default class extends Controller {
     }
   }
 
+  disconnect() {
+    clearTimeout(this.redirectTimer)
+  }
+
   #playSunrise() {
     this.#playAudioFaded("/sounds/sunrise.mp3")
+    if (this.reducedMotion) return
+
     this.element.classList.add("ritual--sunrise-animate")
     this.element.addEventListener("animationend", () => {
       this.element.classList.remove("ritual--sunrise-animate")
@@ -33,13 +46,15 @@ export default class extends Controller {
 
   #playSunset() {
     this.#playAudioFaded("/sounds/sunset.mp3")
-    this.element.classList.add("ritual--sunset-animate")
+    if (!this.reducedMotion) this.element.classList.add("ritual--sunset-animate")
 
     const redirectUrl = this.redirectUrlValue
     if (redirectUrl) {
-      setTimeout(() => {
+      // Track the timer so navigating away mid-animation can't yank the user
+      // back to the wrap screen from wherever they went next.
+      this.redirectTimer = setTimeout(() => {
         window.location.href = redirectUrl
-      }, 4800)
+      }, this.reducedMotion ? 600 : 4800)
     }
   }
 

@@ -36,6 +36,10 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
+# Held at 1.x on purpose. image_processing 2.0 dropped its ruby-vips dependency and
+# raises "requires the ruby-vips gem" instead of the libvips LoadError that Active
+# Storage's engine rescues, so 2.0 turns a missing libvips into a hard boot failure
+# on any machine without it. Revisit when Active Storage handles that message.
 gem "image_processing", "~> 1.2"
 
 group :development, :test do

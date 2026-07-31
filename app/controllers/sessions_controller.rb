@@ -10,7 +10,13 @@ class SessionsController < ApplicationController
     token_data = BasecampClient.exchange_code(params[:code], auth_basecamp_callback_url)
     identity_data = BasecampClient.fetch_identity(token_data["access_token"])
 
-    identity = identity_data["identity"]
+    identity = identity_data.is_a?(Hash) ? identity_data["identity"] : nil
+    if identity.blank? || identity["id"].blank?
+      Rails.logger.warn("Basecamp identity response had no identity id")
+      redirect_to login_path, alert: "Basecamp didn't send back your account. Want to try again?"
+      return
+    end
+
     account = identity_data["accounts"]&.find { |a| a["product"] == "bc3" }
 
     user = User.find_or_initialize_by(basecamp_uid: identity["id"].to_s)
@@ -42,6 +48,7 @@ class SessionsController < ApplicationController
       redirect_to onboarding_path
     end
   rescue BasecampClient::AuthError => e
+    Rails.logger.warn("Basecamp sign-in failed: #{e.message}")
     redirect_to login_path, alert: "That didn't go through. Want to try again?"
   end
 

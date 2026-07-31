@@ -59,7 +59,9 @@ export default class extends Controller {
     if (!card) return
 
     const assignmentId = card.dataset.taskCardIdValue
-    const hourValue = parseInt(hour.dataset.hour)
+    if (!assignmentId) return
+    const hourValue = parseInt(hour.dataset.hour, 10)
+    if (!Number.isFinite(hourValue)) return
 
     const rect = hour.getBoundingClientRect()
     const offsetY = event.clientY - rect.top
@@ -86,7 +88,7 @@ export default class extends Controller {
       return ""
     }).then(html => {
       if (html) Turbo.renderStreamMessage(html)
-    })
+    }).catch(err => console.error("timebox drop failed", err))
   }
 
   async _dropCalendarEvent(event, hour, calRaw) {
@@ -109,7 +111,9 @@ export default class extends Controller {
 
     if (payload.source !== "hey" || !payload.id) return
 
-    const hourValue = parseInt(hour.dataset.hour)
+    const hourValue = parseInt(hour.dataset.hour, 10)
+    if (!Number.isFinite(hourValue)) return
+
     const rect = hour.getBoundingClientRect()
     const offsetY = event.clientY - rect.top
     const minuteFraction = offsetY / rect.height
@@ -122,17 +126,28 @@ export default class extends Controller {
       minute: String(minute)
     })
 
-    const res = await fetch(`/calendar_events/${payload.id}/slot`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-        "X-CSRF-Token": csrfToken || ""
-      },
-      body
-    })
+    // Ask for the turbo stream rather than JSON: dropping a chip used to repaint
+    // only via the Action Cable broadcast, so the block sat at its old slot
+    // whenever cable wasn't connected.
+    try {
+      const res = await fetch(`/calendar_events/${payload.id}/slot`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "text/vnd.turbo-stream.html",
+          "X-CSRF-Token": csrfToken || ""
+        },
+        body
+      })
 
-    if (!res.ok) {
+      if (!res.ok) {
+        window.alert("Could not update that calendar event. Try again.")
+        return
+      }
+
+      const html = await res.text()
+      if (html) Turbo.renderStreamMessage(html)
+    } catch (_) {
       window.alert("Could not update that calendar event. Try again.")
     }
   }

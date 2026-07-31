@@ -5,6 +5,9 @@ require "digest"
 require "base64"
 
 class HeyClient
+  extend HttpTimeouts
+  include HttpTimeouts
+
   BASE_AUTH_URL = "https://app.hey.com"
   BASE_API_URL  = "https://app.hey.com"
 
@@ -41,7 +44,7 @@ class HeyClient
 
   def self.exchange_code(code, redirect_uri, code_verifier:)
     uri = URI("#{BASE_AUTH_URL}/oauth/tokens")
-    response = Net::HTTP.post_form(uri, {
+    response = http_post_form(uri, {
       grant_type: "authorization_code",
       client_id: CLIENT_ID,
       code: code,
@@ -56,7 +59,7 @@ class HeyClient
 
   def self.refresh_token(refresh_token)
     uri = URI("#{BASE_AUTH_URL}/oauth/tokens")
-    response = Net::HTTP.post_form(uri, {
+    response = http_post_form(uri, {
       grant_type: "refresh_token",
       client_id: CLIENT_ID,
       refresh_token: refresh_token,
@@ -73,7 +76,7 @@ class HeyClient
     request["Authorization"] = "Bearer #{access_token}"
     request["User-Agent"] = user_agent
 
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    response = http_start(uri) { |http| http.request(request) }
     raise AuthError, "HEY identity fetch failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
     JSON.parse(response.body)
   end
@@ -516,7 +519,7 @@ class HeyClient
 
     req.body = body.to_json if body
 
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    response = http_start(uri) { |http| http.request(req) }
 
     case response
     when Net::HTTPSuccess
@@ -605,7 +608,7 @@ class HeyClient
       req.body = URI.encode_www_form(form_pairs)
     end
 
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    res = http_start(uri) { |http| http.request(req) }
     {
       code: res.code.to_i,
       location: res["Location"],
@@ -647,7 +650,7 @@ class HeyClient
     req["User-Agent"]    = self.class.user_agent
     req.body = body.to_json
 
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+    res = http_start(uri) { |http| http.request(req) }
     parsed =
       if res.is_a?(Net::HTTPSuccess)
         s = res.body.to_s.strip

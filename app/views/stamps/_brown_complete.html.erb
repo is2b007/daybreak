@@ -1,22 +1,33 @@
-<svg class="stamp stamp--brown-complete" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <defs>
-    <filter id="stamp-distress-brown-complete" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" seed="9" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6"/>
-    </filter>
-    <path id="stamp-arc-brown-complete" d="M 13 40 a 27 27 0 0 1 54 0" fill="none"/>
-  </defs>
-  <g filter="url(#stamp-distress-brown-complete)">
-    <ellipse cx="40" cy="40" rx="33" ry="31" stroke="currentColor" stroke-width="2.6" opacity="0.9" transform="rotate(-2 40 40)"/>
-    <ellipse cx="40" cy="40" rx="28" ry="26" stroke="currentColor" stroke-width="0.8" opacity="0.35" transform="rotate(1 40 40)"/>
-    <text font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="900" letter-spacing="4" fill="currentColor" opacity="0.92">
-      <textPath href="#stamp-arc-brown-complete" startOffset="50%" text-anchor="middle">COMPLETE</textPath>
-    </text>
-    <path d="M 30 48 l 8 6 l 14 -16" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" fill="none"/>
+<%#
+  "COMPLETE" sits on a straight banner, not a textPath arc. The arc version
+  smeared the letters into an unreadable ring at card size.
+%>
+<svg class="stamp stamp--brown-complete" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g transform="rotate(-3 50 50)">
+    <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="4.4" stroke-linecap="round"
+            stroke-dasharray="37 3 49 2 44 4 35 2 53 3 46 2" opacity="0.94"/>
+    <circle cx="50" cy="50" r="37" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+            stroke-dasharray="60 3 47 2 58 4" opacity="0.45"/>
+
+    <path d="M13.5 40 H86.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+          stroke-dasharray="30 3 38 2" opacity="0.72"/>
+    <path d="M13.5 61 H86.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+          stroke-dasharray="34 3 33 2" opacity="0.72"/>
+
+    <%# dx offsets the trailing letter-space so the word optically centres in the banner. %>
+    <text x="50" y="55.5" dx="0.7" text-anchor="middle"
+          font-family="Georgia, 'Times New Roman', serif" font-size="11.5" font-weight="700"
+          letter-spacing="1.4" fill="currentColor" opacity="0.96">COMPLETE</text>
+
+    <path d="M38 27.5 L45 34 L62 20.5" stroke="currentColor" stroke-width="3.4"
+          stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
   </g>
-  <g fill="currentColor" opacity="0.38">
-    <circle cx="20" cy="22" r="0.6"/>
-    <circle cx="62" cy="60" r="0.5"/>
-    <circle cx="16" cy="58" r="0.4"/>
+
+  <g fill="currentColor" opacity="0.45">
+    <circle cx="22" cy="30" r="0.85"/>
+    <circle cx="80" cy="70" r="0.75"/>
+    <circle cx="18" cy="68" r="0.65"/>
+    <circle cx="74" cy="25" r="0.6"/>
+    <circle cx="50" cy="86" r="0.6"/>
   </g>
 </svg>
