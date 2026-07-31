@@ -18,9 +18,12 @@
   --amber-text: #9A5A0A;
 
   /* Basecamp: sunny yellow */
-  --bc: #F5C842;
-  --bc-bg: #FEF7DB;
-  --bc-text: #8A6D1C;
+  /* Basecamp brand: Gold + Bunker. Gold is a fill colour only —
+     it is 1.4:1 on the page background, so type uses --bc-text. */
+  --bc: #FFD60A;
+  --bc-ink: #0B1215;
+  --bc-bg: #FFF8DB;
+  --bc-text: #6B5200;
 
   /* HEY: vivid purple */
   --hey: #7C3AED;

@@ -28,10 +28,15 @@
   --amber-bg: #FEF7EE;
   --amber-text: #9A5A0A;
 
-  /* Basecamp */
-  --bc: #2563EB;
-  --bc-bg: #EEF4FF;
-  --bc-text: #1E50C8;
+  /* Basecamp — brand refresh: Gold + Bunker, replacing the old generic blue.
+     Split into four tokens because Gold is a fill colour, not a text colour:
+     #FFD60A on the cream canvas is 1.4:1, so anything that renders type or a
+     hairline needs --bc-text / --bc-line instead. */
+  --bc: #FFD60A;        /* Basecamp Gold — solid marks: dots, stripes, badges */
+  --bc-ink: #0B1215;    /* Basecamp Bunker — the pairing for type set on Gold */
+  --bc-bg: #FFF8DB;     /* pale gold wash behind chips and timeline blocks */
+  --bc-text: #6B5200;   /* 6.9:1 on --bc-bg, matching --hey-text / --amber-text */
+  --bc-line: #B08900;   /* deeper gold for outlines that must read on the wash */
 
   /* HEY */
   --hey: #16A34A;
@@ -1091,7 +1096,7 @@ a.rri:hover {
   flex-shrink: 0;
 }
 
-.r-dot--bc    { background: #F5A623; }  /* Basecamp yellow */
+.r-dot--bc    { background: var(--bc); }  /* Basecamp Gold */
 .r-dot--hey   { background: var(--hey); }  /* HEY brand green — was stale purple */
 .r-dot--amber { background: var(--amber); }
 
@@ -1200,7 +1205,7 @@ a.rri:hover {
 
 .r-list--dragover {
   background: var(--bc-bg);
-  outline: 2px dashed var(--bc);
+  outline: 2px dashed var(--bc-line);
   outline-offset: -2px;
 }
 
@@ -3385,7 +3390,7 @@ select.form-input {
 }
 
 .jrnl-body a {
-  color: var(--bc);
+  color: var(--amber-text);
   text-decoration: underline;
 }
 
@@ -4791,7 +4796,7 @@ select.form-input {
 
 .modal__ext-link:hover {
   background: var(--bg2);
-  color: var(--bc);
+  color: var(--amber-text);
   text-decoration: none;
 }
 
