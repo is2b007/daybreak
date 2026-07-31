@@ -5,6 +5,16 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  ignore:
+  # image_processing 2.0 dropped its ruby-vips dependency and raises
+  # "requires the ruby-vips gem" instead of the libvips LoadError that Active
+  # Storage's engine rescues, so it turns a missing libvips into a hard boot
+  # failure on any machine without it. Daybreak has no attachments or variants,
+  # so there is nothing to gain; the Gemfile is pinned to "~> 1.2" for the same
+  # reason. Drop this once Active Storage recognises the new message.
+  - dependency-name: image_processing
+    update-types:
+    - version-update:semver-major
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
