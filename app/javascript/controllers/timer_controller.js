@@ -5,7 +5,9 @@ export default class extends Controller {
   static targets = ["display"]
 
   connect() {
-    this.startTime = new Date(this.startedAtValue)
+    const parsed = Date.parse(this.startedAtValue)
+    // An unparseable or missing start rendered "NaN:NaN:NaN" once a second.
+    this.startTime = Number.isNaN(parsed) ? null : parsed
     this.tick()
     this.interval = setInterval(() => this.tick(), 1000)
   }
@@ -15,8 +17,15 @@ export default class extends Controller {
   }
 
   tick() {
-    const now = new Date()
-    const elapsed = Math.floor((now - this.startTime) / 1000)
+    if (!this.hasDisplayTarget) return
+    if (this.startTime == null) {
+      this.displayTarget.textContent = "0:00:00"
+      return
+    }
+
+    // Clamp at zero: a client clock behind the server's put the start in the
+    // future and rendered negative minutes and seconds.
+    const elapsed = Math.max(0, Math.floor((Date.now() - this.startTime) / 1000))
     const hours = Math.floor(elapsed / 3600)
     const minutes = Math.floor((elapsed % 3600) / 60)
     const seconds = elapsed % 60

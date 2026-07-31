@@ -48,4 +48,63 @@ class RitualsControllerTest < ActionController::TestCase
     get :evening_complete
     assert_equal @today, @user.reload.last_sunset_played_date
   end
+
+  # The reflection box is prefilled with the day's journal, and used to submit over
+  # it from empty — wiping anything written in the day-view scratchpad.
+  test "POST evening step 2 keeps the day's journal when the reflection is unchanged" do
+    @user.local_journal_entries.create!(
+      date: @today, content: "<p>Morning notes worth keeping.</p>"
+    )
+
+    post :evening_update, params: { step: 2, reflection: "Morning notes worth keeping." }
+
+    entry = @user.local_journal_entries.find_by(date: @today)
+    assert_includes entry.content, "Morning notes worth keeping."
+  end
+
+  test "POST evening step 2 stores the reflection as HTML so line breaks survive" do
+    post :evening_update, params: { step: 2, reflection: "One line.\n\nAnd another." }
+
+    entry = @user.local_journal_entries.find_by(date: @today)
+    assert_includes entry.content, "<p>One line.</p>"
+    assert_includes entry.content, "<p>And another.</p>"
+  end
+
+  test "POST evening step 2 with a cleared box removes the entry" do
+    @user.local_journal_entries.create!(date: @today, content: "<p>Gone soon.</p>")
+
+    post :evening_update, params: { step: 2, reflection: "   " }
+
+    assert_nil @user.local_journal_entries.find_by(date: @today)
+  end
+
+  test "GET evening/complete creates the day plan when none exists" do
+    @day_plan.destroy!
+
+    get :evening_complete
+
+    plan = @user.day_plans.find_by(date: @today)
+    assert_not_nil plan
+    assert_predicate plan, :evening_ritual_done?
+  end
+
+  test "POST evening step 1 defers remaining tasks per decision" do
+    keep = @user.task_assignments.create!(
+      day_plan: @day_plan, title: "Push to tomorrow", source: :local,
+      week_start_date: @user.current_week_start, week_bucket: "day",
+      size: :medium, status: :pending, position: 0
+    )
+    drop = @user.task_assignments.create!(
+      day_plan: @day_plan, title: "Let go", source: :local,
+      week_start_date: @user.current_week_start, week_bucket: "day",
+      size: :medium, status: :pending, position: 1
+    )
+
+    post :evening_update, params: {
+      step: 1, tasks: { keep.id.to_s => "tomorrow", drop.id.to_s => "let_go" }
+    }
+
+    assert_equal @user.today_in_zone + 1.day, keep.reload.day_plan.date
+    assert_predicate drop.reload, :deferred?
+  end
 end

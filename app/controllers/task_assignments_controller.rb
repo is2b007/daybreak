@@ -85,20 +85,11 @@ class TaskAssignmentsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         date = day_plan.date
-        tasks = current_user.task_assignments
-          .includes(:day_plan).left_joins(:day_plan)
-          .where(day_plans: { date: date }).for_day.ordered
-        events = current_user.calendar_events
-          .pinned_to_week_board
-          .where(starts_at: date.beginning_of_day..date.end_of_day)
-          .chronological
-          .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
-          .transform_values { |evs| evs.map(&:to_view_hash) }
-        render turbo_stream: turbo_stream.replace(
-          "day_#{date}",
-          partial: "weeks/day_column",
-          locals: { date: date, tasks: tasks, events: events[date] || [] }
-        )
+        # The day view has no #day_<date> frame — only the week board does. Quick-add
+        # always targeted the week frame, so on the day view the new task didn't
+        # appear at all until a reload.
+        stream = day_view_stream_context? ? stream_replace_day_plan_tasks(date) : stream_replace_day_column(date)
+        render turbo_stream: stream
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -210,9 +201,9 @@ class TaskAssignmentsController < ApplicationController
       @task.update!(
         day_plan: nil,
         week_start_date: week_start,
-        week_bucket: "sometime",
-        position: params[:position].to_i
+        week_bucket: "sometime"
       )
+      @task.reposition_to!(params[:position])
 
       sync_enqueued = current_user.hey_connected? && !Rails.env.test?
       if sync_enqueued
@@ -244,9 +235,9 @@ class TaskAssignmentsController < ApplicationController
         day_plan: target_plan,
         week_start_date: target_date.beginning_of_week(:monday),
         week_bucket: "day",
-        position: params[:position].to_i,
         hey_mirrored_todo_id: nil
       )
+      @task.reposition_to!(params[:position])
 
       respond_to do |format|
         format.turbo_stream do
@@ -319,13 +310,13 @@ class TaskAssignmentsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        streams = [
-          turbo_stream.remove("task_#{@task.id}"),
-          turbo_stream.append("day_#{plan&.date}_completed",
+        streams = [ turbo_stream.remove("task_#{@task.id}") ]
+
+        if plan
+          streams << turbo_stream.append("day_#{plan.date}_completed",
             partial: "shared/task_card",
             locals: { task: @task, compact: true })
-        ]
-        if plan
+
           tasks = current_user.task_assignments.where(day_plan: plan).ordered
           streams << turbo_stream.replace(
             "day_plan_tasks_#{plan.date}",
@@ -333,7 +324,13 @@ class TaskAssignmentsController < ApplicationController
             locals: { date: plan.date, tasks: tasks }
           )
           streams << stream_replace_day_timeline(plan.date) if day_view_stream_context?
+        else
+          # No day plan means the task lives in the sometime row, which has no
+          # per-day completed bucket. Appending to "day__completed" silently
+          # dropped the card, so completing a sometime task made it vanish.
+          streams << stream_replace_sometime_row
         end
+
         render turbo_stream: streams
       end
       format.html { redirect_back fallback_location: root_path }
@@ -343,21 +340,38 @@ class TaskAssignmentsController < ApplicationController
   def defer
     prev_date = @task.day_plan&.date
     was_timeboxed = @task.timeboxed?
+    was_sometime = @task.week_bucket == "sometime"
+    day_ctx = day_view_stream_context?
+
     case params[:defer_to]
     when "tomorrow"
       @task.defer_to_tomorrow!
     when "sometime"
       @task.defer_to_sometime!
       SyncSometimeTodoToHeyJob.perform_later(@task.id) if current_user.hey_connected? && !Rails.env.test?
+    else
+      return head :bad_request
     end
+
+    new_date = @task.reload.day_plan&.date
 
     respond_to do |format|
       format.turbo_stream do
         streams = [ turbo_stream.remove("task_#{@task.id}") ]
-        if prev_date && was_timeboxed && day_view_stream_context?
-          streams << stream_replace_day_timeline(prev_date)
+
+        # Deferring used to only remove the card. Nothing re-rendered the place it
+        # moved to, so on the board the task simply disappeared until a reload.
+        streams << stream_replace_day_column(prev_date) if prev_date && !day_ctx
+        streams << stream_replace_day_plan_tasks(prev_date) if prev_date && day_ctx
+        streams << stream_replace_day_timeline(prev_date) if prev_date && was_timeboxed && day_ctx
+
+        if new_date && new_date != prev_date
+          streams << (day_ctx ? stream_replace_day_plan_tasks(new_date) : stream_replace_day_column(new_date))
         end
-        render turbo_stream: streams
+
+        streams << stream_replace_sometime_row if (was_sometime || @task.week_bucket == "sometime") && !day_ctx
+
+        render turbo_stream: streams.compact
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -590,6 +604,32 @@ class TaskAssignmentsController < ApplicationController
       "day_plan_tasks_#{date}",
       partial: "days/day_plan_tasks",
       locals: { date: date, tasks: tasks }
+    )
+  end
+
+  # Week board column, including its completed bucket and header count.
+  def stream_replace_day_column(date)
+    plan = current_user.day_plans.find_by(date: date)
+    turbo_stream.replace(
+      "day_#{date}",
+      partial: "weeks/day_column",
+      locals: {
+        date: date,
+        tasks: current_user.task_assignments.where(day_plan: plan).ordered,
+        events: day_column_calendar_events_for(current_user, date)
+      }
+    )
+  end
+
+  def stream_replace_sometime_row
+    turbo_stream.replace(
+      "sometime_row",
+      partial: "weeks/sometime_row",
+      locals: {
+        tasks: current_user.task_assignments
+                 .where(week_bucket: "sometime", week_start_date: current_user.current_week_start)
+                 .ordered
+      }
     )
   end
 

@@ -32,7 +32,8 @@ export default class extends Controller {
   animateThenComplete(event) {
     event.preventDefault()
     event.stopPropagation()
-    if (this.completedValue) return
+    if (this.completedValue || this._completing) return
+    this._completing = true
 
     // Set a random rotation that matches what the server will store
     const rotation = Math.floor(Math.random() * 7) - 3
@@ -44,14 +45,27 @@ export default class extends Controller {
     // Trigger the press animation
     this.element.classList.add("task-card--completing")
 
-    // After animation completes, POST and let Turbo Stream handle the swap
-    const stamp = this.hasStampTarget ? this.stampTarget : null
-    const target = stamp || this.element
-
-    target.addEventListener("animationend", () => {
+    // After animation completes, POST and let Turbo Stream handle the swap.
+    // The POST must not be gated on animationend alone: if the stamp template is
+    // missing, the animation is suppressed, or the element is detached mid-press,
+    // the event never fires and the click silently does nothing. A timeout a
+    // little past the 400ms press guarantees the write happens either way.
+    const finish = () => {
+      if (this._completed) return
+      this._completed = true
+      clearTimeout(this._completeFallback)
       this.element.classList.add("task-card--completed")
       this.postAction(`/task_assignments/${this.idValue}/complete`, { rotation })
-    }, { once: true })
+    }
+
+    const stamp = this.hasStampTarget ? this.stampTarget : null
+    const target = stamp || this.element
+    target.addEventListener("animationend", finish, { once: true })
+    this._completeFallback = setTimeout(finish, 650)
+  }
+
+  disconnect() {
+    clearTimeout(this._completeFallback)
   }
 
   injectStamp() {

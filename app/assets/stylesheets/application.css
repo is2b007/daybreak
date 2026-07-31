@@ -1709,10 +1709,18 @@ select.form-input {
   padding-bottom: 10px;
 }
 
-/* Completed */
+/* Completed.
+   Fade the card's *contents*, not the card. Fading .task-card itself also faded
+   the stamp sitting inside it — 0.55 card x 0.86 stamp left the ink at ~0.47 and
+   the whole point of the stamp barely visible. */
 .task-card--completed {
-  opacity: 0.55;
   border-left-color: var(--muted2);
+}
+
+.task-card--completed .task-card__title,
+.task-card--completed .task-card__bottom,
+.task-card--completed .task-card__dedicated {
+  opacity: 0.55;
 }
 
 .task-card--completed .task-card__title {
@@ -1928,7 +1936,10 @@ select.form-input {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(var(--stamp-rotation, 0deg));
+  /* Held in a variable so the press keyframes and the sometime-row override
+     share one placement rule instead of fighting each other mid-animation. */
+  --stamp-translate: translate(-50%, -50%);
+  transform: var(--stamp-translate) rotate(var(--stamp-rotation, 0deg));
   opacity: 0;
   pointer-events: none;
   z-index: 2;
@@ -5130,16 +5141,6 @@ form[data-save-error="true"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes stampPress {
-  0% { transform: translate(-50%, -50%) scale(2) rotate(var(--stamp-rotation, 0deg)); opacity: 0; }
-  60% { transform: translate(-50%, -50%) scale(0.9) rotate(var(--stamp-rotation, 0deg)); opacity: 1; }
-  80% { transform: translate(-50%, -50%) scale(1.05) rotate(var(--stamp-rotation, 0deg)); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1) rotate(var(--stamp-rotation, 0deg)); opacity: 0.85; }
-}
-
-.stamp--animating {
-  animation: stampPress 0.4s ease-out forwards;
-}
 
 @keyframes sunrise {
   0% { background: linear-gradient(180deg, #2C3E50 0%, #1D2D35 100%); }
@@ -6473,7 +6474,29 @@ body.focus-open { overflow: hidden; }
   height: 64px;
   filter: drop-shadow(0 0.5px 0.5px rgba(0, 0, 0, 0.08));
 }
-.task-card__stamp .stamp { width: 72px; height: 72px; }
+
+/* Scale to the card rather than a fixed 72px: small cards are shorter than that,
+   and .task-card's overflow:hidden cropped the ring into an arc. */
+.task-card__stamp .stamp {
+  width: clamp(46px, 4.6em, 76px);
+  height: clamp(46px, 4.6em, 76px);
+}
+
+.card--small .task-card__stamp .stamp { width: 46px; height: 46px; }
+.card--large .task-card__stamp .stamp { width: 82px; height: 82px; }
+
+/* Sometime pills are short horizontal chips; a centred stamp buried the title.
+   Tuck a small one against the trailing edge instead. */
+.sometime-row__tasks .task-card__stamp {
+  top: 50%;
+  left: auto;
+  right: 6px;
+  --stamp-translate: translateY(-50%);
+}
+
+.sometime-row__tasks .task-card__stamp .stamp { width: 30px; height: 30px; }
+
+.sometime-row__tasks .task-card--completed .task-card__title { padding-right: 26px; }
 
 /* Muted, slightly desaturated inks */
 .stamp--red-done       { color: #A8372C; }
@@ -6484,12 +6507,15 @@ body.focus-open { overflow: hidden; }
 
 /* 3-frame press: lift → slam with overshoot → settle */
 @keyframes stampPress {
-  0%   { transform: translate(-50%, -50%) scale(1.9) rotate(calc(var(--stamp-rotation, 0deg) - 8deg)); opacity: 0; }
-  50%  { transform: translate(-50%, -50%) scale(1.12) rotate(calc(var(--stamp-rotation, 0deg) - 6deg)); opacity: 1; }
-  80%  { transform: translate(-50%, -50%) scale(0.94) rotate(calc(var(--stamp-rotation, 0deg) + 1deg)); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1) rotate(var(--stamp-rotation, 0deg)); opacity: 0.86; }
+  0%   { transform: var(--stamp-translate) scale(1.9) rotate(calc(var(--stamp-rotation, 0deg) - 8deg)); opacity: 0; }
+  50%  { transform: var(--stamp-translate) scale(1.12) rotate(calc(var(--stamp-rotation, 0deg) - 6deg)); opacity: 1; }
+  80%  { transform: var(--stamp-translate) scale(0.94) rotate(calc(var(--stamp-rotation, 0deg) + 1deg)); opacity: 1; }
+  100% { transform: var(--stamp-translate) scale(1) rotate(var(--stamp-rotation, 0deg)); opacity: 0.86; }
 }
 .task-card--completed .task-card__stamp { opacity: 0.86; }
+
+/* Knockout glyphs (the tick inside the postmark disc) punch to the card colour. */
+.task-card__stamp { --stamp-knockout: #FFFFFF; }
 
 /* Ink-splat ghost on the completed card */
 .task-card--completed::after {

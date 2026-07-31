@@ -11,7 +11,10 @@ class TaskAssignment < ApplicationRecord
 
   validates :title, presence: true
 
-  scope :ordered, -> { order(:position) }
+  # Ties on position were resolved by whatever order SQLite felt like returning, so
+  # a drag that landed on an occupied index made cards jump around. id is a stable
+  # tiebreaker; #reposition_to! keeps positions contiguous in the first place.
+  scope :ordered, -> { order(:position, :id) }
   scope :for_week, ->(week_start) { where(week_start_date: week_start) }
   scope :sometime, -> { where(week_bucket: "sometime") }
   scope :for_day, -> { where(week_bucket: "day") }
@@ -59,6 +62,38 @@ class TaskAssignment < ApplicationRecord
 
   def card_height_class
     "card--#{size}"
+  end
+
+  # Siblings this task is ordered against — the cards drawn in the same list.
+  def sibling_scope
+    case week_bucket
+    when "sometime"
+      user.task_assignments.where(week_bucket: "sometime", week_start_date: week_start_date)
+    when "day"
+      user.task_assignments.where(day_plan_id: day_plan_id)
+    else
+      user.task_assignments.where(week_bucket: week_bucket)
+    end
+  end
+
+  # Insert at +index+ and renumber the list 0..n-1.
+  #
+  # Drops previously just wrote the dropped index straight onto the card, leaving
+  # duplicate positions behind. Two cards sharing a position render in an order the
+  # database picks, which is why a dragged card would settle somewhere other than
+  # where it was dropped.
+  def reposition_to!(index)
+    others = sibling_scope.where.not(id: id).ordered.to_a
+    target = index.to_i.clamp(0, others.size)
+    others.insert(target, self)
+
+    self.class.transaction do
+      others.each_with_index do |task, i|
+        task.update_column(:position, i) if task.position != i
+      end
+    end
+
+    reload
   end
 
   def timeboxed?
