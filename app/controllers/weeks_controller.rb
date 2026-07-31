@@ -90,13 +90,4 @@ class WeeksController < ApplicationController
       calendar_events: calendar_events
     }
   end
-
-  def fetch_calendar_events
-    current_user.calendar_events
-      .pinned_to_week_board
-      .where(starts_at: @window_start.beginning_of_day..@window_end.end_of_day)
-      .chronological
-      .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
-      .transform_values { |events| events.map(&:to_view_hash) }
-  end
 end

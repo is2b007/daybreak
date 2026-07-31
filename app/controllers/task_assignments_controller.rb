@@ -1,6 +1,11 @@
 class TaskAssignmentsController < ApplicationController
   before_action :set_task, only: [ :show, :focus, :update, :destroy, :move, :cycle_size, :complete, :defer, :timebox, :comment, :restore_hey_email ]
 
+  # Drag-and-drop posts dates from the DOM. A malformed one is a bad request, not a
+  # 500 — and a validation failure on a rename should tell the user, not blow up.
+  rescue_from Date::Error, with: :render_bad_request
+  rescue_from ActiveRecord::RecordInvalid, with: :render_record_invalid
+
   def show
     @bc_comments = []
     @bc_comments_error = nil
@@ -80,20 +85,11 @@ class TaskAssignmentsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         date = day_plan.date
-        tasks = current_user.task_assignments
-          .includes(:day_plan).left_joins(:day_plan)
-          .where(day_plans: { date: date }).for_day.ordered
-        events = current_user.calendar_events
-          .pinned_to_week_board
-          .where(starts_at: date.beginning_of_day..date.end_of_day)
-          .chronological
-          .group_by { |e| e.all_day ? e.starts_at.utc.to_date : e.starts_at.in_time_zone(current_user.timezone).to_date }
-          .transform_values { |evs| evs.map(&:to_view_hash) }
-        render turbo_stream: turbo_stream.replace(
-          "day_#{date}",
-          partial: "weeks/day_column",
-          locals: { date: date, tasks: tasks, events: events[date] || [] }
-        )
+        # The day view has no #day_<date> frame — only the week board does. Quick-add
+        # always targeted the week frame, so on the day view the new task didn't
+        # appear at all until a reload.
+        stream = day_view_stream_context? ? stream_replace_day_plan_tasks(date) : stream_replace_day_column(date)
+        render turbo_stream: stream
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -113,7 +109,7 @@ class TaskAssignmentsController < ApplicationController
 
   def destroy
     plan_date = @task.day_plan&.date
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     was_sometime = @task.week_bucket == "sometime"
     day_ctx = day_view_stream_context?
     had_timebox = @task.timeboxed?
@@ -155,7 +151,7 @@ class TaskAssignmentsController < ApplicationController
 
   def move
     from_inbox = params[:from_inbox] == "1"
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     day_ctx = day_view_stream_context?
 
     if params[:target_bucket] == "inbox"
@@ -205,9 +201,9 @@ class TaskAssignmentsController < ApplicationController
       @task.update!(
         day_plan: nil,
         week_start_date: week_start,
-        week_bucket: "sometime",
-        position: params[:position].to_i
+        week_bucket: "sometime"
       )
+      @task.reposition_to!(params[:position])
 
       sync_enqueued = current_user.hey_connected? && !Rails.env.test?
       if sync_enqueued
@@ -239,9 +235,9 @@ class TaskAssignmentsController < ApplicationController
         day_plan: target_plan,
         week_start_date: target_date.beginning_of_week(:monday),
         week_bucket: "day",
-        position: params[:position].to_i,
         hey_mirrored_todo_id: nil
       )
+      @task.reposition_to!(params[:position])
 
       respond_to do |format|
         format.turbo_stream do
@@ -314,13 +310,13 @@ class TaskAssignmentsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        streams = [
-          turbo_stream.remove("task_#{@task.id}"),
-          turbo_stream.append("day_#{plan&.date}_completed",
+        streams = [ turbo_stream.remove("task_#{@task.id}") ]
+
+        if plan
+          streams << turbo_stream.append("day_#{plan.date}_completed",
             partial: "shared/task_card",
             locals: { task: @task, compact: true })
-        ]
-        if plan
+
           tasks = current_user.task_assignments.where(day_plan: plan).ordered
           streams << turbo_stream.replace(
             "day_plan_tasks_#{plan.date}",
@@ -328,7 +324,13 @@ class TaskAssignmentsController < ApplicationController
             locals: { date: plan.date, tasks: tasks }
           )
           streams << stream_replace_day_timeline(plan.date) if day_view_stream_context?
+        else
+          # No day plan means the task lives in the sometime row, which has no
+          # per-day completed bucket. Appending to "day__completed" silently
+          # dropped the card, so completing a sometime task made it vanish.
+          streams << stream_replace_sometime_row
         end
+
         render turbo_stream: streams
       end
       format.html { redirect_back fallback_location: root_path }
@@ -338,21 +340,38 @@ class TaskAssignmentsController < ApplicationController
   def defer
     prev_date = @task.day_plan&.date
     was_timeboxed = @task.timeboxed?
+    was_sometime = @task.week_bucket == "sometime"
+    day_ctx = day_view_stream_context?
+
     case params[:defer_to]
     when "tomorrow"
       @task.defer_to_tomorrow!
     when "sometime"
       @task.defer_to_sometime!
       SyncSometimeTodoToHeyJob.perform_later(@task.id) if current_user.hey_connected? && !Rails.env.test?
+    else
+      return head :bad_request
     end
+
+    new_date = @task.reload.day_plan&.date
 
     respond_to do |format|
       format.turbo_stream do
         streams = [ turbo_stream.remove("task_#{@task.id}") ]
-        if prev_date && was_timeboxed && day_view_stream_context?
-          streams << stream_replace_day_timeline(prev_date)
+
+        # Deferring used to only remove the card. Nothing re-rendered the place it
+        # moved to, so on the board the task simply disappeared until a reload.
+        streams << stream_replace_day_column(prev_date) if prev_date && !day_ctx
+        streams << stream_replace_day_plan_tasks(prev_date) if prev_date && day_ctx
+        streams << stream_replace_day_timeline(prev_date) if prev_date && was_timeboxed && day_ctx
+
+        if new_date && new_date != prev_date
+          streams << (day_ctx ? stream_replace_day_plan_tasks(new_date) : stream_replace_day_column(new_date))
         end
-        render turbo_stream: streams
+
+        streams << stream_replace_sometime_row if (was_sometime || @task.week_bucket == "sometime") && !day_ctx
+
+        render turbo_stream: streams.compact
       end
       format.html { redirect_back fallback_location: root_path }
     end
@@ -366,22 +385,20 @@ class TaskAssignmentsController < ApplicationController
       "Cannot comment on this task."
     end
 
-    if error
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            "task_comment_#{@task.id}",
-            partial: "task_assignments/comment_form",
-            locals: { task: @task, error: error }
-          ), status: :unprocessable_entity
-        end
-        format.html { redirect_back fallback_location: root_path, alert: error }
-      end
-      return
-    end
+    return render_comment_error(error) if error
 
-    client = BasecampClient.new(current_user)
-    client.create_comment(@task.basecamp_bucket_id, @task.external_id, content: content)
+    begin
+      BasecampClient.new(current_user).create_comment(
+        @task.basecamp_bucket_id, @task.external_id, content: content
+      )
+    rescue BasecampClient::AuthError
+      return render_comment_error("Your Basecamp session looks expired.")
+    rescue BasecampClient::RateLimitError
+      return render_comment_error("Basecamp is throttling — try again in a moment.")
+    rescue StandardError => e
+      Rails.logger.warn("Basecamp comment post failed: #{e.class}: #{e.message}")
+      return render_comment_error("Couldn't reach Basecamp. Your comment wasn't posted.")
+    end
 
     respond_to do |format|
       format.turbo_stream do
@@ -402,7 +419,7 @@ class TaskAssignmentsController < ApplicationController
     email = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)
     return head :not_found unless email
 
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     day_ctx    = day_view_stream_context?
     prev_date  = @task.day_plan&.date
     was_sometime = @task.week_bucket == "sometime"
@@ -461,10 +478,12 @@ class TaskAssignmentsController < ApplicationController
       return
     end
 
-    hour = params[:hour].to_i
-    minute = params[:minute].to_i
+    # Clamp before TimeZone#local — an out-of-range hour/minute raises ArgumentError
+    # there and 500s the drag instead of snapping into the day.
+    hour = params[:hour].to_i.clamp(0, 23)
+    minute = params[:minute].to_i.clamp(0, 59)
 
-    starts_at = ActiveSupport::TimeZone[current_user.timezone].local(
+    starts_at = (ActiveSupport::TimeZone[current_user.timezone] || Time.zone).local(
       date.year, date.month, date.day, hour, minute
     )
     starts_at = TimelineLayout.snap_zoned_time_to_grid(starts_at, current_user.timezone)
@@ -488,6 +507,37 @@ class TaskAssignmentsController < ApplicationController
   end
 
   private
+
+  # Re-renders the comment form with the failure inline so the typed comment survives.
+  def render_comment_error(message)
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "task_comment_#{@task.id}",
+          partial: "task_assignments/comment_form",
+          locals: { task: @task, error: message }
+        ), status: :unprocessable_entity
+      end
+      format.html { redirect_back fallback_location: root_path, alert: message }
+    end
+  end
+
+  def render_bad_request
+    respond_to do |format|
+      format.turbo_stream { head :bad_request }
+      format.json { render json: { error: "That date didn't look right." }, status: :bad_request }
+      format.html { redirect_back fallback_location: root_path, alert: "That date didn't look right." }
+    end
+  end
+
+  def render_record_invalid(exception)
+    message = exception.record&.errors&.full_messages&.to_sentence.presence || "Could not save. Try again?"
+    respond_to do |format|
+      format.turbo_stream { head :unprocessable_entity }
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+      format.html { redirect_back fallback_location: root_path, alert: message }
+    end
+  end
 
   def clear_timebox_for!(date)
     CalendarEvent.destroy_daybreak_timebox_mirror!(current_user, @task.id)
@@ -554,6 +604,32 @@ class TaskAssignmentsController < ApplicationController
       "day_plan_tasks_#{date}",
       partial: "days/day_plan_tasks",
       locals: { date: date, tasks: tasks }
+    )
+  end
+
+  # Week board column, including its completed bucket and header count.
+  def stream_replace_day_column(date)
+    plan = current_user.day_plans.find_by(date: date)
+    turbo_stream.replace(
+      "day_#{date}",
+      partial: "weeks/day_column",
+      locals: {
+        date: date,
+        tasks: current_user.task_assignments.where(day_plan: plan).ordered,
+        events: day_column_calendar_events_for(current_user, date)
+      }
+    )
+  end
+
+  def stream_replace_sometime_row
+    turbo_stream.replace(
+      "sometime_row",
+      partial: "weeks/sometime_row",
+      locals: {
+        tasks: current_user.task_assignments
+                 .where(week_bucket: "sometime", week_start_date: current_user.current_week_start)
+                 .ordered
+      }
     )
   end
 

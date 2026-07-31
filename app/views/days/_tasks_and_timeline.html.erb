@@ -30,6 +30,9 @@
         <%= form_with url: task_assignments_path, method: :post, class: "day-view__quick-add", local: true do |f| %>
           <%= hidden_field_tag :date, date.to_s %>
           <%= hidden_field_tag :size, "medium" %>
+          <%# Explicit, so the response targets this view's frame rather than relying
+              on the controller sniffing the referer path. %>
+          <%= hidden_field_tag :view, "day" %>
           <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
           <%= f.submit "+", class: "btn btn--icon btn--secondary day-view__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
         <% end %>

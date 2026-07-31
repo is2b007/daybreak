@@ -2,7 +2,9 @@ class SyncCalendarEventsJob < ApplicationJob
   queue_as :sync
 
   def perform(user_id, week_start: nil)
-    user = User.find(user_id)
+    user = User.find_by(id: user_id)
+    return if user.nil?
+
     ws = parse_week_start(user, week_start)
     we = ws + 6.days
 

@@ -8,16 +8,19 @@ export default class extends Controller {
     if (!this.hasTextTarget) return
 
     const now = new Date()
-    // Use timezone if available
+    // Use timezone if available.
+    // hourCycle h23, not hour12:false — the latter formats midnight as "24" in
+    // en-US, which fell past every branch below and greeted "Good evening" at 1am.
     let hour = now.getHours()
     if (this.timezoneValue) {
       try {
         const formatted = new Intl.DateTimeFormat("en-US", {
           hour: "numeric",
-          hour12: false,
+          hourCycle: "h23",
           timeZone: this.timezoneValue
         }).format(now)
-        hour = parseInt(formatted)
+        const parsed = parseInt(formatted, 10)
+        if (Number.isFinite(parsed)) hour = parsed % 24
       } catch (e) { /* fallback to local */ }
     }
 

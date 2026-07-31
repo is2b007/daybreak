@@ -1,13 +1,18 @@
 class CalendarEventsController < ApplicationController
   before_action :set_event
 
+  # A malformed date from a drag payload is a bad request, not a crash.
+  rescue_from Date::Error, with: :timeline_bad_request
+
   # Drag calendar chip onto timeline: server computes wall time in the user timezone.
   def slot
     return head :forbidden unless timeline_editable_event?
 
     date = Date.parse(params.require(:date))
-    hour = params.require(:hour).to_i
-    minute = params.require(:minute).to_i
+    # Clamp before handing to TimeZone#local — an out-of-range hour/minute raises
+    # ArgumentError there and 500s the drop instead of just snapping into the day.
+    hour = params.require(:hour).to_i.clamp(0, 23)
+    minute = params.require(:minute).to_i.clamp(0, 59)
     tz = user_tz
     starts = tz.local(date.year, date.month, date.day, hour, minute)
     ends = if @event.ends_at && @event.starts_at
@@ -58,6 +63,10 @@ class CalendarEventsController < ApplicationController
   end
 
   private
+
+  def timeline_bad_request
+    head :bad_request
+  end
 
   def user_tz
     ActiveSupport::TimeZone[current_user.timezone] || Time.zone

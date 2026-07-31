@@ -2,8 +2,8 @@ class ImportHeyJournalJob < ApplicationJob
   queue_as :sync
 
   def perform(user_id, date_string)
-    user = User.find(user_id)
-    return unless user.hey_connected?
+    user = User.find_by(id: user_id)
+    return unless user&.hey_connected?
     return if Rails.cache.exist?("journal_local_push:#{user_id}:#{date_string}")
 
     date = Date.parse(date_string)

@@ -1,4 +1,9 @@
 <% today = current_user.today_in_zone %>
+<%# Prefill from today's journal entry. Submitting replaces it, and the box used
+    to open empty — so closing the day silently wiped anything written in the
+    day-view scratchpad. Showing it first makes the replacement deliberate. %>
+<% existing_entry = current_user.local_journal_entries.find_by(date: today) %>
+<% existing_reflection = LocalJournalEntry.plain_text_from_editor(existing_entry&.content) %>
 
 <div class="ritual-doc__page">
   <p class="ritual-doc__dateline"><%= today.strftime("%A, %B %-d") %></p>
@@ -9,9 +14,10 @@
   <%= form_with url: ritual_evening_path, method: :post, data: { turbo_frame: "_top" }, html: { class: "ritual-doc__reflection" } do |f| %>
     <%= f.hidden_field :step, value: 2 %>
     <%= f.text_area :reflection,
+                    value: existing_reflection,
                     class: "ritual-doc__reflection-input",
                     placeholder: "Something worth remembering from today…",
-                    rows: 3,
+                    rows: existing_reflection.present? ? 6 : 3,
                     autofocus: true %>
 
     <p class="ritual-doc__reflection-hint">

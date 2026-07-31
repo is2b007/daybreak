@@ -14,8 +14,8 @@ class SyncHeyEmailsJob < ApplicationJob
   # folder: (optional String/Symbol) — when given, syncs only that one folder.
   # Omit or pass nil to sync all folders (used by the scheduled background job).
   def perform(user_id, folder: nil)
-    user = User.find(user_id)
-    return unless user.hey_connected?
+    user = User.find_by(id: user_id)
+    return unless user&.hey_connected?
 
     client = HeyClient.new(user)
     fetchers = folder_fetchers_for(folder)
