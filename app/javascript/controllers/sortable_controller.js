@@ -95,6 +95,9 @@ export default class extends Controller {
       if (isSometime) {
         body.set("target_bucket", "sometime")
       } else {
+        // Without a date the server can only reject the drop; bail rather than
+        // POSTing the literal string "undefined".
+        if (!targetList.dataset.date) return
         body.set("target_date", targetList.dataset.date)
         body.set("target_bucket", "day")
       }
@@ -164,6 +167,9 @@ export default class extends Controller {
     if (isSometime) {
       body.set("target_bucket", "sometime")
     } else {
+      // Without a date the server can only reject the move; bail rather than
+      // POSTing the literal string "undefined".
+      if (!targetDate) return
       body.set("target_date", targetDate)
       body.set("target_bucket", "day")
     }

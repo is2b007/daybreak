@@ -2,8 +2,8 @@ class SyncJournalJob < ApplicationJob
   queue_as :default
 
   def perform(user_id, date_string)
-    user = User.find(user_id)
-    return unless user.hey_connected?
+    user = User.find_by(id: user_id)
+    return unless user&.hey_connected?
 
     date = Date.parse(date_string)
     client = HeyClient.new(user)

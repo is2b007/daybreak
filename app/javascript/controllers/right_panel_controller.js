@@ -2,19 +2,46 @@ import { Controller } from "@hotwired/stimulus"
 
 const COLLAPSED_KEY = "daybreak:rightPanelCollapsed"
 const WIDTH_KEY = "daybreak:rightPanelContentWidthPx"
+// Keep in sync with the responsive breakpoint in application.css, where the side
+// columns stop taking grid space and open over the content instead.
+const NARROW = "(max-width: 1100px)"
 
 export default class extends Controller {
   static targets = ["tab", "railBtn", "toggleBtn", "content"]
 
   connect() {
-    try {
-      if (localStorage.getItem(COLLAPSED_KEY) === "1") {
-        this.element.classList.add("right--collapsed")
-      }
-    } catch (_) { /* private mode */ }
+    this.narrow = window.matchMedia?.(NARROW)
+    this.#applyStoredState()
     this.#applyStoredWidth()
     this.#syncToggle()
     this.#expandForSunrisePlan()
+
+    // Rotating or resizing into a narrow viewport with the panel open would leave
+    // a drawer sitting on top of the content.
+    this.onNarrowChange = (e) => {
+      if (e.matches) this.element.classList.add("right--collapsed")
+      else this.#applyStoredState()
+      this.#syncToggle()
+    }
+    this.narrow?.addEventListener("change", this.onNarrowChange)
+  }
+
+  disconnect() {
+    this.narrow?.removeEventListener("change", this.onNarrowChange)
+  }
+
+  /** Narrow viewports always start closed, without clobbering the desktop preference. */
+  #applyStoredState() {
+    if (this.narrow?.matches) {
+      this.element.classList.add("right--collapsed")
+      return
+    }
+
+    let stored = null
+    try {
+      stored = localStorage.getItem(COLLAPSED_KEY)
+    } catch (_) { /* private mode */ }
+    this.element.classList.toggle("right--collapsed", stored === "1")
   }
 
   toggle() {
@@ -38,8 +65,12 @@ export default class extends Controller {
       const u = new URL(window.location.href)
       if (u.searchParams.get("plan") !== "1") return
 
-      this.element.classList.remove("right--collapsed")
-      localStorage.setItem(COLLAPSED_KEY, "0")
+      // On a narrow viewport the panel opens as a drawer over the board it is
+      // meant to be dragged onto, so leave it closed and just preselect the tab.
+      if (!this.narrow?.matches) {
+        this.element.classList.remove("right--collapsed")
+        localStorage.setItem(COLLAPSED_KEY, "0")
+      }
       this.#activateTab("bc")
       this.#syncToggle()
 

@@ -14,15 +14,19 @@ export default class extends Controller {
   }
 
   update() {
+    if (!this.hasLineTarget) return
+
     const now = new Date()
     // Use Intl to get the hour/minute in the user's timezone
     const tz = this.timezoneValue || Intl.DateTimeFormat().resolvedOptions().timeZone
+    // hourCycle h23, not hour12:false — the latter formats midnight as "24" in
+    // en-US, which then renders as "12pm" in the label below.
     const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: tz, hour: "numeric", minute: "numeric", hour12: false
+      timeZone: tz, hour: "numeric", minute: "numeric", hourCycle: "h23"
     }).formatToParts(now)
 
-    const hour24 = parseInt(parts.find(p => p.type === "hour")?.value ?? "0")
-    const minute = parseInt(parts.find(p => p.type === "minute")?.value ?? "0")
+    const hour24 = (parseInt(parts.find(p => p.type === "hour")?.value ?? "0", 10) || 0) % 24
+    const minute = parseInt(parts.find(p => p.type === "minute")?.value ?? "0", 10) || 0
     const decimal = hour24 + minute / 60
 
     const hourStart = 7

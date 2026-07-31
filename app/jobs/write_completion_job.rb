@@ -2,7 +2,9 @@ class WriteCompletionJob < ApplicationJob
   queue_as :default
 
   def perform(task_assignment_id)
-    task = TaskAssignment.find(task_assignment_id)
+    task = TaskAssignment.find_by(id: task_assignment_id)
+    return if task.nil?
+
     user = task.user
     return unless task.completed?
 

@@ -1,7 +1,12 @@
 class TimerSessionsController < ApplicationController
   def create
-    # Stop any running timer first
-    current_user.local_timer_sessions.running.each(&:stop!)
+    # Stop any running timer first. Starting a second timer has to close out the
+    # remote HEY time track too, otherwise the previous one keeps running in HEY
+    # forever — only the explicit Stop button used to do that.
+    current_user.local_timer_sessions.running.each do |running|
+      stop_hey_time_track(running)
+      running.stop!
+    end
 
     task = params[:task_assignment_id].present? ? current_user.task_assignments.find(params[:task_assignment_id]) : nil
 
@@ -29,21 +34,23 @@ class TimerSessionsController < ApplicationController
   def update
     @timer = current_user.local_timer_sessions.find(params[:id])
 
-    # Stop HEY time tracking if we started one
-    if @timer.hey_time_track_id.present? && current_user.hey_connected?
-      begin
-        client = HeyClient.new(current_user)
-        client.stop_time_track(@timer.hey_time_track_id)
-      rescue StandardError => e
-        Rails.logger.warn("HEY time track stop failed: #{e.message}")
-      end
-    end
-
+    stop_hey_time_track(@timer)
     @timer.stop!
     redirect_after_timer_change(@timer.task_assignment)
   end
 
   private
+
+  # Stop HEY time tracking if we started one. Never let a HEY failure block the
+  # local stop — the elapsed time is ours to record either way.
+  def stop_hey_time_track(timer)
+    return if timer.hey_time_track_id.blank?
+    return unless current_user.hey_connected?
+
+    HeyClient.new(current_user).stop_time_track(timer.hey_time_track_id)
+  rescue StandardError => e
+    Rails.logger.warn("HEY time track stop failed: #{e.message}")
+  end
 
   # Submissions from the focus overlay come through the "focus" turbo-frame.
   # redirect_back would land on the underlying day/week page — whose `focus`

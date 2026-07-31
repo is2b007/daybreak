@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # PWA manifest — drives the home-screen icon, name and theme colour.
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+
   # Dev backdoor login (development only)
   if Rails.env.development?
     get "dev/login/:user_id", to: "dev#login", as: :dev_login

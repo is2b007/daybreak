@@ -91,8 +91,11 @@ class RitualsController < ApplicationController
 
   def evening_complete
     today = current_user.today_in_zone
-    @day_plan = current_user.day_plans.find_by(date: today)
-    @day_plan&.update!(evening_ritual_done: true, status: :completed)
+    # find_or_create_by!: with no plan for today the closed state was never
+    # recorded, so revisiting /ritual/evening restarted the ritual instead of
+    # showing the wrap screen.
+    @day_plan = current_user.day_plans.find_or_create_by!(date: today)
+    @day_plan.update!(evening_ritual_done: true, status: :completed)
 
     # Sync daily log to HEY Journal if connected
     SyncJournalJob.perform_later(current_user.id, today.to_s) if current_user.hey_connected?
@@ -251,10 +254,19 @@ class RitualsController < ApplicationController
   end
 
   def save_reflection
-    return unless params[:reflection].present?
+    reflection = params[:reflection].to_s
 
-    # Always save locally (HEY sync fires from evening_complete via SyncJournalJob)
     entry = current_user.local_journal_entries.find_or_initialize_by(date: current_user.today_in_zone)
-    entry.update!(content: params[:reflection])
+
+    if reflection.strip.blank?
+      # The box is prefilled with the day's journal, so an empty submit is the
+      # user clearing it — not a reason to silently keep the old text.
+      entry.destroy if entry.persisted?
+      return
+    end
+
+    # Store as HTML: the journal scratchpad renders `content` as innerHTML, so raw
+    # textarea newlines collapsed into one run-on paragraph.
+    entry.update!(content: LocalJournalEntry.html_from_plain_text(reflection))
   end
 end

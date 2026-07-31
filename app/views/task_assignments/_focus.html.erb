@@ -71,12 +71,18 @@
                 class: "btn btn--primary btn--large focus__timer-btn" do %>
             <span class="focus__timer-btn-icon">&#9632;</span> Stop
           <% end %>
-        <% elsif any_running_timer %>
-          <p class="focus__timer-hint">A timer is running on another task.</p>
         <% else %>
+          <%# Starting always stops whatever else is running (see TimerSessionsController#create),
+              so offer the button and say what it will do rather than dead-ending on a hint. %>
           <%= button_to timer_sessions_path, params: { task_assignment_id: task.id },
                 class: "btn btn--primary btn--large focus__timer-btn" do %>
             <span class="focus__timer-btn-icon">&#9654;</span> Start
+          <% end %>
+          <% if any_running_timer %>
+            <p class="focus__timer-hint">
+              This will stop the timer on
+              <%= any_running_timer.task_assignment&.title || "your other task" %>.
+            </p>
           <% end %>
         <% end %>
       </div>

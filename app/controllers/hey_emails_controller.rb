@@ -43,7 +43,7 @@ class HeyEmailsController < ApplicationController
   end
 
   def triage
-    week_start = Date.current.in_time_zone(current_user.timezone).beginning_of_week(:monday)
+    week_start = current_user.current_week_start
 
     ActiveRecord::Base.transaction do
       current_user.task_assignments.create!(
@@ -72,7 +72,7 @@ class HeyEmailsController < ApplicationController
   # Promotes a HEY inbox row into a real TaskAssignment via drag-and-drop.
   # Mirrors TaskAssignmentsController#move stream patterns so the board updates identically.
   def plan
-    week_start = Date.current.beginning_of_week(:monday)
+    week_start = current_user.current_week_start
     day_ctx    = day_view_stream_context?
 
     task = ActiveRecord::Base.transaction do

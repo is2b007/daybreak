@@ -6,9 +6,14 @@ class LocalTimerSession < ApplicationRecord
 
   scope :running, -> { where(ended_at: nil) }
 
+  # Idempotent: a double-submitted Stop (or a stale form replayed after the timer
+  # already closed) must not push ended_at forward and inflate the recorded time.
   def stop!
+    return self unless running?
+
     update!(ended_at: Time.current)
     update_task_duration! if task_assignment
+    self
   end
 
   def duration_seconds

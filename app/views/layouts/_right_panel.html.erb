@@ -201,7 +201,8 @@
     </div>
     <div class="g-list">
       <% if @rp_goals&.any? %>
-        <div class="g-section-label"><%= Date.current.beginning_of_week(:monday).strftime("%B %-d") %> &ndash; <%= (Date.current.beginning_of_week(:monday) + 6.days).strftime("%-d, %Y") %></div>
+        <% goals_week_start = current_user.current_week_start %>
+        <div class="g-section-label"><%= goals_week_start.strftime("%B %-d") %> &ndash; <%= (goals_week_start + 6.days).strftime("%-d, %Y") %></div>
         <% @rp_goals.each do |goal| %>
           <div class="g-card">
             <div class="g-title"><%= goal.title %></div>
