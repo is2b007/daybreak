@@ -35,7 +35,11 @@ class SyncCalendarEventsJob < ApplicationJob
   def sync_basecamp(user, week_start, week_end)
     client = BasecampClient.new(user)
     client.schedules.each do |schedule|
-      entries = client.schedule_entries(schedule[:schedule_id])
+      entries = client.schedule_entries_in_window(
+        schedule[:schedule_id],
+        starts_on: week_start,
+        ends_on: week_end
+      )
       next unless entries.is_a?(Array)
 
       entries.each { |entry| upsert_basecamp(user, entry, week_start, week_end) }

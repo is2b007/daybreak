@@ -14,10 +14,7 @@ class RefreshTokensJob < ApplicationJob
         .find_each do |user|
       begin
         data = BasecampClient.refresh_token(user.basecamp_refresh_token)
-        user.update!(
-          basecamp_access_token: data["access_token"],
-          basecamp_token_expires_at: 2.weeks.from_now
-        )
+        BasecampClient.persist_tokens!(user, data)
       rescue => e
         Rails.logger.error("Basecamp token refresh failed for user #{user.id}: #{e.message}")
       end

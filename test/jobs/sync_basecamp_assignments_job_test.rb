@@ -30,6 +30,62 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
     assert_equal "inbox", ta.week_bucket
   end
 
+  test "marks an existing assignment complete when it appears in completed.json" do
+    user = users(:one)
+    existing = user.task_assignments.create!(
+      external_id: "9001",
+      source: :basecamp,
+      title: "Ship it",
+      week_bucket: "inbox",
+      size: :medium,
+      status: :pending
+    )
+
+    fake_class = Class.new do
+      define_method(:initialize) { |_user| nil }
+      define_method(:my_assignments) { [] }
+      define_method(:completed_assignments) do
+        [
+          {
+            "id" => 9001,
+            "type" => "todo",
+            "content" => "Ship it",
+            "completed" => true,
+            "bucket" => { "id" => 1, "name" => "P" }
+          }
+        ]
+      end
+    end
+
+    SyncBasecampAssignmentsJob.perform_now(user.id, basecamp_client_class: fake_class)
+
+    assert existing.reload.completed?
+    assert_equal 1, user.task_assignments.where(source: :basecamp, external_id: "9001").count
+  end
+
+  test "does not create new tasks from the completed assignments list" do
+    user = users(:one)
+    fake_class = Class.new do
+      define_method(:initialize) { |_user| nil }
+      define_method(:my_assignments) { [] }
+      define_method(:completed_assignments) do
+        [
+          {
+            "id" => 42,
+            "type" => "todo",
+            "content" => "Ancient history",
+            "completed" => true,
+            "bucket" => { "id" => 1, "name" => "P" }
+          }
+        ]
+      end
+    end
+
+    assert_no_difference -> { TaskAssignment.where(user_id: user.id, source: :basecamp).count } do
+      SyncBasecampAssignmentsJob.perform_now(user.id, basecamp_client_class: fake_class)
+    end
+  end
+
   test "User#current_week_start respects user timezone at 23:30 UTC on Sunday" do
     # 23:30 UTC on Sunday is already Monday in Tokyo (JST = UTC+9).
     user = users(:one)

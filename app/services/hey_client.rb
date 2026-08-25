@@ -678,42 +678,6 @@ class HeyClient
     nil
   end
 
-  def json_post_with_meta(path, body)
-    ensure_fresh_token!
-    meta = single_json_post(path, body)
-    if meta[:unauthorized]
-      perform_token_refresh!
-      meta = single_json_post(path, body)
-    end
-    if meta[:unauthorized] || meta[:code] == 401
-      raise AuthError, "HEY session expired. Reconnect from Settings."
-    end
-    meta
-  end
-
-  def single_json_post(path, body)
-    uri = URI("#{BASE_API_URL}#{path}")
-    req = Net::HTTP::Post.new(uri)
-    req["Authorization"] = "Bearer #{@user.hey_access_token}"
-    req["Content-Type"]  = "application/json"
-    req["Accept"]        = "application/json"
-    req["User-Agent"]    = self.class.user_agent
-    req.body = body.to_json
-
-    res = http_start(uri) { |http| http.request(req) }
-    parsed =
-      if res.is_a?(Net::HTTPSuccess)
-        s = res.body.to_s.strip
-        s.present? ? (JSON.parse(s) rescue nil) : {}
-      end
-    {
-      code: res.code.to_i,
-      json: parsed,
-      success: res.is_a?(Net::HTTPSuccess),
-      unauthorized: res.is_a?(Net::HTTPUnauthorized)
-    }
-  end
-
   def extract_json_calendar_event_id(data)
     return nil unless data.is_a?(Hash)
 
@@ -807,14 +771,23 @@ class HeyClient
     starts = rec["starts_at"] || rec["startsAt"]
 
     if occ.present? && series_id.present? && starts.present?
-      date = begin
-        Time.zone.parse(starts.to_s).to_date.iso8601
-      rescue ArgumentError, TypeError
-        nil
-      end
+      date = occurrence_calendar_date(starts)
       rec["id"] = "#{series_id}:#{date}" if date
     end
     rec
+  end
+
+  # Occurrence paths use the event's civil date. A UTC parse of an evening
+  # offset timestamp (e.g. 2026-04-15T23:00:00-05:00) would become the next day.
+  def occurrence_calendar_date(starts)
+    str = starts.to_s
+    return str if str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+    return str[0, 10] if str.match?(/\A\d{4}-\d{2}-\d{2}T.+(?:[+-]\d{2}:\d{2}|[+-]\d{4})\z/)
+
+    zone = Time.find_zone(@user.timezone.presence) || Time.zone
+    zone.parse(str)&.to_date&.iso8601
+  rescue ArgumentError, TypeError
+    str[0, 10] if str.match?(/\A\d{4}-\d{2}-\d{2}/)
   end
 
   def next_path_from_link_header(link)

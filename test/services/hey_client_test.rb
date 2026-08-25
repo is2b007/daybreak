@@ -430,6 +430,30 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal "7", rows.first["hey_calendar_id"]
   end
 
+  test "flatten_calendar_period uses wall date from an offset evening timestamp" do
+    @user.update!(timezone: "UTC")
+    client = HeyClient.new(@user)
+    raw = {
+      "kind" => "week",
+      "recordings" => {
+        "Calendar::Event" => [
+          {
+            "id" => 0,
+            "parent_id" => 88,
+            "occurrence_id" => "_",
+            "title" => "Evening class",
+            "starts_at" => "2026-04-15T23:00:00-05:00",
+            "ends_at" => "2026-04-15T23:45:00-05:00",
+            "calendar" => { "id" => 7 }
+          }
+        ]
+      }
+    }
+
+    rows = client.flatten_calendar_period(raw)
+    assert_equal "88:2026-04-15", rows.first["id"]
+  end
+
   test "calendar_week_events fetches /calendar/weeks/:date.json" do
     client = HeyClient.new(@user)
     paths = []

@@ -17,7 +17,7 @@ class SessionsController < ApplicationController
       return
     end
 
-    account = identity_data["accounts"]&.find { |a| a["product"] == "bc3" }
+    account = BasecampClient.pick_account(identity_data["accounts"])
 
     user = User.find_or_initialize_by(basecamp_uid: identity["id"].to_s)
     user.assign_attributes(
@@ -25,8 +25,8 @@ class SessionsController < ApplicationController
       email: identity["email_address"],
       basecamp_access_token: token_data["access_token"],
       basecamp_refresh_token: token_data["refresh_token"],
-      basecamp_token_expires_at: 2.weeks.from_now,
-      basecamp_account_id: account&.dig("id")&.to_s
+      basecamp_token_expires_at: BasecampClient.expires_at_from_token(token_data),
+      basecamp_account_id: BasecampClient.account_id_from(account)
     )
     user.save!
 

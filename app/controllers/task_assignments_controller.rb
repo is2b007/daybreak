@@ -10,7 +10,7 @@ class TaskAssignmentsController < ApplicationController
     @bc_comments = []
     @bc_comments_error = nil
     @hey_email_body = nil
-    if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+    if @task.basecamp? && @task.external_id.present?
       begin
         client = BasecampClient.new(current_user)
         @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
@@ -42,7 +42,7 @@ class TaskAssignmentsController < ApplicationController
     @bc_todo = nil
     @bc_comments = []
     @bc_comments_error = nil
-    if @task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?
+    if @task.basecamp? && @task.external_id.present?
       begin
         client = BasecampClient.new(current_user)
         @bc_todo = client.todo(@task.external_id)
@@ -381,7 +381,7 @@ class TaskAssignmentsController < ApplicationController
     content = params[:content].to_s.strip
     error = if content.blank?
       "Comment can't be blank."
-    elsif !(@task.basecamp? && @task.basecamp_bucket_id.present? && @task.external_id.present?)
+    elsif !(@task.basecamp? && @task.external_id.present?)
       "Cannot comment on this task."
     end
 
