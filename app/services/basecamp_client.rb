@@ -217,7 +217,7 @@ class BasecampClient
 
   def create_comment(bucket_id, recording_id = nil, content: nil)
     id = recording_id.presence || bucket_id
-    post("/recordings/#{id}/comments.json", { content: content })
+    post("/recordings/#{id}/comments.json", { content: rich_text_html(content) })
   end
 
   def create_todolist(todoset_id, name:)
@@ -387,6 +387,16 @@ class BasecampClient
     req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
     req["User-Agent"] = self.class.user_agent
     req["Accept"] = "application/json"
+  end
+
+  # bc3-api rich_text.md: comment content is HTML. Encode entities and turn
+  # newlines into <br>. Already-tagged strings (e.g. from Trix) pass through.
+  def rich_text_html(content)
+    str = content.to_s
+    return str if str.include?("<")
+
+    escaped = ERB::Util.html_escape(str)
+    "<div>#{escaped.gsub("\n", "<br>")}</div>"
   end
 
   def post(path, body = nil)

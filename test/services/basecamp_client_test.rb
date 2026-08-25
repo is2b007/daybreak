@@ -100,7 +100,17 @@ class BasecampClientTest < ActiveSupport::TestCase
 
     assert_equal "/recordings/55/comments.json", listed
     assert_equal "/recordings/55/comments.json", created[0]
-    assert_equal "Nice", created[1][:content]
+    assert_equal "<div>Nice</div>", created[1][:content]
+  end
+
+  test "create_comment wraps plain text as official rich-text HTML" do
+    client = BasecampClient.new(users(:one))
+    body = nil
+    client.define_singleton_method(:post) { |_path, payload| body = payload }
+
+    client.create_comment("1", "2", content: "Line one\nLine two & more")
+
+    assert_equal "<div>Line one<br>Line two &amp; more</div>", body[:content]
   end
 
   test "schedule_entries paginates the official flat list" do
