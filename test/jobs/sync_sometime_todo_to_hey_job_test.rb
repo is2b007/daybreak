@@ -43,18 +43,27 @@ class SyncSometimeTodoToHeyJobTest < ActiveJob::TestCase
     assert_equal "todo-remote-1", @task.reload.hey_mirrored_todo_id
   end
 
-  test "skips when mirrored id already set" do
+  test "updates existing mirrored todo instead of creating another" do
     @task.update_column(:hey_mirrored_todo_id, "existing")
 
-    called = false
+    created = false
+    updated = nil
     client = Object.new
-    client.define_singleton_method(:create_todo) { |**_| called = true }
+    client.define_singleton_method(:create_todo) { |**_| created = true }
+    client.define_singleton_method(:update_todo) do |id, **kw|
+      updated = { id: id, **kw }
+      {}
+    end
 
     with_hey_client(client) do
       SyncSometimeTodoToHeyJob.perform_now(@task.id)
     end
 
-    assert_equal false, called
+    assert_equal false, created
+    assert_equal "existing", updated[:id]
+    assert_equal "Sometime task", updated[:title]
+    assert_equal "2026-04-19", updated[:starts_at]
+    assert_equal "existing", @task.reload.hey_mirrored_todo_id
   end
 
   test "creates todo without hey_app_url using week end anchor date" do

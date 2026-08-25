@@ -14,8 +14,6 @@ class SyncTimeboxToHeyJob < ApplicationJob
     CalendarEvent.destroy_daybreak_timebox_mirror!(user, task.id)
 
     prev_id = task.hey_calendar_event_id
-    client.delete_timebox_mirror_remote_id(prev_id) if prev_id.present?
-
     cal_id = client.calendar_id_for_timed_writes
     tz_name = user.timezone.presence || "UTC"
     zone = ActiveSupport::TimeZone[tz_name] || Time.zone
@@ -26,13 +24,31 @@ class SyncTimeboxToHeyJob < ApplicationJob
 
     new_id = nil
     if cal_id.present?
-      new_id = client.create_timed_calendar_event_form(
-        calendar_id: cal_id,
-        title: task.title,
-        local_start: local_start,
-        local_end: local_end,
-        time_zone: tz_name
-      )
+      if prev_id.present?
+        patched = client.update_calendar_event(
+          calendar_id: cal_id,
+          event_id: prev_id,
+          title: task.title,
+          starts_at: local_start,
+          ends_at: local_end,
+          all_day: false,
+          time_zone: tz_name
+        )
+        new_id = patched.presence
+      end
+
+      if new_id.blank?
+        new_id = client.create_timed_calendar_event_form(
+          calendar_id: cal_id,
+          title: task.title,
+          local_start: local_start,
+          local_end: local_end,
+          time_zone: tz_name
+        )
+        if prev_id.present? && new_id.present? && new_id.to_s != prev_id.to_s
+          client.delete_timebox_mirror_remote_id(prev_id)
+        end
+      end
     end
 
     d = task.planned_start_at.in_time_zone(user.timezone).to_date

@@ -13,7 +13,7 @@ class HeyClientTest < ActiveSupport::TestCase
   test "write_journal sends calendar_journal_entry envelope per HEY API" do
     client = HeyClient.new(@user)
     captured = nil
-    client.define_singleton_method(:request) do |method, path, body|
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
       captured = { method: method, path: path, body: body }
       {}
     end
@@ -180,5 +180,289 @@ class HeyClientTest < ActiveSupport::TestCase
     rows = client.send(:flatten_calendar_recordings, raw, calendar_id: "c1")
     assert_equal 2, rows.size
     assert_equal %w[1 2], rows.map { |r| r["id"] }.sort
+  end
+
+  test "create_todo sends bare YYYY-MM-DD on calendar_todo" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
+      captured = { method: method, path: path, body: body }
+      { "id" => 12 }
+    end
+
+    client.create_todo(title: "Buy milk", starts_at: Date.new(2026, 4, 19))
+
+    assert_equal :post, captured[:method]
+    assert_equal "/calendar/todos.json", captured[:path]
+    assert_equal(
+      { "calendar_todo" => { title: "Buy milk", starts_at: "2026-04-19" } },
+      captured[:body]
+    )
+  end
+
+  test "update_todo patches official todos.json path and omits empty fields" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
+      captured = { method: method, path: path, body: body }
+      {}
+    end
+
+    client.update_todo("77", title: "Renamed")
+
+    assert_equal :patch, captured[:method]
+    assert_equal "/calendar/todos/77.json", captured[:path]
+    assert_equal({ "calendar_todo" => { title: "Renamed" } }, captured[:body])
+  end
+
+  test "delete_todo uses .json suffix" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
+      captured = { method: method, path: path }
+      {}
+    end
+
+    client.delete_todo("9")
+
+    assert_equal :delete, captured[:method]
+    assert_equal "/calendar/todos/9.json", captured[:path]
+  end
+
+  test "create_timed_calendar_event_form posts /calendar/events.json with set_time_zone" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, pairs|
+      captured = { method: method, path: path, pairs: pairs }
+      { code: 201, body: { "id" => 55 }.to_json, location: nil, unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["America/Los_Angeles"]
+    id = client.create_timed_calendar_event_form(
+      calendar_id: "42",
+      title: "Focus",
+      local_start: zone.local(2026, 4, 13, 14, 0),
+      local_end: zone.local(2026, 4, 13, 15, 0),
+      time_zone: "America/Los_Angeles"
+    )
+
+    assert_equal "55", id
+    assert_equal :post, captured[:method]
+    assert_equal "/calendar/events.json", captured[:path]
+    assert_includes captured[:pairs], [ "calendar_event[set_time_zone]", "1" ]
+    assert_includes captured[:pairs], [ "calendar_event[starts_at_time_zone_name]", "America/Los_Angeles" ]
+    assert_includes captured[:pairs], [ "calendar_event[starts_at]", "2026-04-13" ]
+    assert_includes captured[:pairs], [ "calendar_event[starts_at_time]", "14:00:00" ]
+  end
+
+  test "create_timed_calendar_event_form falls back to redirect id" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:form_request) do |_method, _path, _pairs|
+      { code: 302, body: "", location: "/calendar/events/99", unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["UTC"]
+    id = client.create_timed_calendar_event_form(
+      calendar_id: "1",
+      title: "X",
+      local_start: zone.local(2026, 4, 13, 10, 0),
+      local_end: zone.local(2026, 4, 13, 11, 0),
+      time_zone: "UTC"
+    )
+
+    assert_equal "99", id
+  end
+
+  test "update_calendar_event patches official events.json path" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, pairs|
+      captured = { method: method, path: path, pairs: pairs }
+      { code: 200, body: { "id" => 8 }.to_json, location: nil, unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["UTC"]
+    id = client.update_calendar_event(
+      calendar_id: "3",
+      event_id: "8",
+      title: "Meet",
+      starts_at: zone.local(2026, 4, 13, 9, 0),
+      ends_at: zone.local(2026, 4, 13, 10, 0),
+      all_day: false,
+      time_zone: "UTC"
+    )
+
+    assert_equal "8", id
+    assert_equal :patch, captured[:method]
+    assert_equal "/calendar/events/8.json", captured[:path]
+    assert_includes captured[:pairs], [ "calendar_event[set_time_zone]", "1" ]
+  end
+
+  test "update_calendar_event routes occurrence ids to occurrences endpoint" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, _pairs|
+      captured = { method: method, path: path }
+      { code: 200, body: { "id" => 88 }.to_json, location: nil, unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["UTC"]
+    client.update_calendar_event(
+      calendar_id: "3",
+      event_id: "88:2026-04-15",
+      title: "Weekly",
+      starts_at: zone.local(2026, 4, 15, 9, 0),
+      ends_at: zone.local(2026, 4, 15, 10, 0),
+      all_day: false,
+      time_zone: "UTC"
+    )
+
+    assert_equal "/calendar/events/88/occurrences/2026-04-15.json", captured[:path]
+  end
+
+  test "delete_calendar_event uses official form delete path" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, _pairs|
+      captured = { method: method, path: path }
+      { code: 204, body: "", location: nil, unauthorized: false, success: true }
+    end
+
+    assert client.delete_calendar_event(calendar_id: "3", event_id: "8")
+    assert_equal :delete, captured[:method]
+    assert_equal "/calendar/events/8", captured[:path]
+  end
+
+  test "start_time_track sends no body and adopts ongoing on 409" do
+    client = HeyClient.new(@user)
+    posts = []
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
+      if method == :post
+        posts << { path: path, body: body, allow: allow }
+        client.instance_variable_set(:@last_status_code, 409)
+        return nil
+      end
+      { "id" => 321 }
+    end
+
+    result = client.start_time_track
+
+    assert_equal 1, posts.size
+    assert_equal "/calendar/ongoing_time_track.json", posts[0][:path]
+    assert_nil posts[0][:body]
+    assert_includes posts[0][:allow], 409
+    assert_equal 321, result["id"]
+  end
+
+  test "stop_time_track wraps ends_at under calendar_time_track" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:request) do |method, path, body = nil, allow: []|
+      captured = { method: method, path: path, body: body }
+      {}
+    end
+
+    client.stop_time_track("44", category_title: "Focus work")
+
+    assert_equal :put, captured[:method]
+    assert_equal "/calendar/time_tracks/44.json", captured[:path]
+    assert_equal "Focus work", captured[:body].dig("calendar_time_track", :category_title)
+    assert captured[:body].dig("calendar_time_track", :ends_at).present?
+  end
+
+  test "email box methods use canonical laterbox asidebox trailbox paths" do
+    client = HeyClient.new(@user)
+    paths = []
+    client.define_singleton_method(:get) do |path, allow: []|
+      paths << path
+      { "postings" => [] }
+    end
+
+    client.reply_later
+    client.set_aside
+    client.paper_trail
+
+    assert_equal %w[/laterbox.json /asidebox.json /trailbox.json], paths
+  end
+
+  test "fetch_box follows Link rel=next when next_history_url is absent" do
+    client = HeyClient.new(@user)
+    paths = []
+    client.define_singleton_method(:get) do |path, allow: []|
+      paths << path
+      if path == "/laterbox.json"
+        client.instance_variable_set(:@last_link_header, '<https://app.hey.com/laterbox.json?page=abc>; rel="next"')
+        { "postings" => [ { "id" => 1, "kind" => "topic" } ] }
+      else
+        client.instance_variable_set(:@last_link_header, nil)
+        { "postings" => [ { "id" => 2, "kind" => "topic" } ] }
+      end
+    end
+
+    rows = client.reply_later
+    assert_equal 2, rows.size
+    assert_includes paths, "/laterbox.json"
+    assert_includes paths, "/laterbox.json?page=abc"
+  end
+
+  test "flatten_calendar_period expands occurrence_id into composite external id" do
+    client = HeyClient.new(@user)
+    raw = {
+      "kind" => "week",
+      "recordings" => {
+        "Calendar::Event" => [
+          {
+            "id" => 0,
+            "parent_id" => 88,
+            "occurrence_id" => "_",
+            "title" => "Weekly standup",
+            "starts_at" => "2026-04-15T15:00:00Z",
+            "ends_at" => "2026-04-15T15:30:00Z",
+            "calendar" => { "id" => 7 }
+          }
+        ]
+      }
+    }
+
+    rows = client.flatten_calendar_period(raw)
+    assert_equal 1, rows.size
+    assert_equal "88:2026-04-15", rows.first["id"]
+    assert_equal "7", rows.first["hey_calendar_id"]
+  end
+
+  test "flatten_calendar_period uses wall date from an offset evening timestamp" do
+    @user.update!(timezone: "UTC")
+    client = HeyClient.new(@user)
+    raw = {
+      "kind" => "week",
+      "recordings" => {
+        "Calendar::Event" => [
+          {
+            "id" => 0,
+            "parent_id" => 88,
+            "occurrence_id" => "_",
+            "title" => "Evening class",
+            "starts_at" => "2026-04-15T23:00:00-05:00",
+            "ends_at" => "2026-04-15T23:45:00-05:00",
+            "calendar" => { "id" => 7 }
+          }
+        ]
+      }
+    }
+
+    rows = client.flatten_calendar_period(raw)
+    assert_equal "88:2026-04-15", rows.first["id"]
+  end
+
+  test "calendar_week_events fetches /calendar/weeks/:date.json" do
+    client = HeyClient.new(@user)
+    paths = []
+    client.define_singleton_method(:get) do |path, allow: []|
+      paths << path
+      { "kind" => "week", "recordings" => { "Calendar::Event" => [] } }
+    end
+
+    client.calendar_week_events("2026-04-13")
+    assert_equal [ "/calendar/weeks/2026-04-13.json" ], paths
   end
 end

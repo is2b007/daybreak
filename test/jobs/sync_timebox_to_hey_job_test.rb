@@ -23,8 +23,17 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
       remote_id
     end
 
+    def update_calendar_event(**kwargs)
+      (@event_updates ||= []) << kwargs
+      kwargs[:event_id]
+    end
+
     def event_creates
       @event_creates ||= []
+    end
+
+    def event_updates
+      @event_updates ||= []
     end
 
     def mirror_deletes
@@ -62,18 +71,32 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     HeyClient.define_singleton_method(:new, @orig_hey_new)
   end
 
-  test "replaces existing HEY mirror by delete then create timed calendar event" do
+  test "patches existing HEY mirror instead of delete-and-recreate" do
     SyncTimeboxToHeyJob.perform_now(@task.id)
 
-    assert_equal %w[old-event-id], @hey_fake.mirror_deletes
-    assert_equal 1, @hey_fake.event_creates.size
-    c = @hey_fake.event_creates.last
-    assert_equal "cal-default", c[:calendar_id]
-    assert_equal "Boxed", c[:title]
-    assert_equal "America/Los_Angeles", c[:time_zone]
-    assert_operator c[:local_end], :>, c[:local_start]
-    assert_equal "event-remote-new", @task.reload.hey_calendar_event_id
+    assert_empty @hey_fake.mirror_deletes
+    assert_empty @hey_fake.event_creates
+    assert_equal 1, @hey_fake.event_updates.size
+    u = @hey_fake.event_updates.last
+    assert_equal "cal-default", u[:calendar_id]
+    assert_equal "old-event-id", u[:event_id]
+    assert_equal "Boxed", u[:title]
+    assert_equal "America/Los_Angeles", u[:time_zone]
+    assert_equal "old-event-id", @task.reload.hey_calendar_event_id
     assert_not @user.calendar_events.exists?(source: :daybreak, external_id: CalendarEvent.daybreak_timebox_external_id(@task.id))
+  end
+
+  test "creates a new event when existing mirror PATCH fails" do
+    @hey_fake.define_singleton_method(:update_calendar_event) do |**kwargs|
+      (@event_updates ||= []) << kwargs
+      nil
+    end
+
+    SyncTimeboxToHeyJob.perform_now(@task.id)
+
+    assert_equal 1, @hey_fake.event_creates.size
+    assert_equal %w[old-event-id], @hey_fake.mirror_deletes
+    assert_equal "event-remote-new", @task.reload.hey_calendar_event_id
   end
 
   test "creates calendar event when no prior mirror id" do

@@ -35,7 +35,11 @@ class SyncCalendarEventsJob < ApplicationJob
   def sync_basecamp(user, week_start, week_end)
     client = BasecampClient.new(user)
     client.schedules.each do |schedule|
-      entries = client.schedule_entries(schedule[:schedule_id])
+      entries = client.schedule_entries_in_window(
+        schedule[:schedule_id],
+        starts_on: week_start,
+        ends_on: week_end
+      )
       next unless entries.is_a?(Array)
 
       entries.each { |entry| upsert_basecamp(user, entry, week_start, week_end) }
@@ -70,10 +74,17 @@ class SyncCalendarEventsJob < ApplicationJob
 
   def sync_hey(user, week_start, week_end)
     client = HeyClient.new(user)
-    events = client.calendar_events(starts_on: week_start.iso8601, ends_on: week_end.iso8601)
-    if events.is_a?(Array)
-      dedupe_hey_recordings(events).each { |evt| upsert_hey(user, evt) }
+    events = []
+
+    if client.respond_to?(:calendar_week_events)
+      week_rows = client.calendar_week_events(week_start.iso8601)
+      events.concat(week_rows) if week_rows.is_a?(Array)
     end
+
+    recordings = client.calendar_events(starts_on: week_start.iso8601, ends_on: week_end.iso8601)
+    events.concat(recordings) if recordings.is_a?(Array)
+
+    dedupe_hey_recordings(events).each { |evt| upsert_hey(user, evt) }
     reconcile_duplicate_hey_calendar_rows!(user)
     true
   rescue HeyClient::AuthError => e

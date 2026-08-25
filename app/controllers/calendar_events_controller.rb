@@ -142,7 +142,8 @@ class CalendarEventsController < ApplicationController
       title: title,
       starts_at: starts,
       ends_at: ends,
-      all_day: @event.all_day
+      all_day: @event.all_day,
+      time_zone: current_user.timezone
     )
 
     if result.nil?

@@ -157,19 +157,38 @@ class HeyClient
     recordings_calendar_todos(raw)
   end
 
-  # +starts_at+ may be Time or Date; serialized as ISO8601 (hey-sdk OpenAPI: date or time string).
+  # Week period: recurring events are expanded into the occurrences that fall
+  # inside the week. Recordings list a series once, on the day it was created.
+  def calendar_week(date)
+    get("/calendar/weeks/#{date}.json")
+  end
+
+  def calendar_week_events(date)
+    flatten_calendar_period(calendar_week(date))
+  end
+
+  # +starts_at+ is a bare YYYY-MM-DD. An RFC 3339 midnight can land on the
+  # previous day once HEY casts it in the user's zone (hey-sdk CalendarTodos).
   def create_todo(title:, starts_at: nil, ends_at: nil)
     inner = {
       title: title.to_s,
-      starts_at: starts_at.respond_to?(:iso8601) ? starts_at.iso8601 : starts_at.to_s
-    }.compact
-    # Non-standard field; HEY may ignore. Omitted if not set.
-    inner[:ends_at] = ends_at.iso8601 if ends_at.respond_to?(:iso8601)
+      starts_at: coerce_todo_date(starts_at) || Date.current.iso8601
+    }
     post("/calendar/todos.json", { "calendar_todo" => inner })
   end
 
+  def update_todo(todo_id, title: nil, starts_at: nil, focused: nil)
+    changes = {}
+    changes[:title] = title.to_s if title.present?
+    changes[:starts_at] = coerce_todo_date(starts_at) if starts_at.present?
+    changes[:focused] = focused unless focused.nil?
+    return nil if changes.empty?
+
+    patch("/calendar/todos/#{todo_id}.json", { "calendar_todo" => changes })
+  end
+
   def delete_todo(todo_id)
-    delete("/calendar/todos/#{todo_id}")
+    delete("/calendar/todos/#{todo_id}.json")
   end
 
   def complete_todo(todo_id)
@@ -198,11 +217,17 @@ class HeyClient
         rid = rec["id"]
         next if rid.blank?
 
+        cid = calendar_id.presence
+        if cid.blank? && rec["calendar"].is_a?(Hash)
+          cid = rec.dig("calendar", "id").to_s.presence
+        end
+
         merged = rec.merge(
           "id" => rid.to_s,
-          "hey_calendar_id" => calendar_id
+          "hey_calendar_id" => cid
         )
         merged["calendar_color"] = color if color.present?
+        stamp_hey_event_identity!(merged)
         rows << merged
       end
     end
@@ -217,76 +242,113 @@ class HeyClient
     rows.uniq { |r| [ r["hey_calendar_id"], r["id"] ] }
   end
 
-  # Synced HEY calendar rows (drag/resize/delete in Daybreak): JSON under /calendars/:id/events…
-  # hey-sdk OpenAPI documents Bearer calendar *writes* for todos (`POST /calendar/todos.json`);
-  # session-only form routes like `POST /calendar/events` return 404 for OAuth clients (see debug H6).
-  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil)
-    attrs = {}.tap do |h|
-      h[:title] = title if title.present?
-      h[:starts_at] = starts_at.iso8601 if starts_at.respond_to?(:iso8601)
-      h[:ends_at] = ends_at.iso8601 if ends_at.respond_to?(:iso8601)
-      h[:all_day] = all_day unless all_day.nil?
+  # Week/day period payload: { starts_at, ends_at, kind, recordings: { "Calendar::Event" => [...] } }
+  def flatten_calendar_period(raw)
+    return [] if raw.blank?
+    return [] unless raw.is_a?(Hash)
+
+    data = raw.stringify_keys
+    recordings = data["recordings"] || data
+    return [] unless recordings.is_a?(Hash) || recordings.is_a?(Array)
+
+    if recordings.is_a?(Hash)
+      event_keys = recordings.keys.select { |k| k.to_s.match?(/event/i) && !k.to_s.match?(/todo/i) }
+      subset = event_keys.any? ? recordings.slice(*event_keys) : recordings
+      rows = flatten_calendar_recordings(subset, calendar_id: nil)
+      rows.reject! { |r| r["type"].to_s.match?(/todo/i) } if event_keys.empty?
+      rows
+    else
+      flatten_calendar_recordings(recordings, calendar_id: nil)
     end
-    return nil if attrs.empty?
-
-    patch("/calendars/#{calendar_id}/events/#{event_id}.json", { "calendar_event" => attrs })
   end
 
-  def delete_calendar_event(calendar_id:, event_id:)
-    delete("/calendars/#{calendar_id}/events/#{event_id}.json")
+  # Official writes (hey-sdk CalendarEventsService): form to /calendar/events.json
+  # with calendar_event[set_time_zone]=1 so zone names are not dropped.
+  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil, time_zone: nil)
+    return nil if starts_at.blank? || ends_at.blank?
+
+    ref = parse_event_ref(event_id)
+    tz = time_zone.to_s.presence || @user.timezone.presence || "UTC"
+    pairs = calendar_event_form_pairs(
+      calendar_id: calendar_id,
+      title: title,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      all_day: all_day,
+      time_zone: tz
+    )
+    path = if ref[:occurrence]
+      "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json"
+    else
+      "/calendar/events/#{ref[:series_id]}.json"
+    end
+    meta = form_request(:patch, path, pairs)
+    return nil unless form_write_ok?(meta)
+
+    extract_event_id_from_form_meta(meta).presence || event_id.to_s
   end
 
-  def create_calendar_event(calendar_id:, title:, starts_at:, ends_at:, all_day: false)
-    attrs = {
-      title: title.to_s,
-      starts_at: starts_at.respond_to?(:iso8601) ? starts_at.iso8601 : starts_at.to_s,
-      ends_at: ends_at.respond_to?(:iso8601) ? ends_at.iso8601 : ends_at.to_s,
+  def delete_calendar_event(calendar_id: nil, event_id:)
+    ref = parse_event_ref(event_id)
+    path = if ref[:occurrence]
+      "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json"
+    else
+      "/calendar/events/#{ref[:series_id]}"
+    end
+    meta = form_request(:delete, path, nil)
+    return true if form_write_ok?(meta)
+
+    # Last-resort JSON delete for leftover nested-path ids.
+    return false if calendar_id.blank?
+
+    !delete("/calendars/#{calendar_id}/events/#{ref[:series_id]}.json").nil?
+  end
+
+  def create_calendar_event(calendar_id:, title:, starts_at:, ends_at:, all_day: false, time_zone: nil)
+    create_timed_calendar_event_form(
+      calendar_id: calendar_id,
+      title: title,
+      local_start: starts_at,
+      local_end: ends_at,
+      time_zone: time_zone || @user.timezone.presence || "UTC",
       all_day: all_day
-    }
-    post("/calendars/#{calendar_id}/events.json", { "calendar_event" => attrs })
+    )
   end
 
-  # Timed HEY calendar mirror: try hey-sdk browser form first, then JSON create (runtime: OAuth gets 404 on form — debug H7).
-  # Form matches go/pkg/hey/calendar_events.go; JSON matches #create_calendar_event for Bearer.
-  def create_timed_calendar_event_form(calendar_id:, title:, local_start:, local_end:, time_zone:)
-    tz = time_zone.to_s.presence || "UTC"
-    ls = local_start
-    le = local_end
-    starts_date = ls.to_date.iso8601
-    ends_date = le.to_date.iso8601
-    form_pairs = [
-      [ "calendar_event[calendar_id]", calendar_id.to_s ],
-      [ "calendar_event[summary]", title.to_s ],
-      [ "calendar_event[starts_at]", starts_date ],
-      [ "calendar_event[ends_at]", ends_date ],
-      [ "calendar_event[all_day]", "0" ],
-      [ "calendar_event[starts_at_time]", "#{ls.strftime("%H:%M")}:00" ],
-      [ "calendar_event[ends_at_time]", "#{le.strftime("%H:%M")}:00" ],
-      [ "calendar_event[starts_at_time_zone_name]", tz ],
-      [ "calendar_event[ends_at_time_zone_name]", tz ]
-    ]
-    meta = form_request(:post, "/calendar/events", form_pairs)
-    id = extract_form_redirect_event_id(meta)
-    return id if id.present?
-
-    json_body = {
-      "calendar_event" => {
-        "title" => title.to_s,
-        "starts_at" => ls.iso8601,
-        "ends_at" => le.iso8601,
-        "all_day" => false
-      }
-    }
-    jmeta = json_post_with_meta("/calendars/#{calendar_id}/events.json", json_body)
-    return nil unless jmeta[:success]
-
-    extract_json_calendar_event_id(jmeta[:json])
+  def create_timed_calendar_event_form(calendar_id:, title:, local_start:, local_end:, time_zone:, all_day: false)
+    pairs = calendar_event_form_pairs(
+      calendar_id: calendar_id,
+      title: title,
+      starts_at: local_start,
+      ends_at: local_end,
+      all_day: all_day,
+      time_zone: time_zone
+    )
+    meta = form_request(:post, "/calendar/events.json", pairs)
+    extract_event_id_from_form_meta(meta)
   end
 
   def delete_calendar_event_form(event_id)
-    meta = form_request(:delete, "/calendar/events/#{event_id}", nil)
-    code = meta[:code].to_i
-    code == 302 || code == 303 || (code >= 200 && code < 300)
+    delete_calendar_event(event_id: event_id)
+  end
+
+  # Official calendar delete first; leftover sometime-todo mirrors fall back to todo delete.
+  def delete_timebox_mirror_remote_id(remote_id)
+    return if remote_id.blank?
+
+    cal_ok = false
+    begin
+      cal_ok = delete_calendar_event(event_id: remote_id)
+    rescue StandardError
+      cal_ok = false
+    end
+    return if cal_ok
+
+    begin
+      delete_todo(remote_id)
+    rescue StandardError
+      nil
+    end
   end
 
   # Habits
@@ -298,15 +360,23 @@ class HeyClient
   # Time tracking
 
   def current_time_track
-    get("/calendar/ongoing_time_track.json")
+    get("/calendar/ongoing_time_track.json", allow: [ 404 ])
   end
 
+  # HEY ignores the start body and starts a track with defaults. 409 means a
+  # track is already running — adopt GET /calendar/ongoing_time_track.json.
   def start_time_track(title: nil)
-    post("/calendar/ongoing_time_track.json", { title: title }.compact)
+    data = post("/calendar/ongoing_time_track.json", allow: [ 409 ])
+    return current_time_track if @last_status_code == 409
+    return data if data.is_a?(Hash) && data["id"].present?
+
+    current_time_track || data
   end
 
-  def stop_time_track(time_track_id)
-    put("/calendar/time_tracks/#{time_track_id}.json", { ends_at: Time.current.iso8601 })
+  def stop_time_track(time_track_id, category_title: nil)
+    inner = { ends_at: Time.current.iso8601 }
+    inner[:category_title] = category_title if category_title.present?
+    put("/calendar/time_tracks/#{time_track_id}.json", { "calendar_time_track" => inner })
   end
 
   # Journal
@@ -339,11 +409,11 @@ class HeyClient
   end
 
   def reply_later
-    fetch_box("/reply_later.json")
+    fetch_box("/laterbox.json")
   end
 
   def set_aside
-    fetch_box("/set_aside.json")
+    fetch_box("/asidebox.json")
   end
 
   def feed
@@ -351,13 +421,14 @@ class HeyClient
   end
 
   def paper_trail
-    fetch_box("/paper_trail.json")
+    fetch_box("/trailbox.json")
   end
 
   private
 
-  # Returns postings from a BoxShowResponse, following next_history_url until +max_postings+.
-  # Canonical paths per hey-sdk openapi (not /laterbox.json etc.).
+  # Returns postings from a BoxShowResponse, following next_history_url or a
+  # same-origin Link: rel=next header (geared_pagination) until +max_postings+.
+  # Canonical paths per hey-sdk: /laterbox.json, /asidebox.json, /trailbox.json.
   # nil on first-request failure; [] if the box is empty.
   def fetch_box(initial_path, max_postings: 200)
     all = []
@@ -378,9 +449,11 @@ class HeyClient
       break if all.size >= max_postings
 
       nxt = data["next_history_url"].presence
+      nxt ||= next_path_from_link_header(@last_link_header)
       break if nxt.blank?
 
-      next_path = path_from_hey_url(nxt) || break
+      next_path = path_from_hey_url(nxt) || nxt
+      break if next_path.blank?
     end
     all.first(max_postings)
   end
@@ -449,57 +522,27 @@ class HeyClient
     end
   end
 
-  def get(path)
-    request(:get, path)
+  def get(path, allow: [])
+    request(:get, path, allow: allow)
   end
 
-  def post(path, body = nil)
-    request(:post, path, body)
+  def post(path, body = nil, allow: [])
+    request(:post, path, body, allow: allow)
   end
 
-  def put(path, body)
-    request(:put, path, body)
+  def put(path, body, allow: [])
+    request(:put, path, body, allow: allow)
   end
 
-  def patch(path, body)
-    request(:patch, path, body)
+  def patch(path, body, allow: [])
+    request(:patch, path, body, allow: allow)
   end
 
-  def delete(path)
-    request(:delete, path)
+  def delete(path, allow: [])
+    request(:delete, path, allow: allow)
   end
 
-  # Removes a timebox mirror id: form calendar delete, JSON calendar delete, then legacy todo mirrors.
-  def delete_timebox_mirror_remote_id(remote_id)
-    return if remote_id.blank?
-
-    cal_ok = false
-    begin
-      cal_ok = delete_calendar_event_form(remote_id)
-    rescue StandardError
-      cal_ok = false
-    end
-    return if cal_ok
-
-    cid = calendar_id_for_timed_writes
-    if cid.present?
-      json_del = nil
-      begin
-        json_del = delete_calendar_event(calendar_id: cid, event_id: remote_id)
-      rescue StandardError
-        json_del = nil
-      end
-      return unless json_del.nil?
-    end
-
-    begin
-      delete_todo(remote_id)
-    rescue StandardError
-      nil
-    end
-  end
-
-  def request(method, path, body = nil)
+  def request(method, path, body = nil, allow: [])
     ensure_fresh_token!
 
     uri = URI("#{BASE_API_URL}#{path}")
@@ -520,6 +563,8 @@ class HeyClient
     req.body = body.to_json if body
 
     response = http_start(uri) { |http| http.request(req) }
+    @last_status_code = response.code.to_i
+    @last_link_header = response["Link"]
 
     case response
     when Net::HTTPSuccess
@@ -533,8 +578,10 @@ class HeyClient
 
       JSON.parse(body_str)
     when Net::HTTPUnauthorized
-      refresh_and_retry!(method, path, body)
+      refresh_and_retry!(method, path, body, allow: allow)
     else
+      return nil if allow.include?(@last_status_code)
+
       Rails.logger.error("HEY API error: #{response.code} #{response.body}")
       nil
     end
@@ -562,9 +609,9 @@ class HeyClient
     end
   end
 
-  def refresh_and_retry!(method, path, body)
+  def refresh_and_retry!(method, path, body, allow: [])
     perform_token_refresh!
-    request(method, path, body)
+    request(method, path, body, allow: allow)
   rescue AuthError
     raise AuthError, "HEY session expired. Reconnect from Settings."
   rescue StandardError => e
@@ -587,7 +634,7 @@ class HeyClient
     raise
   rescue StandardError => e
     Rails.logger.error("HEY form request error: #{e.class} #{e.message}")
-    { code: 0, location: nil, unauthorized: false }
+    { code: 0, location: nil, body: nil, unauthorized: false, success: false }
   end
 
   def perform_form_http(method, path, form_pairs)
@@ -609,10 +656,13 @@ class HeyClient
     end
 
     res = http_start(uri) { |http| http.request(req) }
+    code = res.code.to_i
     {
-      code: res.code.to_i,
+      code: code,
       location: res["Location"],
-      unauthorized: res.is_a?(Net::HTTPUnauthorized)
+      body: res.body.to_s,
+      unauthorized: res.is_a?(Net::HTTPUnauthorized),
+      success: res.is_a?(Net::HTTPSuccess) || [ 302, 303 ].include?(code)
     }
   end
 
@@ -628,45 +678,127 @@ class HeyClient
     nil
   end
 
-  def json_post_with_meta(path, body)
-    ensure_fresh_token!
-    meta = single_json_post(path, body)
-    if meta[:unauthorized]
-      perform_token_refresh!
-      meta = single_json_post(path, body)
-    end
-    if meta[:unauthorized] || meta[:code] == 401
-      raise AuthError, "HEY session expired. Reconnect from Settings."
-    end
-    meta
-  end
-
-  def single_json_post(path, body)
-    uri = URI("#{BASE_API_URL}#{path}")
-    req = Net::HTTP::Post.new(uri)
-    req["Authorization"] = "Bearer #{@user.hey_access_token}"
-    req["Content-Type"]  = "application/json"
-    req["Accept"]        = "application/json"
-    req["User-Agent"]    = self.class.user_agent
-    req.body = body.to_json
-
-    res = http_start(uri) { |http| http.request(req) }
-    parsed =
-      if res.is_a?(Net::HTTPSuccess)
-        s = res.body.to_s.strip
-        s.present? ? (JSON.parse(s) rescue nil) : {}
-      end
-    {
-      code: res.code.to_i,
-      json: parsed,
-      success: res.is_a?(Net::HTTPSuccess),
-      unauthorized: res.is_a?(Net::HTTPUnauthorized)
-    }
-  end
-
   def extract_json_calendar_event_id(data)
     return nil unless data.is_a?(Hash)
 
-    data["id"]&.to_s || data.dig("calendar_event", "id")&.to_s
+    data["id"]&.to_s || data.dig("calendar_event", "id")&.to_s || data.dig("recording", "id")&.to_s
+  end
+
+  def extract_event_id_from_form_meta(meta)
+    return nil unless form_write_ok?(meta)
+
+    body = meta[:body].to_s.strip
+    if body.present?
+      parsed = JSON.parse(body) rescue nil
+      id = extract_json_calendar_event_id(parsed)
+      return id if id.present?
+    end
+    extract_form_redirect_event_id(meta)
+  end
+
+  def form_write_ok?(meta)
+    return false if meta.nil?
+
+    code = meta[:code].to_i
+    meta[:success] == true || (code >= 200 && code < 300) || [ 302, 303 ].include?(code)
+  end
+
+  def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:)
+    tz = time_zone.to_s.presence || "UTC"
+    ls = starts_at
+    le = ends_at || starts_at
+    pairs = [
+      [ "calendar_event[calendar_id]", calendar_id.to_s ],
+      [ "calendar_event[summary]", title.to_s ],
+      [ "calendar_event[starts_at]", date_only(ls) ],
+      [ "calendar_event[ends_at]", date_only(le) ]
+    ]
+    if all_day
+      pairs << [ "calendar_event[all_day]", "1" ]
+    else
+      pairs << [ "calendar_event[all_day]", "0" ]
+      pairs << [ "calendar_event[starts_at_time]", clock_time(ls) ]
+      pairs << [ "calendar_event[ends_at_time]", clock_time(le) ]
+      pairs << [ "calendar_event[set_time_zone]", "1" ]
+      pairs << [ "calendar_event[starts_at_time_zone_name]", tz ]
+      pairs << [ "calendar_event[ends_at_time_zone_name]", tz ]
+    end
+    pairs
+  end
+
+  def date_only(value)
+    return value.to_date.iso8601 if value.respond_to?(:to_date)
+
+    value.to_s[0, 10]
+  end
+
+  def clock_time(value)
+    return "#{value.strftime("%H:%M")}:00" if value.respond_to?(:strftime)
+
+    str = value.to_s
+    if (m = str.match(/T(\d{2}:\d{2})/))
+      return "#{m[1]}:00"
+    end
+
+    "00:00:00"
+  end
+
+  def coerce_todo_date(value)
+    return nil if value.blank?
+    return value if value.is_a?(String) && value.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+    return value.to_date.iso8601 if value.respond_to?(:to_date)
+
+    Date.iso8601(value.to_s).iso8601
+  rescue ArgumentError
+    value.to_s[0, 10]
+  end
+
+  EVENT_OCCURRENCE_REF = /\A(\d+):(\d{4}-\d{2}-\d{2})\z/
+
+  def parse_event_ref(event_id)
+    if event_id.to_s =~ EVENT_OCCURRENCE_REF
+      { series_id: ::Regexp.last_match(1), date: ::Regexp.last_match(2), occurrence: true }
+    else
+      { series_id: event_id.to_s, date: nil, occurrence: false }
+    end
+  end
+
+  def stamp_hey_event_identity!(rec)
+    occ = rec["occurrence_id"] || rec["occurrenceId"]
+    parent = rec["parent_id"] || rec["parentId"]
+    parent ||= rec.dig("parent", "id") if rec["parent"].is_a?(Hash)
+    series_id = (parent.presence || rec["id"]).to_s
+    starts = rec["starts_at"] || rec["startsAt"]
+
+    if occ.present? && series_id.present? && starts.present?
+      date = occurrence_calendar_date(starts)
+      rec["id"] = "#{series_id}:#{date}" if date
+    end
+    rec
+  end
+
+  # Occurrence paths use the event's civil date. A UTC parse of an evening
+  # offset timestamp (e.g. 2026-04-15T23:00:00-05:00) would become the next day.
+  def occurrence_calendar_date(starts)
+    str = starts.to_s
+    return str if str.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+    return str[0, 10] if str.match?(/\A\d{4}-\d{2}-\d{2}T.+(?:[+-]\d{2}:\d{2}|[+-]\d{4})\z/)
+
+    zone = Time.find_zone(@user.timezone.presence) || Time.zone
+    zone.parse(str)&.to_date&.iso8601
+  rescue ArgumentError, TypeError
+    str[0, 10] if str.match?(/\A\d{4}-\d{2}-\d{2}/)
+  end
+
+  def next_path_from_link_header(link)
+    return nil if link.blank?
+
+    part = link.to_s.split(",").map(&:strip).find do |p|
+      p.include?('rel="next"') || p.include?("rel=next") || p.include?("rel='next'")
+    end
+    return nil unless part
+
+    url = part[/<([^>]+)>/, 1]
+    path_from_hey_url(url) || url
   end
 end
