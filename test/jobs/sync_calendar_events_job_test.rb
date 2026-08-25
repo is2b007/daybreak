@@ -23,6 +23,7 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
   test "sync_hey uses provided week_start for calendar_events window" do
     seen = []
     client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
     client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
       seen << [ starts_on, ends_on ]
       []
@@ -39,6 +40,7 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
 
   test "upserts hey event with camelCase keys" do
     client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
     client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
       [
         {
@@ -83,6 +85,7 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
     )
 
     client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
     client.define_singleton_method(:calendar_events) { |**_| [] }
 
     with_hey_client(client) do
@@ -94,6 +97,7 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
 
   test "dedupes hey recordings that share title and time range but differ by calendar or id" do
     client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
     client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
       [
         {
@@ -127,6 +131,7 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
 
   test "upserts hey events with completed_at from flattened recordings" do
     client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
     client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
       [
         {
@@ -150,5 +155,33 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
     assert_equal "From recordings", ev.title
     assert_equal "owner-99", ev.hey_calendar_id
     assert ev.completed_at.present?
+  end
+
+  test "upserts expanded recurring occurrence from calendar_week_events" do
+    week = @week
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) do |date|
+      raise "unexpected week #{date}" unless date == week.iso8601
+      [
+        {
+          "id" => "88:2026-04-15",
+          "hey_calendar_id" => "cal-1",
+          "title" => "Weekly standup",
+          "starts_at" => "2026-04-15T15:00:00Z",
+          "ends_at" => "2026-04-15T15:30:00Z",
+          "all_day" => false,
+          "occurrence_id" => "_"
+        }
+      ]
+    end
+    client.define_singleton_method(:calendar_events) { |**_| [] }
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    ev = @user.calendar_events.find_by(external_id: "88:2026-04-15", source: :hey)
+    assert ev
+    assert_equal "Weekly standup", ev.title
   end
 end

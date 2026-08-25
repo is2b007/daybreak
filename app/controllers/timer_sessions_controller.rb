@@ -19,7 +19,7 @@ class TimerSessionsController < ApplicationController
     if current_user.hey_connected? && task
       begin
         client = HeyClient.new(current_user)
-        result = client.start_time_track(title: task.title)
+        result = client.start_time_track
         if result.is_a?(Hash) && result["id"].present?
           @timer.update_column(:hey_time_track_id, result["id"].to_s)
         end
@@ -47,7 +47,10 @@ class TimerSessionsController < ApplicationController
     return if timer.hey_time_track_id.blank?
     return unless current_user.hey_connected?
 
-    HeyClient.new(current_user).stop_time_track(timer.hey_time_track_id)
+    HeyClient.new(current_user).stop_time_track(
+      timer.hey_time_track_id,
+      category_title: timer.task_assignment&.title
+    )
   rescue StandardError => e
     Rails.logger.warn("HEY time track stop failed: #{e.message}")
   end
