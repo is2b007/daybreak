@@ -87,6 +87,12 @@
               <span class="text-sm text-muted">Connected</span>
               <%= link_to "Disconnect HEY", disconnect_hey_path, data: { turbo_method: :delete, turbo_confirm: "Disconnect your HEY account?" }, class: "btn btn--ghost btn--small" %>
             </div>
+            <% if current_user.hey_refresh_token.blank? %>
+              <p class="text-xs text-muted mt-1">
+                This connection used a pasted CLI token. Those expire in about two weeks and cannot refresh —
+                <%= link_to "reconnect with HEY OAuth", auth_hey_path %> for lasting sync.
+              </p>
+            <% end %>
             <div class="form-group">
               <%= f.label :hey_default_calendar_id, "Default HEY calendar", class: "form-label" %>
               <%= f.select :hey_default_calendar_id,

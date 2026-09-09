@@ -31,6 +31,8 @@ class SyncHeyEmailsJob < ApplicationJob
     end
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY email sync failed for user #{user_id}: #{e.message}")
+  rescue StandardError => e
+    Rails.logger.warn("HEY email sync failed for user #{user_id}: #{e.message}")
   end
 
   private

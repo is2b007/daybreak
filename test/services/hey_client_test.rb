@@ -296,13 +296,47 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal :patch, captured[:method]
     assert_equal "/calendar/events/8.json", captured[:path]
     assert_includes captured[:pairs], [ "calendar_event[set_time_zone]", "1" ]
+    assert_includes captured[:pairs], [ "calendar_event[description]", "" ]
+    assert_includes captured[:pairs], [ "calendar_event[location]", "" ]
+    assert_includes captured[:pairs], [ "calendar_event[url]", "" ]
+    assert_includes captured[:pairs], [ "calendar_event[entry_id]", "" ]
+  end
+
+  test "update_calendar_event echoes stored description location url and entry_id" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, pairs|
+      captured = { method: method, path: path, pairs: pairs }
+      { code: 200, body: { "id" => 8 }.to_json, location: nil, unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["UTC"]
+    client.update_calendar_event(
+      calendar_id: "3",
+      event_id: "8",
+      title: "Meet",
+      starts_at: zone.local(2026, 4, 13, 9, 0),
+      ends_at: zone.local(2026, 4, 13, 10, 0),
+      all_day: false,
+      time_zone: "UTC",
+      description: "Bring slides",
+      location: "Room 4",
+      url: "https://meet.example.com/x",
+      entry_id: "55"
+    )
+
+    assert_includes captured[:pairs], [ "calendar_event[description]", "Bring slides" ]
+    assert_includes captured[:pairs], [ "calendar_event[location]", "Room 4" ]
+    assert_includes captured[:pairs], [ "calendar_event[url]", "https://meet.example.com/x" ]
+    assert_includes captured[:pairs], [ "calendar_event[entry_id]", "55" ]
+    assert_equal false, captured[:pairs].any? { |k, _| k == "apply_to_future" }
   end
 
   test "update_calendar_event routes occurrence ids to occurrences endpoint" do
     client = HeyClient.new(@user)
     captured = nil
-    client.define_singleton_method(:form_request) do |method, path, _pairs|
-      captured = { method: method, path: path }
+    client.define_singleton_method(:form_request) do |method, path, pairs|
+      captured = { method: method, path: path, pairs: pairs }
       { code: 200, body: { "id" => 88 }.to_json, location: nil, unauthorized: false, success: true }
     end
 
@@ -318,19 +352,58 @@ class HeyClientTest < ActiveSupport::TestCase
     )
 
     assert_equal "/calendar/events/88/occurrences/2026-04-15.json", captured[:path]
+    assert_includes captured[:pairs], [ "apply_to_future", "0" ]
+    assert_includes captured[:pairs], [ "repeat_frequency", "custom" ]
   end
 
-  test "delete_calendar_event uses official form delete path" do
+  test "update_calendar_event accepts official underscore occurrence_id" do
     client = HeyClient.new(@user)
     captured = nil
-    client.define_singleton_method(:form_request) do |method, path, _pairs|
-      captured = { method: method, path: path }
-      { code: 204, body: "", location: nil, unauthorized: false, success: true }
+    client.define_singleton_method(:form_request) do |_method, path, pairs|
+      captured = { path: path, pairs: pairs }
+      { code: 200, body: { "id" => 88 }.to_json, location: nil, unauthorized: false, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["UTC"]
+    client.update_calendar_event(
+      calendar_id: "3",
+      event_id: "88_2026-04-15",
+      title: "Weekly",
+      starts_at: zone.local(2026, 4, 15, 9, 0),
+      ends_at: zone.local(2026, 4, 15, 10, 0),
+      all_day: false,
+      time_zone: "UTC"
+    )
+
+    assert_equal "/calendar/events/88/occurrences/2026-04-15.json", captured[:path]
+    assert_includes captured[:pairs], [ "apply_to_future", "0" ]
+    assert_includes captured[:pairs], [ "repeat_frequency", "custom" ]
+  end
+
+  test "delete_calendar_event uses JSON delete path" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:delete) do |path, allow: []|
+      captured = { path: path }
+      client.instance_variable_set(:@last_status_code, 204)
+      {}
     end
 
     assert client.delete_calendar_event(calendar_id: "3", event_id: "8")
-    assert_equal :delete, captured[:method]
-    assert_equal "/calendar/events/8", captured[:path]
+    assert_equal "/calendar/events/8.json", captured[:path]
+  end
+
+  test "delete_calendar_event occurrence sends apply_to_future=false" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:delete) do |path, allow: []|
+      captured = { path: path }
+      client.instance_variable_set(:@last_status_code, 204)
+      {}
+    end
+
+    assert client.delete_calendar_event(calendar_id: "3", event_id: "88:2026-04-15")
+    assert_equal "/calendar/events/88/occurrences/2026-04-15.json?apply_to_future=false", captured[:path]
   end
 
   test "start_time_track sends no body and adopts ongoing on 409" do
@@ -430,6 +503,37 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal "7", rows.first["hey_calendar_id"]
   end
 
+  test "flatten_calendar_period prefers official occurrence_id over parent reconstruction" do
+    client = HeyClient.new(@user)
+    raw = {
+      "kind" => "week",
+      "recordings" => {
+        "Calendar::Event" => [
+          {
+            "id" => 0,
+            "parent_id" => 99,
+            "occurrence_id" => "88_2026-04-15",
+            "title" => "Weekly standup",
+            "starts_at" => "2026-04-15T15:00:00Z",
+            "ends_at" => "2026-04-15T15:30:00Z",
+            "description" => "Agenda in notes",
+            "location" => "Zoom",
+            "url" => "https://meet.example.com/standup",
+            "entry_id" => "77",
+            "calendar" => { "id" => 7 }
+          }
+        ]
+      }
+    }
+
+    rows = client.flatten_calendar_period(raw)
+    assert_equal "88:2026-04-15", rows.first["id"]
+    assert_equal "Agenda in notes", rows.first["description"]
+    assert_equal "Zoom", rows.first["location"]
+    assert_equal "https://meet.example.com/standup", rows.first["url"]
+    assert_equal "77", rows.first["entry_id"]
+  end
+
   test "flatten_calendar_period uses wall date from an offset evening timestamp" do
     @user.update!(timezone: "UTC")
     client = HeyClient.new(@user)
@@ -464,5 +568,54 @@ class HeyClientTest < ActiveSupport::TestCase
 
     client.calendar_week_events("2026-04-13")
     assert_equal [ "/calendar/weeks/2026-04-13.json" ], paths
+  end
+
+  test "calendar_recordings follows Link rel=next" do
+    client = HeyClient.new(@user)
+    paths = []
+    client.define_singleton_method(:get) do |path, allow: []|
+      paths << path
+      if path.start_with?("/calendars/42/recordings.json") && !path.include?("page=")
+        client.instance_variable_set(:@last_link_header, '<https://app.hey.com/calendars/42/recordings.json?page=abc>; rel="next"')
+        { "Calendar::Event" => [ { "id" => 1, "title" => "A", "starts_at" => "2026-04-10T14:00:00Z" } ] }
+      else
+        client.instance_variable_set(:@last_link_header, nil)
+        { "Calendar::Event" => [ { "id" => 2, "title" => "B", "starts_at" => "2026-04-11T14:00:00Z" } ] }
+      end
+    end
+
+    raw = client.calendar_recordings("42", starts_on: "2026-04-08", ends_on: "2026-04-14")
+    assert_equal [ 1, 2 ], raw["Calendar::Event"].map { |r| r["id"] }
+    assert(paths.any? { |p| p.start_with?("/calendars/42/recordings.json") && !p.include?("page=") })
+    assert_includes paths, "/calendars/42/recordings.json?page=abc"
+    assert client.instance_variable_get(:@last_recordings_complete)
+  end
+
+  test "calendar_events returns nil and recordings_complete is false when calendars.json fails" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:get) { |_path| nil }
+
+    assert_nil client.calendar_events(starts_on: "2026-04-08", ends_on: "2026-04-14")
+    assert_equal false, client.recordings_complete?
+  end
+
+  test "todos returns nil and recordings_complete is false when calendars.json fails" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:get) { |_path| nil }
+
+    assert_nil client.todos
+    assert_equal false, client.recordings_complete?
+  end
+
+  test "fetch_recordings_pages stops at the page cap and marks incomplete" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:get) do |path, allow: []|
+      client.instance_variable_set(:@last_link_header, '<https://app.hey.com/calendars/1/recordings.json?page=more>; rel="next"')
+      { "Calendar::Event" => [ { "id" => path.object_id, "title" => "X", "starts_at" => "2026-04-10T14:00:00Z" } ] }
+    end
+
+    raw = client.send(:fetch_recordings_pages, "/calendars/1/recordings.json", max_pages: 2)
+    assert_equal 2, raw["Calendar::Event"].size
+    assert_equal false, client.instance_variable_get(:@last_recordings_complete)
   end
 end

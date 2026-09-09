@@ -18,6 +18,13 @@ class HeyClient
 
   class AuthError < StandardError; end
 
+  RECORDINGS_MAX_PAGES = 20
+
+  # True unless the last recordings walk stopped early (failed page or page cap).
+  def recordings_complete?
+    @recordings_complete != false
+  end
+
   # OAuth flow — class methods
 
   def self.generate_code_verifier
@@ -108,20 +115,33 @@ class HeyClient
     else
       ""
     end
-    get("/calendars/#{calendar_id}/recordings.json#{query}")
+    fetch_recordings_pages("/calendars/#{calendar_id}/recordings.json#{query}")
   end
 
   # Returns timed calendar recordings from all calendars in a date window.
   # Uses GET /calendars/:id/recordings.json (same as hey-cli GetCalendarRecordings), not events.json.
   # `starts_on` / `ends_on` should be ISO8601 date strings (e.g. "2026-04-08").
+  # nil if calendars.json failed (do not prune). [] if the user has no calendars/events.
   def calendar_events(starts_on:, ends_on:)
-    calendars_data = calendars
+    @recordings_complete = true
+    raw_cals = get("/calendars.json")
+    if raw_cals.nil?
+      @recordings_complete = false
+      return nil
+    end
+
+    calendars_data = normalize_calendars_list(raw_cals)
     return [] unless calendars_data.is_a?(Array)
 
     calendars_data.flat_map do |cal|
       cid = cal["id"].to_s
       color = cal["color"].presence
       raw = calendar_recordings(cid, starts_on: starts_on, ends_on: ends_on)
+      if raw.nil?
+        @recordings_complete = false
+        next []
+      end
+      @recordings_complete &&= (@last_recordings_complete != false)
       flatten_calendar_recordings(raw, calendar_id: cid, color: color)
     end
   end
@@ -142,7 +162,14 @@ class HeyClient
   # POST /calendar/todos.json is for create (see #create_todo); not used for listing.
 
   def todos
-    cals = calendars
+    @recordings_complete = true
+    raw_cals = get("/calendars.json")
+    if raw_cals.nil?
+      @recordings_complete = false
+      return nil
+    end
+
+    cals = normalize_calendars_list(raw_cals)
     return [] unless cals.is_a?(Array)
 
     cal_id = personal_calendar_id(cals)
@@ -154,6 +181,9 @@ class HeyClient
     starts_on = 2.years.ago.to_date.iso8601
     ends_on = 1.year.from_now.to_date.iso8601
     raw = calendar_recordings(cal_id.to_s, starts_on: starts_on, ends_on: ends_on)
+    return nil if raw.nil?
+
+    @recordings_complete = (@last_recordings_complete != false)
     recordings_calendar_todos(raw)
   end
 
@@ -164,7 +194,10 @@ class HeyClient
   end
 
   def calendar_week_events(date)
-    flatten_calendar_period(calendar_week(date))
+    raw = calendar_week(date)
+    return nil if raw.nil?
+
+    flatten_calendar_period(raw)
   end
 
   # +starts_at+ is a bare YYYY-MM-DD. An RFC 3339 midnight can land on the
@@ -215,7 +248,7 @@ class HeyClient
         next if starts.blank?
 
         rid = rec["id"]
-        next if rid.blank?
+        next if rid.nil?
 
         cid = calendar_id.presence
         if cid.blank? && rec["calendar"].is_a?(Hash)
@@ -227,6 +260,7 @@ class HeyClient
           "hey_calendar_id" => cid
         )
         merged["calendar_color"] = color if color.present?
+        stamp_hey_event_content!(merged)
         stamp_hey_event_identity!(merged)
         rows << merged
       end
@@ -264,7 +298,7 @@ class HeyClient
 
   # Official writes (hey-sdk CalendarEventsService): form to /calendar/events.json
   # with calendar_event[set_time_zone]=1 so zone names are not dropped.
-  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil, time_zone: nil)
+  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil, time_zone: nil, description: nil, location: nil, url: nil, entry_id: nil)
     return nil if starts_at.blank? || ends_at.blank?
 
     ref = parse_event_ref(event_id)
@@ -275,7 +309,12 @@ class HeyClient
       starts_at: starts_at,
       ends_at: ends_at,
       all_day: all_day,
-      time_zone: tz
+      time_zone: tz,
+      description: description,
+      location: location,
+      url: url,
+      entry_id: entry_id,
+      occurrence: ref[:occurrence]
     )
     path = if ref[:occurrence]
       "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json"
@@ -291,17 +330,17 @@ class HeyClient
   def delete_calendar_event(calendar_id: nil, event_id:)
     ref = parse_event_ref(event_id)
     path = if ref[:occurrence]
-      "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json"
+      "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json?apply_to_future=false"
     else
-      "/calendar/events/#{ref[:series_id]}"
+      "/calendar/events/#{ref[:series_id]}.json"
     end
-    meta = form_request(:delete, path, nil)
-    return true if form_write_ok?(meta)
+    data = delete(path)
+    return true if calendar_delete_ok?(data)
 
-    # Last-resort JSON delete for leftover nested-path ids.
+    # Last-resort nested-path delete for leftover ids from older clients.
     return false if calendar_id.blank?
 
-    !delete("/calendars/#{calendar_id}/events/#{ref[:series_id]}.json").nil?
+    calendar_delete_ok?(delete("/calendars/#{calendar_id}/events/#{ref[:series_id]}.json"))
   end
 
   def create_calendar_event(calendar_id:, title:, starts_at:, ends_at:, all_day: false, time_zone: nil)
@@ -456,6 +495,59 @@ class HeyClient
       break if next_path.blank?
     end
     all.first(max_postings)
+  end
+
+  # Walks Link: rel=next the way GetCalendarRecordingsPage does (hey-sdk #125).
+  # nil if the first page fails; a Hash/Array of recordings otherwise.
+  # Sets @last_recordings_complete to false when the page cap is hit with more remaining.
+  def fetch_recordings_pages(initial_path, max_pages: RECORDINGS_MAX_PAGES)
+    @last_recordings_complete = true
+    merged = nil
+    next_path = initial_path
+    pages = 0
+    loop do
+      data = get(next_path)
+      if data.nil?
+        if merged.nil?
+          @last_recordings_complete = false
+          return nil
+        end
+        @last_recordings_complete = false
+        break
+      end
+
+      merged = merge_recordings_page(merged, data)
+      pages += 1
+      nxt = next_path_from_link_header(@last_link_header)
+      break if nxt.blank?
+
+      if pages >= max_pages
+        @last_recordings_complete = false
+        break
+      end
+
+      next_path = path_from_hey_url(nxt) || nxt
+      break if next_path.blank?
+    end
+    merged
+  end
+
+  def merge_recordings_page(acc, page)
+    return page if acc.nil?
+    return acc if page.blank?
+
+    if acc.is_a?(Hash) && page.is_a?(Hash)
+      page.each do |key, value|
+        next unless value.is_a?(Array)
+
+        acc[key] = Array(acc[key]) + value
+      end
+      acc
+    elsif acc.is_a?(Array) && page.is_a?(Array)
+      acc + page
+    else
+      acc
+    end
   end
 
   def path_from_hey_url(url)
@@ -703,7 +795,14 @@ class HeyClient
     meta[:success] == true || (code >= 200 && code < 300) || [ 302, 303 ].include?(code)
   end
 
-  def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:)
+  # JSON DELETE is 204 with an empty body (`request` returns {}). Failures return nil.
+  def calendar_delete_ok?(data)
+    return true if @last_status_code.to_i.between?(200, 299)
+
+    data.is_a?(Hash)
+  end
+
+  def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:, description: nil, location: nil, url: nil, entry_id: nil, occurrence: false)
     tz = time_zone.to_s.presence || "UTC"
     ls = starts_at
     le = ends_at || starts_at
@@ -722,6 +821,15 @@ class HeyClient
       pairs << [ "calendar_event[set_time_zone]", "1" ]
       pairs << [ "calendar_event[starts_at_time_zone_name]", tz ]
       pairs << [ "calendar_event[ends_at_time_zone_name]", tz ]
+    end
+    # HEY clears notes/location/link/entry when they are omitted (hey-sdk EventContentParams).
+    pairs << [ "calendar_event[description]", description.to_s ]
+    pairs << [ "calendar_event[location]", location.to_s ]
+    pairs << [ "calendar_event[url]", url.to_s ]
+    pairs << [ "calendar_event[entry_id]", entry_id.to_s ]
+    if occurrence
+      pairs << [ "apply_to_future", "0" ]
+      pairs << [ "repeat_frequency", "custom" ]
     end
     pairs
   end
@@ -754,17 +862,24 @@ class HeyClient
   end
 
   EVENT_OCCURRENCE_REF = /\A(\d+):(\d{4}-\d{2}-\d{2})\z/
+  EVENT_OCCURRENCE_ID = /\A(\d+)_(\d{4}-\d{2}-\d{2})\z/
 
   def parse_event_ref(event_id)
-    if event_id.to_s =~ EVENT_OCCURRENCE_REF
+    str = event_id.to_s
+    if str =~ EVENT_OCCURRENCE_REF || str =~ EVENT_OCCURRENCE_ID
       { series_id: ::Regexp.last_match(1), date: ::Regexp.last_match(2), occurrence: true }
     else
-      { series_id: event_id.to_s, date: nil, occurrence: false }
+      { series_id: str, date: nil, occurrence: false }
     end
   end
 
   def stamp_hey_event_identity!(rec)
     occ = rec["occurrence_id"] || rec["occurrenceId"]
+    if occ.to_s =~ EVENT_OCCURRENCE_ID
+      rec["id"] = "#{::Regexp.last_match(1)}:#{::Regexp.last_match(2)}"
+      return rec
+    end
+
     parent = rec["parent_id"] || rec["parentId"]
     parent ||= rec.dig("parent", "id") if rec["parent"].is_a?(Hash)
     series_id = (parent.presence || rec["id"]).to_s
@@ -774,6 +889,24 @@ class HeyClient
       date = occurrence_calendar_date(starts)
       rec["id"] = "#{series_id}:#{date}" if date
     end
+    rec
+  end
+
+  def stamp_hey_event_content!(rec)
+    desc = rec["description"] || rec["notes"]
+    rec["description"] = desc.to_s if desc.present?
+
+    loc = rec["location"]
+    rec["location"] = loc.to_s if loc.present?
+
+    url = rec["url"] || rec["join_link"] || rec["joinLink"] || rec["link"]
+    rec["url"] = url.to_s if url.present?
+
+    entry = rec["entry_id"] || rec["entryId"]
+    entry ||= rec.dig("attached_entry", "id") if rec["attached_entry"].is_a?(Hash)
+    entry ||= rec.dig("attachedEntry", "id") if rec["attachedEntry"].is_a?(Hash)
+    rec["entry_id"] = entry.to_s if entry.present?
+
     rec
   end
 

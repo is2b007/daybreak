@@ -20,6 +20,11 @@ class CalendarEventsControllerTest < ActionController::TestCase
 
     def delete_calendar_event(**kwargs)
       (@deletes ||= []) << kwargs
+      @delete_ok != false
+    end
+
+    def fail_deletes!
+      @delete_ok = false
     end
 
     def updates
@@ -47,7 +52,11 @@ class CalendarEventsControllerTest < ActionController::TestCase
       starts_at: Time.zone.parse("2026-04-13 14:00"),
       ends_at: Time.zone.parse("2026-04-13 15:00"),
       all_day: false,
-      hey_calendar_id: "cal-9"
+      hey_calendar_id: "cal-9",
+      description: "Bring slides",
+      location: "Room 4",
+      hey_event_url: "https://meet.example.com/x",
+      hey_entry_id: "55"
     )
 
     @hey_fake = FakeHey.new(@user)
@@ -104,6 +113,10 @@ class CalendarEventsControllerTest < ActionController::TestCase
     assert_response :no_content
     assert_equal "cal-9", @hey_fake.updates.last[:calendar_id]
     assert_equal "hey-ev-1", @hey_fake.updates.last[:event_id]
+    assert_equal "Bring slides", @hey_fake.updates.last[:description]
+    assert_equal "Room 4", @hey_fake.updates.last[:location]
+    assert_equal "https://meet.example.com/x", @hey_fake.updates.last[:url]
+    assert_equal "55", @hey_fake.updates.last[:entry_id]
     assert_equal 15, @hey_event.reload.starts_at.in_time_zone(@user.timezone).hour
   end
 
@@ -218,5 +231,13 @@ class CalendarEventsControllerTest < ActionController::TestCase
     assert_response :no_content
     assert_equal "cal-9", @hey_fake.deletes.last[:calendar_id]
     assert_raises(ActiveRecord::RecordNotFound) { @hey_event.reload }
+  end
+
+  test "DELETE keeps local event when remote HEY delete fails" do
+    @hey_fake.fail_deletes!
+    delete :destroy, params: { id: @hey_event.id }, as: :json
+
+    assert_response :unprocessable_entity
+    assert @hey_event.reload
   end
 end
