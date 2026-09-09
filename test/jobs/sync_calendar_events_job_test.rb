@@ -69,8 +69,8 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
       source: :hey,
       external_id: "x1",
       title: "Dup",
-      starts_at: Time.zone.parse("2026-04-14 12:00"),
-      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      starts_at: Time.zone.parse("2026-03-01 12:00"),
+      ends_at: Time.zone.parse("2026-03-01 13:00"),
       all_day: false,
       hey_calendar_id: "1"
     )
@@ -78,8 +78,8 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
       source: :hey,
       external_id: "x2",
       title: "Dup",
-      starts_at: Time.zone.parse("2026-04-14 12:00"),
-      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      starts_at: Time.zone.parse("2026-03-01 12:00"),
+      ends_at: Time.zone.parse("2026-03-01 13:00"),
       all_day: false,
       hey_calendar_id: "1"
     )
@@ -183,5 +183,154 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
     ev = @user.calendar_events.find_by(external_id: "88:2026-04-15", source: :hey)
     assert ev
     assert_equal "Weekly standup", ev.title
+  end
+
+  test "upserts hey event notes location meeting url and attached entry" do
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
+    client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
+      [
+        {
+          "id" => "cal-notes",
+          "hey_calendar_id" => "owner-7",
+          "title" => "Standup",
+          "starts_at" => "2026-04-15T15:00:00Z",
+          "ends_at" => "2026-04-15T15:30:00Z",
+          "all_day" => false,
+          "description" => "Bring slides",
+          "location" => "Room 4",
+          "url" => "https://meet.example.com/x",
+          "entry_id" => "55"
+        }
+      ]
+    end
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    ev = @user.calendar_events.find_by(external_id: "cal-notes", source: :hey)
+    assert ev
+    assert_equal "Bring slides", ev.description
+    assert_equal "Room 4", ev.location
+    assert_equal "https://meet.example.com/x", ev.hey_event_url
+    assert_equal "55", ev.hey_entry_id
+  end
+
+  test "prunes in-window hey events missing from a complete fetch" do
+    gone = @user.calendar_events.create!(
+      source: :hey,
+      external_id: "gone",
+      title: "Deleted in HEY",
+      starts_at: Time.zone.parse("2026-04-14 12:00"),
+      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      all_day: false
+    )
+    later = @user.calendar_events.create!(
+      source: :hey,
+      external_id: "later",
+      title: "Next month",
+      starts_at: Time.zone.parse("2026-05-20 12:00"),
+      ends_at: Time.zone.parse("2026-05-20 13:00"),
+      all_day: false
+    )
+    local = @user.calendar_events.create!(
+      source: :daybreak,
+      external_id: "daybreak-tbox-1",
+      title: "Local timebox",
+      starts_at: Time.zone.parse("2026-04-14 09:00"),
+      ends_at: Time.zone.parse("2026-04-14 10:00"),
+      all_day: false
+    )
+
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
+    client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
+      [
+        {
+          "id" => "kept",
+          "hey_calendar_id" => "1",
+          "title" => "Still there",
+          "starts_at" => "2026-04-14T17:00:00Z",
+          "ends_at" => "2026-04-14T18:00:00Z",
+          "all_day" => false
+        }
+      ]
+    end
+    client.define_singleton_method(:recordings_complete?) { true }
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    assert_not CalendarEvent.exists?(gone.id)
+    assert CalendarEvent.exists?(later.id)
+    assert CalendarEvent.exists?(local.id)
+    assert @user.calendar_events.exists?(external_id: "kept", source: :hey)
+  end
+
+  test "does not prune when recordings fetch is incomplete" do
+    stale = @user.calendar_events.create!(
+      source: :hey,
+      external_id: "stale",
+      title: "Keep me",
+      starts_at: Time.zone.parse("2026-04-14 12:00"),
+      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      all_day: false
+    )
+
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
+    client.define_singleton_method(:calendar_events) { |**_| [] }
+    client.define_singleton_method(:recordings_complete?) { false }
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    assert CalendarEvent.exists?(stale.id)
+  end
+
+  test "does not prune when hey fetch returns nil" do
+    stale = @user.calendar_events.create!(
+      source: :hey,
+      external_id: "stale-nil",
+      title: "Keep me",
+      starts_at: Time.zone.parse("2026-04-14 12:00"),
+      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      all_day: false
+    )
+
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| nil }
+    client.define_singleton_method(:calendar_events) { |**_| nil }
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    assert CalendarEvent.exists?(stale.id)
+  end
+
+  test "empty complete fetch prunes in-window hey events" do
+    stale = @user.calendar_events.create!(
+      source: :hey,
+      external_id: "empty-gone",
+      title: "Gone",
+      starts_at: Time.zone.parse("2026-04-14 12:00"),
+      ends_at: Time.zone.parse("2026-04-14 13:00"),
+      all_day: false
+    )
+
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
+    client.define_singleton_method(:calendar_events) { |**_| [] }
+    client.define_singleton_method(:recordings_complete?) { true }
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    assert_not CalendarEvent.exists?(stale.id)
   end
 end

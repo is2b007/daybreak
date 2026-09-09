@@ -200,6 +200,26 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     assert_equal 1, @user.hey_emails.count
   end
 
+  test "rescues StandardError without raising or pruning" do
+    @user.hey_emails.create!(
+      external_id: "101", folder: :imbox, subject: "Still here",
+      received_at: 1.hour.ago
+    )
+
+    boom = Object.new
+    def boom.imbox; raise StandardError, "HEY timed out"; end
+    def boom.reply_later; raise "should not be called"; end
+    def boom.set_aside; raise "should not be called"; end
+
+    with_hey_client(boom) do
+      assert_nothing_raised do
+        SyncHeyEmailsJob.perform_now(@user.id)
+      end
+    end
+
+    assert_equal 1, @user.hey_emails.count
+  end
+
   test "skips sync when user is not HEY-connected" do
     @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
 

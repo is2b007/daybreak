@@ -48,10 +48,12 @@ class CalendarEventsController < ApplicationController
       return head :unprocessable_entity if cid.blank?
 
       begin
-        client.delete_calendar_event(calendar_id: cid, event_id: @event.external_id)
+        remote_ok = client.delete_calendar_event(calendar_id: cid, event_id: @event.external_id)
       rescue StandardError => e
         Rails.logger.warn("HEY calendar event remote delete failed: #{e.message}")
+        remote_ok = false
       end
+      return head :unprocessable_entity unless remote_ok
     end
 
     clear_linked_task_timebox! if @event.daybreak?
@@ -143,7 +145,11 @@ class CalendarEventsController < ApplicationController
       starts_at: starts,
       ends_at: ends,
       all_day: @event.all_day,
-      time_zone: current_user.timezone
+      time_zone: current_user.timezone,
+      description: @event.description,
+      location: @event.location,
+      url: @event.hey_event_url,
+      entry_id: @event.hey_entry_id
     )
 
     if result.nil?

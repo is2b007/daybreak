@@ -34,6 +34,7 @@ class SyncCalendarEventsJob < ApplicationJob
 
   def sync_basecamp(user, week_start, week_end)
     client = BasecampClient.new(user)
+    seen_ids = []
     client.schedules.each do |schedule|
       entries = client.schedule_entries_in_window(
         schedule[:schedule_id],
@@ -42,8 +43,12 @@ class SyncCalendarEventsJob < ApplicationJob
       )
       next unless entries.is_a?(Array)
 
-      entries.each { |entry| upsert_basecamp(user, entry, week_start, week_end) }
+      entries.each do |entry|
+        ext = upsert_basecamp(user, entry, week_start, week_end)
+        seen_ids << ext if ext.present?
+      end
     end
+    prune_stale_calendar_events!(user, :basecamp, week_start, week_end, seen_ids)
     true
   rescue BasecampClient::AuthError => e
     Rails.logger.warn("Basecamp calendar sync failed for user #{user.id}: #{e.message}")
@@ -58,8 +63,9 @@ class SyncCalendarEventsJob < ApplicationJob
     starts_at = Time.parse(entry["starts_at"])
     return unless starts_at.between?(week_start.beginning_of_day, week_end.end_of_day)
 
+    ext = entry["id"].to_s
     event = user.calendar_events.find_or_initialize_by(
-      external_id: entry["id"].to_s,
+      external_id: ext,
       source: :basecamp
     )
     event.update!(
@@ -70,11 +76,14 @@ class SyncCalendarEventsJob < ApplicationJob
       description: entry["description"],
       basecamp_bucket_id: entry.dig("bucket", "id")&.to_s
     )
+    ext
   end
 
   def sync_hey(user, week_start, week_end)
     client = HeyClient.new(user)
     events = []
+    week_rows = nil
+    recordings = nil
 
     if client.respond_to?(:calendar_week_events)
       week_rows = client.calendar_week_events(week_start.iso8601)
@@ -84,8 +93,19 @@ class SyncCalendarEventsJob < ApplicationJob
     recordings = client.calendar_events(starts_on: week_start.iso8601, ends_on: week_end.iso8601)
     events.concat(recordings) if recordings.is_a?(Array)
 
-    dedupe_hey_recordings(events).each { |evt| upsert_hey(user, evt) }
+    seen_ids = []
+    dedupe_hey_recordings(events).each do |evt|
+      ext = upsert_hey(user, evt)
+      seen_ids << ext if ext.present?
+    end
     reconcile_duplicate_hey_calendar_rows!(user)
+
+    week_ok = !client.respond_to?(:calendar_week_events) || week_rows.is_a?(Array)
+    fetch_ok = week_ok && recordings.is_a?(Array)
+    rec_complete = !client.respond_to?(:recordings_complete?) || client.recordings_complete?
+    if fetch_ok && rec_complete
+      prune_stale_calendar_events!(user, :hey, week_start, week_end, seen_ids)
+    end
     true
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY calendar sync failed for user #{user.id}: #{e.message}")
@@ -158,6 +178,24 @@ class SyncCalendarEventsJob < ApplicationJob
     }
     attrs[:hey_calendar_id] = evt["hey_calendar_id"].to_s if evt["hey_calendar_id"].present?
     attrs[:color] = evt["calendar_color"].to_s if evt["calendar_color"].present?
+    attrs[:description] = (evt["description"] || evt["notes"]).presence
+    attrs[:location] = evt["location"].presence
+    attrs[:hey_event_url] = (evt["url"] || evt["join_link"] || evt["link"]).presence
+    entry = evt["entry_id"] || evt.dig("attached_entry", "id")
+    attrs[:hey_entry_id] = entry.present? ? entry.to_s : nil
     event.update!(attrs)
+    ext
+  end
+
+  def prune_stale_calendar_events!(user, source, week_start, week_end, current_ids)
+    return if source.to_s == "daybreak"
+
+    window = week_start.beginning_of_day..week_end.end_of_day
+    scope = user.calendar_events.where(source: source, starts_at: window)
+    if current_ids.empty?
+      scope.delete_all
+    else
+      scope.where.not(external_id: current_ids).delete_all
+    end
   end
 end

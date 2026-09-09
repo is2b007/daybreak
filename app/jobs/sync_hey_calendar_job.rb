@@ -44,6 +44,16 @@ class SyncHeyCalendarJob < ApplicationJob
         )
       end
     end
+
+    return unless !client.respond_to?(:recordings_complete?) || client.recordings_complete?
+
+    current_ids = todos.map { |todo| todo["id"].to_s }
+    stale = user.task_assignments.where(source: :hey).where(hey_mirrored_todo_id: nil)
+    if current_ids.empty?
+      stale.delete_all
+    else
+      stale.where.not(external_id: current_ids).delete_all
+    end
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY auth failed for user #{user_id}: #{e.message}")
   end
