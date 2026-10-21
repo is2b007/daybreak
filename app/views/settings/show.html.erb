@@ -89,8 +89,8 @@
             </div>
             <% if current_user.hey_refresh_token.blank? %>
               <p class="text-xs text-muted mt-1">
-                This connection used a pasted CLI token. Those expire in about two weeks and cannot refresh —
-                <%= link_to "reconnect with HEY OAuth", auth_hey_path %> for lasting sync.
+                This connection used a pasted CLI token, which expires in about two weeks and cannot refresh.
+                <%= link_to "Reconnect with HEY", auth_hey_path %> to keep it working.
               </p>
             <% end %>
             <div class="form-group">
@@ -117,6 +117,11 @@
               <span class="settings__connection-status settings__connection-status--disconnected"></span>
               <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--secondary btn--small" %>
             </div>
+            <% if current_user.hey_reconnect_needed_at.present? %>
+              <p class="text-xs text-muted mt-1">
+                HEY stopped accepting the last connection on <%= l(current_user.hey_reconnect_needed_at.to_date, format: :long) %>. Reconnect to resume sync.
+              </p>
+            <% end %>
           <% end %>
         </div>
       </div>

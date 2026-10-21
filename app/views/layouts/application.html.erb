@@ -54,6 +54,13 @@
             <% if flash[:alert] %>
               <div class="flash flash--alert" data-controller="flash"><%= flash[:alert] %></div>
             <% end %>
+            <% if current_user&.hey_reconnect_needed_at.present? && !current_user.hey_connected? %>
+              <div class="flash flash--alert hey-reconnect">
+                <span>HEY stopped accepting Daybreak&rsquo;s connection, so HEY sync is paused.</span>
+                <%= link_to "Reconnect HEY", auth_hey_path, class: "btn btn--primary btn--small" %>
+                <%= link_to "Turn off HEY", disconnect_hey_path, data: { turbo_method: :delete }, class: "btn btn--ghost btn--small" %>
+              </div>
+            <% end %>
             <%= yield %>
           </div>
         </main>

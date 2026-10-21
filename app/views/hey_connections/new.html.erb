@@ -12,7 +12,7 @@
       </div>
       <h1 class="connect-hey__title">Connect HEY</h1>
       <p class="connect-hey__subtitle">
-        Connect with HEY in your browser for lasting sync. A pasted CLI token expires in about two weeks and cannot refresh.
+        Sign in to HEY in your browser and approve Daybreak. No CLI needed, and the connection keeps itself fresh.
       </p>
     </div>
 
@@ -25,13 +25,15 @@
         Connect with HEY
       <% end %>
       <p class="connect-hey__oauth-hint">
-        Opens HEY in your browser to authorize Daybreak. Required for lasting sync — Daybreak can refresh the token automatically.
+        Opens HEY to approve Daybreak. If Daybreak runs on a server rather than this computer, you&rsquo;ll paste one address back afterwards.
       </p>
     </div>
 
-    <div class="connect-hey__divider">
-      <span class="connect-hey__divider-text">or connect via CLI token</span>
-    </div>
+    <details class="connect-hey__details connect-hey__cli">
+      <summary class="connect-hey__details-summary">Use a HEY CLI token instead</summary>
+      <p class="connect-hey__step-hint">
+        A pasted CLI token expires in about two weeks and cannot refresh, so you&rsquo;ll have to repeat this.
+      </p>
 
     <ol class="connect-hey__steps" data-controller="clipboard">
 
@@ -107,7 +109,6 @@
             </button>
           </div>
           <p class="connect-hey__step-hint">On Linux use <code>hey auth token | xclip -selection clipboard</code>.</p>
-          <p class="connect-hey__step-hint">Pasted CLI tokens expire in about two weeks and cannot refresh. Prefer Connect with HEY above for lasting sync.</p>
         </div>
       </li>
 
@@ -130,6 +131,7 @@
       </li>
 
     </ol>
+    </details>
 
     <div class="connect-hey__footer">
       <% if current_user.onboarded? %>

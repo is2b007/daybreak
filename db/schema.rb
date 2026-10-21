@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_09_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_000000) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -164,6 +164,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_000000) do
     t.string "email"
     t.string "hey_access_token"
     t.string "hey_default_calendar_id"
+    t.string "hey_install_id"
+    t.datetime "hey_reconnect_needed_at"
     t.string "hey_refresh_token"
     t.datetime "hey_token_expires_at"
     t.date "last_open_date"

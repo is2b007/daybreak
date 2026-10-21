@@ -5870,6 +5870,21 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
   border-radius: var(--radius);
 }
 
+.connect-hey__cli {
+  margin-bottom: var(--space-6);
+}
+
+.connect-hey__cli .connect-hey__steps {
+  margin-top: var(--space-4);
+}
+
+.hey-reconnect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
 .connect-hey__details-summary {
   font-size: var(--font-size-sm);
   font-weight: 500;

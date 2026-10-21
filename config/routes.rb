@@ -16,11 +16,12 @@ Rails.application.routes.draw do
   get  "auth/basecamp/callback",  to: "sessions#create",  as: :auth_basecamp_callback
   delete "logout",                to: "sessions#destroy",  as: :logout
 
-  # HEY connection (PKCE OAuth + token-paste fallback)
+  # HEY connection (PKCE OAuth, pasted-callback step for hosted installs, token-paste fallback)
   get    "auth/hey",           to: "hey_connections#new",       as: :auth_hey
   post   "auth/hey",           to: "hey_connections#create",    as: :connect_hey
   get    "auth/hey/authorize", to: "hey_connections#authorize", as: :authorize_hey
   get    "auth/hey/callback",  to: "hey_connections#callback",  as: :auth_hey_callback
+  post   "auth/hey/complete",  to: "hey_connections#complete",  as: :complete_hey
   delete "auth/hey",           to: "hey_connections#destroy",   as: :disconnect_hey
 
   # HEY email actions (triage/dismiss from the right panel, plan via drag)
