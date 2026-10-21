@@ -914,8 +914,9 @@ class HeyClient
 
   def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:, description: nil, location: nil, url: nil, entry_id: nil, occurrence: false, reminders: nil)
     tz = time_zone.to_s.presence || "UTC"
-    ls = in_zone(starts_at, tz)
-    le = in_zone(ends_at || starts_at, tz)
+    # All-day dates have no zone; moving them would shift the day.
+    ls = all_day ? starts_at : in_zone(starts_at, tz)
+    le = all_day ? (ends_at || starts_at) : in_zone(ends_at || starts_at, tz)
     pairs = [
       [ "calendar_event[calendar_id]", calendar_id.to_s ],
       [ "calendar_event[summary]", title.to_s ],
