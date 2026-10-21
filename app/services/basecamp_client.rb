@@ -19,6 +19,12 @@ class BasecampClient
     @user = user
   end
 
+  # For RefreshTokensJob: renews a token expiring before +fresh_until+ through the same
+  # locked path requests use, so a nightly refresh cannot race a sync.
+  def refresh_access_token!(fresh_until:)
+    perform_token_refresh!(fresh_until: fresh_until)
+  end
+
   # OAuth flow
 
   def self.authorize_url(redirect_uri)
@@ -271,7 +277,7 @@ class BasecampClient
         raise "Avatar fetch failed: 401 on #{uri.host}"
       end
 
-      perform_token_refresh!
+      perform_token_refresh!(rejected_token: token_sent_with(req))
       fetch_avatar_http(uri, retrying: true, redirect_count: redirect_count)
     elsif avatar_redirect_code?(code)
       loc = response["location"]
@@ -338,7 +344,7 @@ class BasecampClient
         retry_after = response["Retry-After"]&.to_i || 10
         raise RateLimitError, "Rate limited. Retry after #{retry_after}s"
       when Net::HTTPUnauthorized
-        perform_token_refresh!
+        perform_token_refresh!(rejected_token: token_sent_with(req))
         apply_api_headers!(req)
         response = http_start(uri) { |http| http.request(req) }
         raise AuthError, "Session expired. Please sign in again." unless response.is_a?(Net::HTTPSuccess)
@@ -383,6 +389,10 @@ class BasecampClient
     nil
   end
 
+  def token_sent_with(req)
+    req["Authorization"].to_s.delete_prefix("Bearer ").presence
+  end
+
   def apply_api_headers!(req)
     req["Authorization"] = "Bearer #{@user.basecamp_access_token}"
     req["User-Agent"] = self.class.user_agent
@@ -407,7 +417,7 @@ class BasecampClient
     request(:delete, path)
   end
 
-  def request(method, path, body_or_params = nil)
+  def request(method, path, body_or_params = nil, retried: false)
     ensure_fresh_token!
 
     account_id = @user.basecamp_account_id
@@ -436,7 +446,9 @@ class BasecampClient
       retry_after = response["Retry-After"]&.to_i || 10
       raise RateLimitError, "Rate limited. Retry after #{retry_after}s"
     when Net::HTTPUnauthorized
-      refresh_and_retry!(method, path, body_or_params)
+      raise AuthError, "Session expired. Please sign in again." if retried
+
+      refresh_and_retry!(method, path, body_or_params, rejected_token: token_sent_with(req))
     else
       raise "Basecamp API error: #{response.code} #{response.body}"
     end
@@ -447,19 +459,29 @@ class BasecampClient
     perform_token_refresh!
   end
 
-  def perform_token_refresh!
+  # +rejected_token+ is the access token Basecamp just answered 401 to. Its expiry can
+  # still be ahead, so freshness alone must not skip the refresh — that skip used to
+  # resend the same dead token until the stack overflowed.
+  # +fresh_until+ lets the nightly job refresh tokens that expire soon, not just expired ones.
+  def perform_token_refresh!(rejected_token: nil, fresh_until: Time.current)
     # Use with_lock to prevent concurrent refresh races under concurrent job syncs.
     @user.with_lock do
-      return if @user.reload.basecamp_token_fresh?
+      @user.reload
+      rotated_elsewhere = rejected_token.present? && @user.basecamp_access_token.present? &&
+        @user.basecamp_access_token != rejected_token
+      expires_at = @user.basecamp_token_expires_at
+      return if rotated_elsewhere || (rejected_token.nil? && expires_at.present? && expires_at > fresh_until)
+
+      raise AuthError, "No Basecamp refresh token. Please sign in again." if @user.basecamp_refresh_token.blank?
 
       data = self.class.refresh_token(@user.basecamp_refresh_token)
       self.class.persist_tokens!(@user, data)
     end
   end
 
-  def refresh_and_retry!(method, path, body_or_params)
-    perform_token_refresh!
-    request(method, path, body_or_params)
+  def refresh_and_retry!(method, path, body_or_params, rejected_token: nil)
+    perform_token_refresh!(rejected_token: rejected_token)
+    request(method, path, body_or_params, retried: true)
   rescue AuthError
     raise AuthError, "Session expired. Please sign in again."
   end

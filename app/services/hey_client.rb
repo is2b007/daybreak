@@ -17,6 +17,10 @@ class HeyClient
   INSTALL_ID = "daybreak"
 
   class AuthError < StandardError; end
+  # The token endpoint refused the refresh token itself (invalid_grant): resending it can never work.
+  class RefreshRefused < AuthError; end
+
+  RECONNECT_MESSAGE = "HEY session expired. Reconnect from Settings."
 
   RECORDINGS_MAX_PAGES = 20
 
@@ -73,8 +77,22 @@ class HeyClient
       install_id: INSTALL_ID
     })
 
-    raise AuthError, "HEY token refresh failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    unless response.is_a?(Net::HTTPSuccess)
+      raise RefreshRefused, "HEY refused the refresh token" if refresh_refused?(response)
+
+      raise AuthError, "HEY token refresh failed: #{response.code}"
+    end
     JSON.parse(response.body)
+  end
+
+  # Only invalid_grant proves the grant is dead (hey-cli accountForRefreshFailure);
+  # a 5xx or a rate limit must not sign anyone out.
+  def self.refresh_refused?(response)
+    return false unless [ 400, 401 ].include?(response.code.to_i)
+
+    JSON.parse(response.body.to_s)["error"] == "invalid_grant"
+  rescue JSON::ParserError
+    false
   end
 
   def self.fetch_identity(access_token)
@@ -99,6 +117,15 @@ class HeyClient
 
   def initialize(user)
     @user = user
+  end
+
+  # For RefreshTokensJob: renews a token expiring before +fresh_until+ through the same
+  # locked path requests use, so a nightly refresh cannot race a sync and spend a
+  # rotated refresh token twice. Raises AuthError when HEY has refused the grant.
+  def refresh_access_token!(fresh_until:)
+    return if @user.hey_refresh_token.blank?
+
+    perform_token_refresh!(fresh_until: fresh_until)
   end
 
   # Calendar
@@ -175,6 +202,8 @@ class HeyClient
     cal_id = personal_calendar_id(cals)
     if cal_id.blank?
       Rails.logger.warn("HeyClient#todos: no personal calendar in HEY list for user #{@user.id}")
+      # Not knowing where to-dos live is not the same as having none: keep the local rows.
+      @recordings_complete = false
       return []
     end
 
@@ -634,7 +663,7 @@ class HeyClient
     request(:delete, path, allow: allow)
   end
 
-  def request(method, path, body = nil, allow: [])
+  def request(method, path, body = nil, allow: [], retried: false)
     ensure_fresh_token!
 
     uri = URI("#{BASE_API_URL}#{path}")
@@ -647,7 +676,8 @@ class HeyClient
     when :delete then Net::HTTP::Delete.new(uri)
     end
 
-    req["Authorization"] = "Bearer #{@user.hey_access_token}"
+    sent_token = @user.hey_access_token
+    req["Authorization"] = "Bearer #{sent_token}"
     req["Content-Type"]  = "application/json"
     req["Accept"]        = "application/json"
     req["User-Agent"]    = self.class.user_agent
@@ -670,7 +700,9 @@ class HeyClient
 
       JSON.parse(body_str)
     when Net::HTTPUnauthorized
-      refresh_and_retry!(method, path, body, allow: allow)
+      raise AuthError, RECONNECT_MESSAGE if retried
+
+      refresh_and_retry!(method, path, body, allow: allow, rejected_token: sent_token)
     else
       return nil if allow.include?(@last_status_code)
 
@@ -681,15 +713,48 @@ class HeyClient
 
   def ensure_fresh_token!
     return if @user.hey_token_fresh?
+    # A pasted CLI token has nothing to refresh with; send it and let HEY decide.
+    return if @user.hey_refresh_token.blank?
+
     perform_token_refresh!
   end
 
-  def perform_token_refresh!
+  # +rejected_token+ is the access token HEY just answered 401 to. Its expiry may still
+  # be in the future, so freshness alone must not skip the refresh — that skip is what
+  # used to resend the same dead token until the stack overflowed.
+  # +fresh_until+ lets the nightly job refresh tokens that expire soon, not just expired ones.
+  def perform_token_refresh!(rejected_token: nil, fresh_until: Time.current)
+    refused = false
+
     # Use with_lock to prevent concurrent refresh races under concurrent job syncs.
     @user.with_lock do
-      return if @user.reload.hey_token_fresh?
+      @user.reload
+      rotated_elsewhere = rejected_token.present? && @user.hey_access_token.present? &&
+        @user.hey_access_token != rejected_token
+      expires_at = @user.hey_token_expires_at
+      return if rotated_elsewhere || (rejected_token.nil? && expires_at.present? && expires_at > fresh_until)
 
-      data = self.class.refresh_token(@user.hey_refresh_token)
+      if @user.hey_refresh_token.blank?
+        # Nothing to refresh with and HEY has refused the token: it is dead.
+        if rejected_token.present?
+          disconnect_hey!
+          refused = true
+        end
+        next
+      end
+
+      begin
+        data = self.class.refresh_token(@user.hey_refresh_token)
+      rescue RefreshRefused
+        disconnect_hey!
+        refused = true
+        next
+      end
+
+      if data["access_token"].blank?
+        raise AuthError, "HEY token refresh returned no access token"
+      end
+
       expires_in = data["expires_in"]&.to_i
       expires_at = expires_in&.positive? ? expires_in.seconds.from_now : 2.weeks.from_now
 
@@ -699,13 +764,23 @@ class HeyClient
         hey_token_expires_at: expires_at
       )
     end
+
+    raise AuthError, RECONNECT_MESSAGE if refused || @user.hey_access_token.blank?
   end
 
-  def refresh_and_retry!(method, path, body, allow: [])
-    perform_token_refresh!
-    request(method, path, body, allow: allow)
+  # Clears credentials HEY will never accept again, so hey_connected? turns false,
+  # syncs stop, and Settings offers to reconnect instead of claiming HEY works.
+  # Mirrored emails and events stay until the user reconnects or disconnects.
+  def disconnect_hey!
+    Rails.logger.warn("HEY refused the stored credentials for user #{@user.id}; marking HEY disconnected")
+    @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
+  end
+
+  def refresh_and_retry!(method, path, body, allow: [], rejected_token: nil)
+    perform_token_refresh!(rejected_token: rejected_token)
+    request(method, path, body, allow: allow, retried: true)
   rescue AuthError
-    raise AuthError, "HEY session expired. Reconnect from Settings."
+    raise AuthError, RECONNECT_MESSAGE
   rescue StandardError => e
     Rails.logger.error("HEY API transport error: #{e.class} #{e.message}")
     raise
@@ -713,13 +788,14 @@ class HeyClient
 
   def form_request(method, path, form_pairs)
     ensure_fresh_token!
+    sent_token = @user.hey_access_token
     meta = perform_form_http(method, path, form_pairs)
     if meta[:unauthorized]
-      perform_token_refresh!
+      perform_token_refresh!(rejected_token: sent_token)
       meta = perform_form_http(method, path, form_pairs)
     end
     if meta[:unauthorized] || meta[:code].to_i == 401
-      raise AuthError, "HEY session expired. Reconnect from Settings."
+      raise AuthError, RECONNECT_MESSAGE
     end
     meta
   rescue AuthError
