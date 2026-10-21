@@ -14,7 +14,9 @@
       <button type="button"
               class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>"
               data-action="click->stamp-picker#select"
-              data-stamp="<%= stamp %>">
+              data-stamp="<%= stamp %>"
+              aria-label="<%= stamp.humanize %> stamp"
+              aria-pressed="<%= current_user.stamp_choice == stamp %>">
         <%= render "stamps/#{stamp}" %>
       </button>
     <% end %>

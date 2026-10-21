@@ -213,7 +213,9 @@ export default class extends Controller {
       this.toggleBtnTarget.setAttribute("title", label)
     }
     if (this.hasContentTarget) {
-      this.contentTarget.setAttribute("aria-hidden", collapsed ? "true" : "false")
+      // inert, not aria-hidden: it also takes the hidden panel's controls out of the tab order
+      this.contentTarget.toggleAttribute("inert", collapsed)
+      this.contentTarget.removeAttribute("aria-hidden")
     }
   }
 }

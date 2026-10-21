@@ -7711,3 +7711,55 @@ body { font-size: 16px; line-height: 1.5; }
 /* Right rail */
 .right-panel__body,
 .r-empty { padding-inline: 20px; }
+
+/* ==========================================================================
+   TYPE SCALE — one ladder, nothing readable under 12px
+   12 meta · 13 secondary · 14 controls · 16 body · 20 page title · 22 section
+   ========================================================================== */
+.r-cnt { font-size: 11px; min-width: 18px; }               /* numeric badge only */
+.timeline__hour-label { font-size: 11px; }                 /* axis tick */
+.sb-sect,
+.sometime-row__label { font-size: 12px; letter-spacing: 0.06em; }
+.kanban__day-name,
+.kanban__today-chip,
+.sbi-shortcut,
+.rri-tip,
+.text-xs { font-size: 12px; }
+.kanban__header-count,
+.topbar__sub,
+.r-empty__sub,
+.day-view__tasks-subtitle { font-size: 13px; }
+.sb-username { font-size: 14px; }
+
+/* ==========================================================================
+   WCAG AA — text contrast at least 4.5:1 (3:1 for large), checked light and dark
+   ========================================================================== */
+/* Done work is quieter by colour and strike, not by opacity, so it stays readable */
+.task-card--completed .task-card__title,
+.task-card--completed .task-card__bottom,
+.task-card--completed .task-card__dedicated { opacity: 1; }
+.task-card--completed .task-card__project-label { color: var(--muted); }
+.task-card--completed .task-card__project-label .src-tile { opacity: 0.6; }
+
+.day-view__completed { margin-top: 28px; }
+.day-view__completed-label {
+  margin: 0 0 10px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sb-sect,
+.timeline__hour-label,
+.ritual-doc__dateline { color: var(--muted); }
+.ritual-doc__prose { color: var(--text); }
+/* White initial needs a deep enough orange to read (4.5:1) */
+.sb-avatar:not(.sb-avatar--photo) { background: oklch(54% 0.16 50.86); color: #fff; font-size: 12px; }
+
+/* Days already gone this week step back: muted date, no add line (contrast stays AA) */
+.kanban__column--past .kanban__day-name,
+.kanban__column--past .kanban__day-number,
+.kanban__column--past .kanban__header-count { color: var(--muted); }
+.kanban__column--past .kanban__quick-add { display: none; }

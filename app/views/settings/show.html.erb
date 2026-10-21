@@ -23,7 +23,7 @@
       <div class="stamp-picker">
         <% User::STAMP_OPTIONS.each do |stamp| %>
           <label class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>">
-            <input type="radio" name="user[stamp_choice]" value="<%= stamp %>" class="sr-only" <%= 'checked' if current_user.stamp_choice == stamp %>>
+            <input type="radio" name="user[stamp_choice]" value="<%= stamp %>" class="sr-only" aria-label="<%= stamp.humanize %> stamp" <%= 'checked' if current_user.stamp_choice == stamp %>>
             <%= render "stamps/#{stamp}" %>
           </label>
         <% end %>
@@ -69,6 +69,7 @@
               ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
               { selected: current_user.timezone },
               class: "form-input",
+              aria: { label: "Timezone" },
               data: { timezone_detector_target: "select" } %>
       </div>
     </div>

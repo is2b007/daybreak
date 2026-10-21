@@ -1,6 +1,6 @@
 <% pending_count = tasks.count { |t| !t.completed? } %>
 <%= turbo_frame_tag "day_#{date}" do %>
-  <div class="kanban__column <%= 'kanban__column--today' if date == Date.current %> <%= 'kanban__column--week-start' if date.monday? %>"
+  <div class="kanban__column <%= 'kanban__column--today' if date == Date.current %> <%= 'kanban__column--past' if date < Date.current %>"
        data-sortable-target="column"
        data-date="<%= date %>">
 
