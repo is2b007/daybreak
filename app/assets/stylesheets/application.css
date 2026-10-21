@@ -2098,9 +2098,8 @@ select.form-input {
   overflow-x: hidden;
 }
 
-/* All columns white; only the current day gets a warm tint. */
+/* All columns white, today included; only its header chip is amber. */
 .kanban__column--today {
-  --col-bg: var(--col-today-bg);
   --col-header-bg: var(--col-today-pill-bg);
   --col-header-text: var(--col-today-pill-ink);
 }
