@@ -8,7 +8,7 @@
      data-task-card-completed-value="<%= task.completed? %>"
      data-hey-email-task="<%= task.hey_app_url.present? %>"
      data-action="click->task-card#openModal keydown->task-card#handleKeydown dragstart->sortable#dragstart dragend->sortable#dragend"
-     style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees}deg" : '' %>">
+     style="<%= task.completed? ? "--stamp-rotation: #{task.stamp_rotation_degrees.to_i}deg" : '' %>">
 
   <div class="task-card__title"><%= task.title %></div>
   <% if task.timeboxed? && task.week_bucket != "sometime" %>

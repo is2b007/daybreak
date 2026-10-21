@@ -251,7 +251,7 @@
     --lch-dawn: 74% 0.16 60;
     --lch-dawn-strong: 78% 0.14 62;
     --lch-dawn-text: 82% 0.11 66;
-    --lch-dawn-wash: 24% 0.022 60;
+    --lch-dawn-wash: 23% 0.016 62;
     --lch-dawn-wash-2: 34% 0.06 58;
     --lch-sky: 75% 0.08 235;
     --lch-sky-wash: 27% 0.03 235;
@@ -285,7 +285,7 @@
   --lch-dawn: 74% 0.16 60;
   --lch-dawn-strong: 78% 0.14 62;
   --lch-dawn-text: 82% 0.11 66;
-  --lch-dawn-wash: 24% 0.022 60;
+  --lch-dawn-wash: 23% 0.016 62;
   --lch-dawn-wash-2: 34% 0.06 58;
   --lch-sky: 75% 0.08 235;
   --lch-sky-wash: 27% 0.03 235;
@@ -857,16 +857,24 @@ img.sb-avatar--photo {
 }
 
 .week-view .kanban {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
 .week-view .kanban::-webkit-scrollbar { display: none; }
+
+@container (min-width: 380px)  { .kanban > turbo-frame { --week-visible-days: 2; } }
+@container (min-width: 570px)  { .kanban > turbo-frame { --week-visible-days: 3; } }
+@container (min-width: 760px)  { .kanban > turbo-frame { --week-visible-days: 4; } }
+@container (min-width: 950px)  { .kanban > turbo-frame { --week-visible-days: 5; } }
+@container (min-width: 1140px) { .kanban > turbo-frame { --week-visible-days: 6; } }
+@container (min-width: 1330px) { .kanban > turbo-frame { --week-visible-days: 7; } }
 
 .week-view .sometime-row {
   margin-top: auto;
@@ -1782,8 +1790,8 @@ select.form-input {
 .task-card {
   position: relative;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl); /* 12px to match soft-card aesthetic */
+  border: 1px solid transparent; /* the stacked shadow draws the edge, as in Fizzy */
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
   margin-bottom: 8px;
   cursor: grab;
@@ -2062,9 +2070,11 @@ select.form-input {
   background: var(--bg);
 }
 
+/* Columns divide the board evenly so whole days fit, never a half-cut one:
+   the board's width picks how many days show (up to the full week). */
 .kanban > turbo-frame {
-  flex: 0 0 268px;
-  min-width: 268px;
+  flex: 0 0 calc(100cqi / var(--week-visible-days, 1));
+  min-width: 0;
   display: flex;
   flex-direction: column;
   scroll-snap-align: start;
@@ -2104,131 +2114,80 @@ select.form-input {
 }
 
 .kanban__column-header {
-  padding: 12px 10px 10px;
-  text-align: center;
+  padding: 14px 12px 8px;
   position: sticky;
   top: 0;
   background: var(--col-bg);
   z-index: 10;
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Pill badge wrapping the day name + task count (e.g. "MON 9") */
-.kanban__header-pill {
-  display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
-  padding: 4px 10px 4px 12px;
-  background: var(--col-header-bg);
-  color: var(--col-header-text);
-  border-radius: var(--radius-full);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1.2;
-  min-height: 22px;
 }
 
-.kanban__header-pill-count {
+/* "WED 21" — the date is the column's name; the link opens that day */
+.kanban__day-link {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: var(--radius-full);
-  background: oklch(var(--lch-surface) / 0.65);
-  color: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.kanban__column-header--today .kanban__day-name {
-  color: var(--amber-text);
-}
-
-/* Today: month + day-in-circle on one row (same header rhythm as other columns) */
-.kanban__day-date--today {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 26px;
-}
-
-.kanban__day-date-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  align-items: baseline;
   gap: 6px;
-  color: inherit;
+  color: var(--text);
   text-decoration: none;
-  line-height: 1;
+  border-radius: var(--radius-sm);
 }
 
-.kanban__day-month {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-  line-height: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.kanban__column-header--today .kanban__day-month {
-  color: var(--muted);
-}
-
-.kanban__day-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--amber-pill);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  flex-shrink: 0;
-}
+.kanban__day-link:hover { text-decoration: none; }
+.kanban__day-link:hover .kanban__day-number { color: var(--link); }
 
 .kanban__day-name {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text);
-  margin-bottom: 4px;
+  color: var(--muted);
 }
 
-.kanban__day-date {
-  font-size: 14px;
+.kanban__day-number {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--transition-fast);
+}
+
+.kanban__day-month {
+  font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 26px;
-  line-height: 1;
 }
 
-.kanban__day-date a {
-  color: inherit;
-  text-decoration: none;
-  line-height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.kanban__column-header--today .kanban__day-name,
+.kanban__column-header--today .kanban__day-month {
+  color: var(--amber-text);
+}
+
+.kanban__today-chip {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--amber-pill);
+  color: oklch(22% 0.04 50);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.kanban__header-count {
+  align-self: center;
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--col-header-bg);
+  color: var(--col-header-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Grow off: a flex:1 pending list shoves completed tasks to the bottom of the column. */
@@ -2635,9 +2594,15 @@ select.form-input {
   gap: 8px;
   margin: 8px 8px 6px;
   padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  background: oklch(var(--lch-surface) / 0.7);
+  border: 1px dashed var(--ink-light);
+  border-radius: var(--radius-lg);
+  background: transparent;
+}
+
+.kanban__quick-add:focus-within {
+  border-style: solid;
+  border-color: var(--ink-medium);
+  background: var(--surface);
 }
 
 .kanban__quick-add-input {
