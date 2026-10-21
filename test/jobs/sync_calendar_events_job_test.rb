@@ -333,4 +333,30 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
 
     assert_not CalendarEvent.exists?(stale.id)
   end
+
+  test "stores reminders and the event zone, and skips journal entries and habits" do
+    client = Object.new
+    client.define_singleton_method(:calendar_week_events) { |*| [] }
+    client.define_singleton_method(:calendar_events) do |starts_on:, ends_on:|
+      [
+        {
+          "id" => "ev-1", "type" => "Calendar::Event", "title" => "Standup",
+          "starts_at" => "2026-04-15T15:00:00Z", "ends_at" => "2026-04-15T15:30:00Z",
+          "starts_at_time_zone" => "Europe/Zagreb",
+          "reminders" => [ { "id" => 1, "duration" => 600 }, { "id" => 2, "duration" => 3600 } ]
+        },
+        { "id" => "j-1", "type" => "Calendar::JournalEntry", "title" => "Journal", "starts_at" => "2026-04-15T00:00:00Z" },
+        { "id" => "h-1", "type" => "Calendar::Habit", "title" => "Stretch", "starts_at" => "2026-04-15T07:00:00Z" }
+      ]
+    end
+
+    with_hey_client(client) do
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    end
+
+    events = @user.calendar_events.where(source: :hey)
+    assert_equal [ "ev-1" ], events.pluck(:external_id)
+    assert_equal [ 600, 3600 ], events.first.hey_reminder_seconds
+    assert_equal "Europe/Zagreb", events.first.hey_time_zone
+  end
 end

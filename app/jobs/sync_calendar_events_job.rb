@@ -93,6 +93,8 @@ class SyncCalendarEventsJob < ApplicationJob
     recordings = client.calendar_events(starts_on: week_start.iso8601, ends_on: week_end.iso8601)
     events.concat(recordings) if recordings.is_a?(Array)
 
+    events.select! { |evt| timeline_recording?(evt) }
+
     seen_ids = []
     dedupe_hey_recordings(events).each do |evt|
       ext = upsert_hey(user, evt)
@@ -110,6 +112,14 @@ class SyncCalendarEventsJob < ApplicationJob
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY calendar sync failed for user #{user.id}: #{e.message}")
     false
+  end
+
+  # Recordings lists every kind a calendar holds. Journal entries, habits and time tracks have
+  # a start time too, but they are not events; to-dos stay, shown with their completed state.
+  NON_TIMELINE_RECORDING = /journal|habit|time_?track/i
+
+  def timeline_recording?(evt)
+    !evt["type"].to_s.match?(NON_TIMELINE_RECORDING)
   end
 
   # HEY sometimes returns the same wall-time recording from multiple calendars with different ids.
@@ -183,6 +193,11 @@ class SyncCalendarEventsJob < ApplicationJob
     attrs[:hey_event_url] = (evt["url"] || evt["join_link"] || evt["link"]).presence
     entry = evt["entry_id"] || evt.dig("attached_entry", "id")
     attrs[:hey_entry_id] = entry.present? ? entry.to_s : nil
+    if evt.key?("reminders")
+      attrs[:hey_reminder_seconds] = Array(evt["reminders"]).filter_map { |r| r.is_a?(Hash) ? r["duration"]&.to_i : nil }
+    end
+    zone = evt["starts_at_time_zone"].presence
+    attrs[:hey_time_zone] = zone if zone && ActiveSupport::TimeZone[zone]
     event.update!(attrs)
     ext
   end

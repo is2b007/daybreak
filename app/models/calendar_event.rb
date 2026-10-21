@@ -4,6 +4,9 @@ class CalendarEvent < ApplicationRecord
   # daybreak = timed block mirrored in Daybreak only when HEY OAuth cannot create a remote calendar event.
   enum :source, { basecamp: 0, hey: 1, daybreak: 2 }
 
+  # Reminder offsets in seconds, as HEY reports them; nil until a sync has read them.
+  serialize :hey_reminder_seconds, coder: JSON
+
   def self.daybreak_timebox_external_id(task_assignment_id)
     "daybreak-tbox-#{task_assignment_id}"
   end
