@@ -7591,3 +7591,91 @@ body.focus-open { overflow: hidden; }
 .timeline__block--task,
 .timeline__block--basecamp,
 .timeline__block--hey { border-left: none; }
+
+/* ==========================================================================
+   STYLE PASS 2 — to-do cards, quieter adds, calmer headers
+   ========================================================================== */
+
+/* Cards read like Basecamp to-dos: round check on the left of the title */
+.task-card {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: start;
+}
+.task-card__bottom { display: contents; }
+.task-card__check { grid-column: 1; grid-row: 1; margin-top: 2px; }
+.task-card__title,
+.task-card__dedicated,
+.task-card__project-label { grid-column: 2; }
+.task-card__title { grid-row: 1; font-size: 15px; line-height: 1.35; margin-bottom: 0; padding-right: 0; }
+.task-card__dedicated { padding-right: 0; margin: 2px 0 0; }
+.task-card__project-label { margin: 4px 0 0; justify-self: start; text-align: left; max-width: 100%; }
+.task-card__project-label:empty { display: none; }
+
+/* The stamp sits on the card's right edge so the title stays readable */
+.task-card--completed .task-card__title { padding-right: 44px; }
+.task-card__stamp {
+  top: 50%;
+  left: auto;
+  right: 4px;
+  --stamp-translate: translateY(-50%);
+}
+.task-card__stamp .stamp,
+.card--small .task-card__stamp .stamp,
+.card--large .task-card__stamp .stamp { width: 44px; height: 44px; }
+
+/* Add a to-do: a quiet line, the button only appears while typing */
+.kanban__quick-add,
+.day-view__quick-add {
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+}
+.kanban__quick-add:focus-within,
+.day-view__quick-add:focus-within {
+  border: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+}
+.kanban__quick-add-input,
+.day-view__quick-add-input { font-size: 14px; }
+.kanban__quick-add-input::placeholder,
+.day-view__quick-add-input::placeholder { color: var(--ink-dark); }
+.kanban__quick-add:hover .kanban__quick-add-input::placeholder,
+.day-view__quick-add:hover .day-view__quick-add-input::placeholder { color: var(--text); }
+.kanban__quick-add:not(:focus-within) .kanban__quick-add-button,
+.day-view__quick-add:not(:focus-within) .day-view__quick-add-button { display: none; }
+
+/* Day headers: plain grey count, hairline between weeks */
+.kanban__header-count {
+  background: none;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0;
+  min-width: 0;
+}
+.kanban__column--week-start { border-left: 1px solid var(--line); }
+
+/* Bigger page titles */
+.topbar__title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.day-view__tasks-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* "Today's tasks" already names the list */
+.day-view__section-pill { display: none; }
+
+/* Cards hug their content now that the check shares the title row */
+.card--small,
+.card--medium,
+.card--large { min-height: 0; }
+
+/* Sometime chips stay one line: check, title, nothing else */
+.sometime-row__tasks .task-card {
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 6px;
+  align-items: center;
+}
+.sometime-row__tasks .task-card__check { margin-top: 0; }
+.sometime-row__tasks .task-card__title { font-size: 13px; }
+.sometime-row__tasks .task-card__project-label { display: none; }

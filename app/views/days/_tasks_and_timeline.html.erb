@@ -33,7 +33,7 @@
           <%# Explicit, so the response targets this view's frame rather than relying
               on the controller sniffing the referer path. %>
           <%= hidden_field_tag :view, "day" %>
-          <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
+          <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "+ Add a to-do", required: true, autocomplete: "off" %>
           <%= f.submit "+", class: "btn btn--icon btn--secondary day-view__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
         <% end %>
       </div>

@@ -9,7 +9,7 @@
             aria: { label: "#{date.strftime('%A, %B %-d')}, #{pending_count} #{'task'.pluralize(pending_count)}" } do %>
         <span class="kanban__day-name"><%= date.strftime("%a") %></span>
         <span class="kanban__day-number"><%= date.day %></span>
-        <% if date.day == 1 || date.monday? %>
+        <% if date.day == 1 || local_assigns[:first] %>
           <span class="kanban__day-month"><%= date.strftime("%b") %></span>
         <% end %>
       <% end %>
@@ -51,7 +51,7 @@
     <%= form_with url: task_assignments_path, method: :post, class: "kanban__quick-add" do |f| %>
       <%= hidden_field_tag :date, date.to_s %>
       <%= hidden_field_tag :size, "medium" %>
-      <%= f.text_field :title, name: :title, class: "kanban__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
+      <%= f.text_field :title, name: :title, class: "kanban__quick-add-input", placeholder: "+ Add a to-do", required: true, autocomplete: "off" %>
       <%= f.submit "+", class: "btn btn--icon btn--secondary kanban__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
     <% end %>
 
