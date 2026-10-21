@@ -9,7 +9,7 @@ module ApplicationHelper
 
   # Full-colour app tile for an integration (Basecamp, HEY), as on the rail and task cards.
   def source_tile(name, class: nil)
-    image_tag "tiles/#{name}.svg", alt: "", class: [ "src-tile", binding.local_variable_get(:class) ], decoding: "async"
+    image_tag "tiles/#{name}.png", alt: "", class: [ "src-tile", binding.local_variable_get(:class) ], decoding: "async"
   end
 
   # <html data-theme>: an explicit light/dark choice; "system" leaves it off so the OS decides.

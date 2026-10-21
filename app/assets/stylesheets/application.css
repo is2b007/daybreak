@@ -7570,3 +7570,23 @@ body.focus-open { overflow: hidden; }
 .right.right--collapsed .rri.on::after { display: none; }
 .right.right--collapsed .rri:not(.on) .rri-tile,
 .right.right--collapsed .rri.on .rri-tile { filter: none; }
+
+/* Rubber stamps: Magnific-rendered ink used as a mask, painted in the stamp's colour */
+.stamp {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask: var(--stamp-mask) center / contain no-repeat;
+  mask: var(--stamp-mask) center / contain no-repeat;
+}
+
+/* Dark inks would vanish on a dark card; lift them a little */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .stamp--navy-star      { color: #6E92C4; }
+  :root:not([data-theme="light"]) .stamp--green-check    { color: #5FA882; }
+  :root:not([data-theme="light"]) .stamp--brown-complete { color: #B88A5E; }
+  :root:not([data-theme="light"]) .stamp--black-dot      { color: #B9C0C4; }
+}
+:root[data-theme="dark"] .stamp--navy-star      { color: #6E92C4; }
+:root[data-theme="dark"] .stamp--green-check    { color: #5FA882; }
+:root[data-theme="dark"] .stamp--brown-complete { color: #B88A5E; }
+:root[data-theme="dark"] .stamp--black-dot      { color: #B9C0C4; }

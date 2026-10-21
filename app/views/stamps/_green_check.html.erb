@@ -1,20 +1,2 @@
-<svg class="stamp stamp--green-check" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <g transform="rotate(-5 50 50)">
-    <ellipse cx="50" cy="50" rx="45" ry="35" stroke="currentColor" stroke-width="5" stroke-linecap="round"
-             stroke-dasharray="40 3 55 2 47 4 31 2 44 3" opacity="0.94"/>
-    <ellipse cx="50" cy="50" rx="38" ry="28.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-             stroke-dasharray="52 4 43 2 61 3" opacity="0.45"/>
-
-    <path d="M27 51.5 L42 66 L74 30" stroke="currentColor" stroke-width="9"
-          stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-    <path d="M31.5 50 L42.5 61" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
-  </g>
-
-  <g fill="currentColor" opacity="0.45">
-    <circle cx="20" cy="34" r="0.85"/>
-    <circle cx="81" cy="62" r="0.75"/>
-    <circle cx="34" cy="79" r="0.65"/>
-    <circle cx="78" cy="26" r="0.6"/>
-    <circle cx="13" cy="53" r="0.55"/>
-  </g>
-</svg>
+<%# Rubber-stamp ink is a mask over currentColor, so each stamp keeps its themed colour. %>
+<span class="stamp stamp--green-check" style="--stamp-mask: url(<%= asset_path "stamps/green_check.png" %>)" aria-hidden="true"></span>
