@@ -29,7 +29,9 @@
 
   /* Primitives (OKLCH). Only these change between themes; everything else
      below is derived from them. Ink ramp follows 37signals' Fizzy. */
-  --lch-canvas: 100% 0 0;
+  /* BC5's warm tint behind white cards; side panels one step deeper */
+  --lch-canvas: 98.6% 0.008 60;
+  --lch-panel: 96.6% 0.011 60;
   --lch-surface: 100% 0 0;
   --lch-ink-darkest: 32.09% 0.0204 233.83;   /* Basecamp ink-4 */
   --lch-ink-darker: 42% 0.018 234;
@@ -64,6 +66,7 @@
   --ink-lighter: oklch(var(--lch-ink-lighter));
   --ink-lightest: oklch(var(--lch-ink-lightest));
   --canvas: oklch(var(--lch-canvas));
+  --panel: oklch(var(--lch-panel));
   --surface: oklch(var(--lch-surface));   /* cards and inputs sitting on the canvas */
   --dawn: oklch(var(--lch-dawn));
   --dawn-wash: oklch(var(--lch-dawn-wash));
@@ -240,7 +243,8 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --lch-canvas: 20% 0.0195 232.58;
-    --lch-surface: 23.5% 0.02 235;
+    --lch-panel: 17.5% 0.018 232;
+    --lch-surface: 27.1% 0.023 230;
     --lch-ink-darkest: 91.97% 0.0059 239.83;
     --lch-ink-darker: 84% 0.0065 240;
     --lch-ink-dark: 72% 0.009 240;
@@ -274,7 +278,8 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --lch-canvas: 20% 0.0195 232.58;
-  --lch-surface: 23.5% 0.02 235;
+  --lch-panel: 17.5% 0.018 232;
+  --lch-surface: 27.1% 0.023 230;
   --lch-ink-darkest: 91.97% 0.0059 239.83;
   --lch-ink-darker: 84% 0.0065 240;
   --lch-ink-dark: 72% 0.009 240;
@@ -7763,3 +7768,18 @@ body { font-size: 16px; line-height: 1.5; }
 .kanban__column--past .kanban__day-number,
 .kanban__column--past .kanban__header-count { color: var(--muted); }
 .kanban__column--past .kanban__quick-add { display: none; }
+
+/* ==========================================================================
+   THREE LEVELS — panels (deeper tint), page (faint warm tint), cards (white)
+   ========================================================================== */
+.sb,
+.right,
+.r-rail,
+.r-content { background: var(--panel); }
+.sb { border-right: 1px solid var(--line); }
+.right { border-left: 1px solid var(--line); }
+.kanban,
+.kanban__column,
+.day-view__tasks,
+.day-view__timeline-column { background: var(--canvas); }
+.kanban__column { --col-bg: var(--canvas); }
