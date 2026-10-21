@@ -2,11 +2,29 @@ class SessionsController < ApplicationController
   skip_before_action :authenticate_user!
   skip_before_action :require_onboarding!
 
+  # Comma-separated Basecamp identity ids allowed in besides the install's owner.
+  ALLOWED_IDS_ENV = "DAYBREAK_ALLOWED_BASECAMP_IDS"
+
   def new
-    redirect_to root_path if logged_in?
+    return redirect_to root_path if logged_in?
+    return unless BasecampClient.configured?
+
+    session[:basecamp_oauth_state] = SecureRandom.urlsafe_base64(24)
+    @authorize_url = BasecampClient.authorize_url(auth_basecamp_callback_url, state: session[:basecamp_oauth_state])
   end
 
   def create
+    expected_state = session.delete(:basecamp_oauth_state)
+    unless expected_state.present? && params[:state].present? &&
+           ActiveSupport::SecurityUtils.secure_compare(expected_state, params[:state].to_s)
+      redirect_to login_path, alert: "That sign-in link expired. Want to try again?"
+      return
+    end
+    if params[:code].blank?
+      redirect_to login_path, alert: params[:error_description].presence || "Basecamp didn't sign you in. Want to try again?"
+      return
+    end
+
     token_data = BasecampClient.exchange_code(params[:code], auth_basecamp_callback_url)
     identity_data = BasecampClient.fetch_identity(token_data["access_token"])
 
@@ -14,6 +32,12 @@ class SessionsController < ApplicationController
     if identity.blank? || identity["id"].blank?
       Rails.logger.warn("Basecamp identity response had no identity id")
       redirect_to login_path, alert: "Basecamp didn't send back your account. Want to try again?"
+      return
+    end
+
+    unless sign_in_allowed?(identity["id"].to_s)
+      Rails.logger.warn("Refused Basecamp sign-in for identity #{identity["id"]}: not this install's owner")
+      redirect_to login_path, alert: "This Daybreak belongs to someone else. Ask its owner to add your Basecamp ID to #{ALLOWED_IDS_ENV}."
       return
     end
 
@@ -55,5 +79,15 @@ class SessionsController < ApplicationController
   def destroy
     session.delete(:user_id)
     redirect_to login_path, notice: "Signed out. See you tomorrow."
+  end
+
+  private
+
+  # Daybreak is single-user: the first Basecamp identity to sign in owns the install.
+  # Anyone already here keeps access; others need to be listed in ALLOWED_IDS_ENV.
+  def sign_in_allowed?(basecamp_uid)
+    return true if User.none? || User.exists?(basecamp_uid: basecamp_uid)
+
+    ENV[ALLOWED_IDS_ENV].to_s.split(",").map(&:strip).include?(basecamp_uid)
   end
 end

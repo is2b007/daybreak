@@ -14,6 +14,7 @@ class ImportHeyJournalJob < ApplicationJob
     return if hey_raw.blank?
 
     incoming_html = LocalJournalEntry.content_from_hey_api(hey_raw)
+    return if incoming_html.blank?
     local = user.local_journal_entries.find_by(date: date)
 
     if local

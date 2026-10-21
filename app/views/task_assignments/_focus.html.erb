@@ -140,8 +140,7 @@
             <% bc_content = bc_todo["description"].presence || bc_todo["content"].to_s %>
             <% if bc_content.present? %>
               <div class="focus__source-body">
-                <%= sanitize bc_content, tags: %w[p br a ul ol li strong em b i div span h1 h2 h3 h4 blockquote code pre],
-                                         attributes: %w[href target rel] %>
+                <%= basecamp_rich_text(bc_content) %>
               </div>
             <% else %>
               <p class="focus__panel-empty">No description on this Basecamp to-do.</p>
@@ -166,7 +165,7 @@
               <% bc_comments.each do |c| %>
                 <div class="focus__comment">
                   <div class="focus__comment-author"><%= c.dig("creator", "name") %></div>
-                  <div class="focus__comment-content"><%= c["content"]&.gsub(/<[^>]+>/, "") %></div>
+                  <div class="focus__comment-content"><%= basecamp_rich_text(c["content"]) %></div>
                   <% if c["created_at"].present? %>
                     <div class="focus__comment-time"><%= time_ago_in_words(Time.parse(c["created_at"])) %> ago</div>
                   <% end %>

@@ -28,13 +28,14 @@ class BasecampClient
 
   # OAuth flow
 
-  def self.authorize_url(redirect_uri)
+  def self.authorize_url(redirect_uri, state: nil)
     params = {
       type: "web_server",
       client_id: credentials[:client_id],
       redirect_uri: redirect_uri,
-      response_type: "code"
-    }
+      response_type: "code",
+      state: state
+    }.compact
     "#{BASE_AUTH_URL}/authorization/new?#{params.to_query}"
   end
 

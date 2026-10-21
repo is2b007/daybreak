@@ -80,4 +80,26 @@ class SyncJournalJobTest < ActiveJob::TestCase
 
     assert_equal false, called
   end
+
+  test "a push read back from HEY does not repeat the day log or nest the layout" do
+    scratch = "<p>Scratch</p>"
+    entry = @user.local_journal_entries.create!(date: @date, content: scratch)
+    @user.daily_logs.create!(date: @date).tap do |log|
+      log.log_entries.create!(content: "Logged item", logged_at: Time.zone.parse("2026-04-10 09:00"))
+    end
+    stored = nil
+    client = Object.new
+    client.define_singleton_method(:write_journal) { |_day, body| stored = body; { "id" => "1" } }
+    client.define_singleton_method(:journal_entry) { |_day| { "content" => "<div class=\"trix-content\">#{stored}</div>" } }
+
+    with_hey_client(client) do
+      SyncJournalJob.perform_now(@user.id, @date.to_s)
+      ImportHeyJournalJob.perform_now(@user.id, @date.to_s)
+      SyncJournalJob.perform_now(@user.id, @date.to_s)
+    end
+
+    assert_equal scratch, entry.reload.content
+    assert_equal 1, stored.scan("Day log").size
+    refute_includes stored, "trix-content"
+  end
 end

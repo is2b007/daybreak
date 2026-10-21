@@ -145,7 +145,7 @@
                 <div class="modal__comment-item-author">
                   <%= c.dig("creator", "name") %>
                 </div>
-                <div class="modal__comment-item-content"><%= c["content"]&.gsub(/<[^>]+>/, "") %></div>
+                <div class="modal__comment-item-content"><%= basecamp_rich_text(c["content"]) %></div>
                 <% if c["created_at"].present? %>
                   <div class="modal__comment-item-time">
                     <%= time_ago_in_words(Time.parse(c["created_at"])) %> ago
