@@ -27,7 +27,8 @@ After that, every push to `main` auto-deploys. PRs get preview deployments.
 
 ## Assets
 
-- `assets/daybreak-logo.svg`: mirror of `app/assets/images/daybreak-logo.svg`. Keep in sync if the app logo changes.
+- `assets/daybreak-logo.svg`: the rounded glass-dome mark used next to the wordmark. Mirror of `app/assets/images/daybreak-logo.svg`; keep them in sync.
+- `assets/daybreak-icon.svg`: the square app-icon tile, used as the favicon. Mirror of `public/icon.svg`.
 - `assets/logos/basecamp.svg` + `basecamp-mark.svg`: Basecamp wordmark and icon (used on hero and product mockups).
 - `assets/logos/hey.svg` + `hey-mark.svg`: HEY wordmark and icon.
 - `assets/style.css`: design tokens mirror `app/assets/stylesheets/application.css`.
