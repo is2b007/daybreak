@@ -1,55 +1,116 @@
 /* ==========================================================================
-   DAYBREAK v5 — Design System
-   Warm, light, no shadows, Inter font, 3-column shell layout
+   DAYBREAK v6 — Design System
+   Basecamp's bones, Daybreak's dawn: a 37signals-style OKLCH ink ramp on a
+   white canvas, system type, accents taken from the logo (dawn amber, sky).
+   Light and dark themes; see THEMES below.
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Newsreader (SIL OFL 1.1) — the one serif, for rituals, journal and focus titles. */
+@font-face {
+  font-family: "Newsreader";
+  src: url("newsreader-opsz-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("newsreader-opsz-italic.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
 
 /* --------------------------------------------------------------------------
    TOKENS
    -------------------------------------------------------------------------- */
 :root {
+  color-scheme: light;
+
+  /* Primitives (OKLCH). Only these change between themes; everything else
+     below is derived from them. Ink ramp follows 37signals' Fizzy. */
+  --lch-canvas: 100% 0 0;
+  --lch-surface: 100% 0 0;
+  --lch-ink-darkest: 26% 0.05 264;
+  --lch-ink-darker: 40% 0.026 262;
+  --lch-ink-dark: 56% 0.014 260;
+  --lch-ink-medium: 66% 0.008 258;
+  --lch-ink-light: 84% 0.005 256;
+  --lch-ink-lighter: 92% 0.003 254;
+  --lch-ink-lightest: 96% 0.002 252;
+  --lch-dawn: 72% 0.17 58;          /* logo amber — fills */
+  --lch-dawn-strong: 64% 0.17 52;   /* amber that reads as text on canvas */
+  --lch-dawn-text: 50% 0.13 50;     /* amber text on the wash */
+  --lch-dawn-wash: 97.5% 0.022 75;
+  --lch-dawn-wash-2: 93% 0.06 72;
+  --lch-sky: 80% 0.08 235;          /* logo sky — focus and evening */
+  --lch-sky-wash: 96% 0.02 235;
+  --lch-bc: 89% 0.18 95;            /* Basecamp gold */
+  --lch-bc-ink: 20% 0.02 240;
+  --lch-bc-wash: 97% 0.05 98;
+  --lch-bc-text: 45% 0.09 85;
+  --lch-bc-line: 62% 0.13 88;
+  --lch-hey: 55% 0.16 147;
+  --lch-hey-wash: 96.5% 0.03 145;
+  --lch-hey-text: 42% 0.11 148;
+  --lch-red: 55% 0.19 30;
+  --lch-link: 57% 0.19 260;
+
+  --ink: oklch(var(--lch-ink-darkest));
+  --ink-darker: oklch(var(--lch-ink-darker));
+  --ink-dark: oklch(var(--lch-ink-dark));
+  --ink-medium: oklch(var(--lch-ink-medium));
+  --ink-light: oklch(var(--lch-ink-light));
+  --ink-lighter: oklch(var(--lch-ink-lighter));
+  --ink-lightest: oklch(var(--lch-ink-lightest));
+  --canvas: oklch(var(--lch-canvas));
+  --surface: oklch(var(--lch-surface));   /* cards and inputs sitting on the canvas */
+  --dawn: oklch(var(--lch-dawn));
+  --dawn-wash: oklch(var(--lch-dawn-wash));
+  --sky: oklch(var(--lch-sky));
+  --sky-wash: oklch(var(--lch-sky-wash));
+  --link: oklch(var(--lch-link));
+
   /* Backgrounds */
-  --bg: #FDFCFA;
-  --bg2: #F5F3EF;
-  --bg3: #EEEAE3;
+  --bg: var(--canvas);
+  --bg2: var(--ink-lightest);
+  --bg3: var(--ink-lighter);
 
   /* Text */
-  --text: #18191A;
-  --muted: #8c9aa3;
-  --muted2: #C2CAD0;
+  --text: var(--ink);
+  --muted: var(--ink-dark);
+  --muted2: var(--ink-medium);
 
   /* Lines */
-  --line: #E8E4DC;
-  --line2: #F0EDE7;
+  --line: var(--ink-lighter);
+  --line2: var(--ink-lightest);
 
-  /* Amber accent */
-  --amber: #E8902A;
-  --amber-pill: #F5A623;
-  --amber-bg: #FEF7EE;
-  --amber-text: #9A5A0A;
+  /* Dawn accent (names kept from v5's "amber") — "today", time, rituals */
+  --amber: oklch(var(--lch-dawn-strong));
+  --amber-pill: var(--dawn);
+  --amber-bg: var(--dawn-wash);
+  --amber-text: oklch(var(--lch-dawn-text));
 
-  /* Basecamp — brand refresh: Gold + Bunker, replacing the old generic blue.
-     Split into four tokens because Gold is a fill colour, not a text colour:
-     #FFD60A on the cream canvas is 1.4:1, so anything that renders type or a
-     hairline needs --bc-text / --bc-line instead. */
-  --bc: #FFD60A;        /* Basecamp Gold — solid marks: dots, stripes, badges */
-  --bc-ink: #0B1215;    /* Basecamp Bunker — the pairing for type set on Gold */
-  --bc-bg: #FFF8DB;     /* pale gold wash behind chips and timeline blocks */
-  --bc-text: #6B5200;   /* 6.9:1 on --bc-bg, matching --hey-text / --amber-text */
-  --bc-line: #B08900;   /* deeper gold for outlines that must read on the wash */
+  /* Basecamp — Gold is a fill colour, not a text colour: anything that renders
+     type or a hairline uses --bc-text / --bc-line. */
+  --bc: oklch(var(--lch-bc));
+  --bc-ink: oklch(var(--lch-bc-ink));
+  --bc-bg: oklch(var(--lch-bc-wash));
+  --bc-text: oklch(var(--lch-bc-text));
+  --bc-line: oklch(var(--lch-bc-line));
 
   /* HEY */
-  --hey: #16A34A;
-  --hey-bg: #F0FDF4;
-  --hey-text: #166534;
+  --hey: oklch(var(--lch-hey));
+  --hey-bg: oklch(var(--lch-hey-wash));
+  --hey-text: oklch(var(--lch-hey-text));
 
   /* States */
-  --red: #DC2626;
+  --red: oklch(var(--lch-red));
 
   /* Legacy aliases (used in existing views/models) */
   --color-canvas: var(--bg);
   --color-surface: var(--bg);
-  --color-surface-raised: var(--bg);
+  --color-surface-raised: var(--surface);
   --color-surface-today: var(--amber-bg);
   --color-text: var(--text);
   --color-text-muted: var(--muted);
@@ -63,20 +124,20 @@
   --color-basecamp: var(--bc);
   --color-hey: var(--hey);
   --color-completed: var(--muted2);
-  --color-warning: #F4C550;
+  --color-warning: oklch(84% 0.14 85);
   --color-danger: var(--red);
   --color-success: var(--hey);
 
   /* Gradients */
-  --gradient-sunrise-start: #FFFBF5;
+  --gradient-sunrise-start: var(--dawn-wash);
   --gradient-sunrise-end: var(--bg);
   --gradient-sunset-start: var(--bg);
-  --gradient-sunset-end: #FFF8F2;
+  --gradient-sunset-end: var(--sky-wash);
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-  --font-serif: Georgia, "Times New Roman", serif;
+  /* Typography — system stack, as Basecamp and HEY ship; serif only where you read or reflect */
+  --font-sans: "Adwaita Sans", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
   --font-size-xs: 0.6875rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.875rem;
@@ -87,7 +148,7 @@
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 600; /* no 700 in v5 */
+  --font-weight-bold: 700;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -104,40 +165,44 @@
 
   /* Borders */
   --radius-sm: 4px;
-  --radius-md: 7px;
-  --radius-lg: 8px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Shadows — soft, used sparingly on cards and pills */
-  --shadow-card: 0 1px 2px rgba(24, 25, 26, 0.04), 0 1px 3px rgba(24, 25, 26, 0.04);
-  --shadow-card-hover: 0 2px 4px rgba(24, 25, 26, 0.06), 0 6px 14px rgba(24, 25, 26, 0.08);
-  --shadow-overlay: 0 10px 30px rgba(24, 25, 26, 0.10), 0 2px 6px rgba(24, 25, 26, 0.05);
+  /* Shadows — 37signals' stacked 5% layers */
+  --lch-shadow: 0% 0 0;
+  --shadow-card: 0 0 0 1px oklch(var(--lch-shadow) / 5%), 0 0.1em 0.2em oklch(var(--lch-shadow) / 4%), 0 0.3em 0.5em oklch(var(--lch-shadow) / 4%);
+  --shadow-card-hover: 0 0 0 1px oklch(var(--lch-shadow) / 6%), 0 0.2em 0.2em oklch(var(--lch-shadow) / 5%), 0 0.4em 0.4em oklch(var(--lch-shadow) / 5%), 0 0.8em 0.8em oklch(var(--lch-shadow) / 5%);
+  --shadow-overlay: 0 0 0 1px oklch(var(--lch-shadow) / 6%), 0 0.4em 0.8em oklch(var(--lch-shadow) / 8%), 0 1.2em 2.4em oklch(var(--lch-shadow) / 10%);
   --shadow-stamp: none;
 
-  /* Week view columns: white by default; only today gets pale amber.
+  /* Week view columns: canvas by default; only today gets the dawn wash.
      Day-view sections reuse --col-today-bg as a warm surface accent. */
-  --col-default-bg:      #FFFFFF;
+  --col-default-bg:      var(--bg);
   --col-default-pill-bg: var(--bg2);
   --col-default-pill-ink: var(--muted);
-  --col-today-bg:        var(--amber-bg);      /* pale yellow — matches the "today" mark */
-  --col-today-pill-bg:   #FDE8CC;
+  --col-today-bg:        var(--amber-bg);
+  --col-today-pill-bg:   oklch(var(--lch-dawn-wash-2));
   --col-today-pill-ink:  var(--amber-text);
   /* Dynamic slots read by .kanban__column */
   --col-bg: var(--col-default-bg);
   --col-header-bg: var(--col-default-pill-bg);
   --col-header-text: var(--col-default-pill-ink);
 
-  /* Sunrise/sunset button palette — shared by .btn and ritual decisions */
-  --warm-ink:        #2a1f15; /* primary warm text */
-  --warm-ink-soft:   #7a6550; /* secondary warm text */
-  --warm-line:       rgba(139, 117, 96, 0.35); /* warm brown border */
-  --warm-line-hover: #8b7560;
-  --warm-surface:    #FFF8EF; /* cream paper */
-  --warm-surface-2:  rgba(255, 255, 255, 0.5);
-  --brick:           #A8372C; /* ritual "chosen" brick red */
-  --brick-hover:     #831F16;
-  --brick-ink:       #FFFBF5; /* cream text on brick */
+  /* Ritual palette — shared by .btn and ritual decisions. Primary actions are
+     ink pills, as in Basecamp; dawn is kept for "today" and time. */
+  --warm-ink:        var(--ink);
+  --warm-ink-soft:   var(--ink-darker);
+  --warm-line:       var(--ink-light);
+  --warm-line-hover: var(--ink-dark);
+  --warm-surface:    var(--surface);
+  --warm-surface-2:  oklch(var(--lch-surface) / 0.5);
+  --brick:           var(--ink);
+  --brick-hover:     var(--ink-darker);
+  --brick-active:    var(--ink-dark);
+  --brick-ink:       var(--canvas);
+  --stamp-red:       #A8372C; /* the "DONE" stamp keeps its ink */
 
   /* Layout */
   --sidebar-width: 188px;
@@ -168,13 +233,86 @@
 }
 
 /* --------------------------------------------------------------------------
+   THEMES — users.theme sets data-theme="light"/"dark" on <html>; "system"
+   sets nothing and follows the OS. Only primitives are redefined here.
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --lch-canvas: 20% 0.0195 232.58;
+    --lch-surface: 23.5% 0.02 235;
+    --lch-ink-darkest: 96.02% 0.0034 260;
+    --lch-ink-darker: 86% 0.0061 260;
+    --lch-ink-dark: 73.97% 0.009 260;
+    --lch-ink-medium: 62% 0.0122 260;
+    --lch-ink-light: 40% 0.0148 260;
+    --lch-ink-lighter: 30% 0.0178 260;
+    --lch-ink-lightest: 25% 0.0204 260;
+    --lch-dawn: 74% 0.16 60;
+    --lch-dawn-strong: 78% 0.14 62;
+    --lch-dawn-text: 82% 0.11 66;
+    --lch-dawn-wash: 24% 0.022 60;
+    --lch-dawn-wash-2: 34% 0.06 58;
+    --lch-sky: 75% 0.08 235;
+    --lch-sky-wash: 27% 0.03 235;
+    --lch-bc: 86% 0.16 95;
+    --lch-bc-wash: 28% 0.04 95;
+    --lch-bc-text: 86% 0.12 95;
+    --lch-bc-line: 70% 0.12 90;
+    --lch-hey: 72% 0.14 147;
+    --lch-hey-wash: 27% 0.04 145;
+    --lch-hey-text: 82% 0.1 147;
+    --lch-red: 72% 0.15 35;
+    --lch-link: 74% 0.12 255;
+    --lch-shadow: 0% 0 0;
+    --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
+    --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
+    --shadow-overlay: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.8em 2em oklch(0% 0 0 / 45%);
+    --stamp-red: #E0705F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --lch-canvas: 20% 0.0195 232.58;
+  --lch-surface: 23.5% 0.02 235;
+  --lch-ink-darkest: 96.02% 0.0034 260;
+  --lch-ink-darker: 86% 0.0061 260;
+  --lch-ink-dark: 73.97% 0.009 260;
+  --lch-ink-medium: 62% 0.0122 260;
+  --lch-ink-light: 40% 0.0148 260;
+  --lch-ink-lighter: 30% 0.0178 260;
+  --lch-ink-lightest: 25% 0.0204 260;
+  --lch-dawn: 74% 0.16 60;
+  --lch-dawn-strong: 78% 0.14 62;
+  --lch-dawn-text: 82% 0.11 66;
+  --lch-dawn-wash: 24% 0.022 60;
+  --lch-dawn-wash-2: 34% 0.06 58;
+  --lch-sky: 75% 0.08 235;
+  --lch-sky-wash: 27% 0.03 235;
+  --lch-bc: 86% 0.16 95;
+  --lch-bc-wash: 28% 0.04 95;
+  --lch-bc-text: 86% 0.12 95;
+  --lch-bc-line: 70% 0.12 90;
+  --lch-hey: 72% 0.14 147;
+  --lch-hey-wash: 27% 0.04 145;
+  --lch-hey-text: 82% 0.1 147;
+  --lch-red: 72% 0.15 35;
+  --lch-link: 74% 0.12 255;
+  --lch-shadow: 0% 0 0;
+  --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
+  --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
+  --shadow-overlay: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.8em 2em oklch(0% 0 0 / 45%);
+  --stamp-red: #E0705F;
+}
+
+/* --------------------------------------------------------------------------
    RESET
    -------------------------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-text-size-adjust: 100%; height: 100%; }
 body {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--text);
   background: var(--bg);
@@ -190,6 +328,21 @@ body:has(.shell) {
 }
 /* Ensure [hidden] always wins over any display rule in author CSS */
 [hidden] { display: none !important; }
+
+/* Icons — mask-painted SVGs from app/assets/images/icons; see ApplicationHelper#icon */
+.icon {
+  background-color: currentColor;
+  block-size: var(--icon-size, 1em);
+  display: inline-block;
+  flex-shrink: 0;
+  inline-size: var(--icon-size, 1em);
+  mask-image: var(--svg);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: var(--icon-size, 1em);
+  pointer-events: none;
+  user-select: none;
+}
 img, svg { display: block; max-width: 100%; }
 a { color: var(--amber); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -343,14 +496,13 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   outline-offset: 2px;
 }
 
-.sb-toggle svg {
+.sb-toggle .icon {
+  --icon-size: 16px;
   display: block;
-  width: 14px;
-  height: 14px;
   transition: transform 0.2s ease;
 }
 
-.sb.sb--collapsed .sb-toggle svg {
+.sb.sb--collapsed .sb-toggle .icon {
   transform: rotate(180deg);
 }
 
@@ -476,65 +628,19 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sbi.on {
-  background: var(--amber-bg);
-  color: var(--amber-text);
+  background: var(--bg2);
+  color: var(--text);
+  font-weight: 600;
 }
 
-.sbi svg {
-  flex-shrink: 0;
-  display: inline;
+/* Nav glyphs: solid Fizzy icons via the icon helper */
+.sbi .icon,
+.rri .icon.nav-icon {
+  --icon-size: 18px;
 }
 
-/* Legacy geometric icons keep their authored strokes */
-.sbi svg:not(.nav-icon--drawn) {
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Sidebar: hand-drawn nav icons */
-.sbi svg.nav-icon--drawn {
-  width: var(--nav-drawn-icon-size);
-  height: var(--nav-drawn-icon-size);
-  flex-shrink: 0;
-  transition: transform 0.28s cubic-bezier(0.33, 1.45, 0.56, 1);
-  transform-origin: center;
-}
-
-/* Rail: hand-drawn partials — same size as sidebar */
-.rri svg.nav-icon--drawn {
-  width: var(--nav-drawn-icon-size);
-  height: var(--nav-drawn-icon-size);
-  flex-shrink: 0;
-  display: block;
-  box-sizing: border-box;
-  transition: transform 0.28s cubic-bezier(0.33, 1.45, 0.56, 1);
-  transform-origin: center;
-}
-
-/* Drawn fill icon (week calendar) */
-.sbi svg.nav-icon--drawn-fill {
-  fill: currentColor;
-  stroke: none;
-}
-
-/*
- * Drawn stroke icons: viewBox 400×400; stroke scales with --nav-drawn-icon-size
- * (keep user weight low so fill calendar + stroke icons feel similar).
- */
-.sbi svg.nav-icon--drawn-stroke path,
-.rri svg.nav-icon--drawn-stroke path {
-  stroke-width: var(--nav-drawn-stroke-user);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Hover tilt — drawn icons only (sidebar + Goals/Daily log rail; not Basecamp/HEY) */
-.sbi:hover svg.nav-icon--drawn,
-.rri:hover svg.nav-icon--drawn {
-  transform: rotate(var(--nav-drawn-hover-tilt));
+.rri .icon.nav-icon--brand {
+  --icon-size: 17px;
 }
 
 .sbi-shortcut {
@@ -601,7 +707,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   width: var(--nav-drawn-icon-size);
   height: var(--nav-drawn-icon-size);
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #E8852A);
+  background: linear-gradient(135deg, var(--amber-pill), #E8852A);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -961,9 +1067,8 @@ a.rri:hover {
 }
 
 .rri.rri--panel-toggle .rri--panel-toggle-icon {
+  --icon-size: 16px;
   display: block;
-  width: 14px;
-  height: 14px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
@@ -973,8 +1078,8 @@ a.rri:hover {
 }
 
 .rri.on {
-  background: var(--amber-bg);
-  color: var(--amber-text);
+  background: var(--bg2);
+  color: var(--text);
 }
 
 .rri.on::after {
@@ -985,7 +1090,7 @@ a.rri:hover {
   bottom: 8px;
   width: 2px;
   border-radius: 1px 0 0 1px;
-  background: var(--amber);
+  background: var(--text);
 }
 
 .rri svg:not(.nav-icon--drawn):not(.rri--panel-toggle-icon) {
@@ -998,11 +1103,6 @@ a.rri:hover {
   stroke: none;
 }
 
-/* Panel toggle uses stroked chevron like sidebar toggle. */
-.rri.rri--panel-toggle .rri--panel-toggle-icon {
-  fill: none;
-  stroke: currentColor;
-}
 
 /* Stroke-only rail icons (e.g. Goals rings) */
 .rri svg.rri-svg--stroke {
@@ -1487,8 +1587,8 @@ a.rri:hover {
 }
 
 .btn--primary:active {
-  background: #6B1A12;
-  border-color: #6B1A12;
+  background: var(--brick-active);
+  border-color: var(--brick-active);
 }
 
 /* Secondary — cream paper, warm border (same as base; kept for explicit intent) */
@@ -1557,8 +1657,8 @@ a.rri:hover {
 }
 
 .btn--warm:active {
-  background: #6B1A12;
-  border-color: #6B1A12;
+  background: var(--brick-active);
+  border-color: var(--brick-active);
 }
 
 /* Pill — same shape as base .btn (which is already pill); kept as a semantic hook
@@ -1671,7 +1771,7 @@ select.form-input {
 }
 
 .flash--alert {
-  background: #FDE8E8;
+  background: oklch(var(--lch-red) / 0.12);
   color: var(--red);
   border: 1px solid var(--red);
 }
@@ -1681,7 +1781,7 @@ select.form-input {
    -------------------------------------------------------------------------- */
 .task-card {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl); /* 12px to match soft-card aesthetic */
   padding: 10px 12px;
@@ -1696,7 +1796,7 @@ select.form-input {
 }
 
 .task-card:hover {
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
 }
@@ -2042,7 +2142,7 @@ select.form-input {
   height: 16px;
   padding: 0 5px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.65);
+  background: oklch(var(--lch-surface) / 0.65);
   color: inherit;
   font-size: 10px;
   font-weight: 700;
@@ -2191,11 +2291,11 @@ select.form-input {
   border-radius: 3px;
   cursor: pointer;
   color: inherit;
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
 }
 
 .calendar-event__pin:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: oklch(var(--lch-surface) / 0.55);
 }
 
 .calendar-event.is-pinned-to-week .calendar-event__pin {
@@ -2246,7 +2346,7 @@ select.form-input {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  background: #f7f8fb;
+  background: var(--bg2);
 }
 
 .sometime-row__label {
@@ -2458,8 +2558,8 @@ select.form-input {
 
 .day-view__section-pill--timeline {
   /* Cream pill on the sunset gradient — high contrast, stays legible on coral/ember */
-  background: #FFF4E3;
-  color: #6B2410;
+  background: var(--amber-bg);
+  color: var(--amber-text);
 }
 
 .day-view__section-pill-count {
@@ -2470,7 +2570,7 @@ select.form-input {
   height: 16px;
   padding: 0 5px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(var(--lch-surface) / 0.7);
   color: inherit;
   font-size: 10px;
   font-weight: 700;
@@ -2504,7 +2604,7 @@ select.form-input {
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(var(--lch-surface) / 0.7);
 }
 
 .day-view__quick-add-input {
@@ -2537,7 +2637,7 @@ select.form-input {
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(var(--lch-surface) / 0.7);
 }
 
 .kanban__quick-add-input {
@@ -2573,7 +2673,7 @@ select.form-input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--surface);
 }
 
 .day-view__timeline-column .timeline {
@@ -2800,11 +2900,11 @@ select.form-input {
   font-weight: 600;
   cursor: pointer;
   color: inherit;
-  background: rgba(255, 255, 255, 0.2);
+  background: oklch(var(--lch-surface) / 0.2);
 }
 
 .hey-timeline-event__delete:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
 }
 
 .hey-timeline-event__row--main {
@@ -3251,7 +3351,7 @@ select.form-input {
   margin: 0 auto 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #f6f5f3;
+  background: var(--bg2);
   padding: 8px 12px;
   width: fit-content;
   max-width: calc(100% - 40px);
@@ -3265,12 +3365,12 @@ select.form-input {
 }
 
 .daily-log--scratch .jrnl-btn {
-  color: #6f7784;
+  color: var(--muted);
 }
 
 .daily-log--scratch .jrnl-btn:hover {
   color: var(--text);
-  background: #ece9e3;
+  background: var(--bg3);
 }
 
 /* --------------------------------------------------------------------------
@@ -3412,7 +3512,7 @@ select.form-input {
   border-top: none;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #f6f5f3;
+  background: var(--bg2);
   width: fit-content;
   max-width: calc(100% - 24px);
   flex-wrap: wrap;
@@ -3476,7 +3576,7 @@ select.form-input {
 }
 
 .ritual--morning {
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 60%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 60%);
 }
 
 /* Sunrise in the main shell: fill the scroll column instead of forcing 100vh */
@@ -3487,7 +3587,7 @@ select.form-input {
 }
 
 .ritual--evening {
-  background: linear-gradient(180deg, var(--bg) 40%, #FFF8F2 100%);
+  background: linear-gradient(180deg, var(--bg) 40%, var(--bg) 100%);
 }
 
 .shell .view-area > .ritual.ritual--evening.ritual--sunset-step1 {
@@ -4291,7 +4391,7 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 50%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 50%);
 }
 
 .onboarding__card {
@@ -4402,7 +4502,7 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 60%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 60%);
 }
 
 .login-card {
@@ -4587,7 +4687,7 @@ select.form-input {
    WEEKLY CHECK-IN RITUAL
    -------------------------------------------------------------------------- */
 .ritual--checkin {
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 55%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 55%);
 }
 
 .shell .view-area > .ritual.ritual--checkin {
@@ -4671,8 +4771,8 @@ select.form-input {
 }
 
 .checkin-ritual__checkbox:checked + .checkin-ritual__goal-check {
-  background: #16A34A;
-  border-color: #16A34A;
+  background: var(--hey);
+  border-color: var(--hey);
   color: #fff;
 }
 
@@ -4729,7 +4829,7 @@ select.form-input {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(24, 25, 26, 0.4);
+  background: oklch(var(--lch-shadow) / 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5097,14 +5197,14 @@ select.form-input {
 }
 
 .modal__comment-error {
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger, var(--red));
   font-size: var(--font-size-sm);
   margin: 0 0 var(--space-2);
 }
 
 /* Brief red outline when auto-save fails */
 form[data-save-error="true"] {
-  outline: 2px solid var(--color-danger, #dc2626);
+  outline: 2px solid var(--color-danger, var(--red));
   outline-offset: -2px;
   border-radius: var(--radius, 8px);
 }
@@ -5149,8 +5249,8 @@ form[data-save-error="true"] {
 
 @keyframes sunrise {
   0% { background: linear-gradient(180deg, #2C3E50 0%, #1D2D35 100%); }
-  40% { background: linear-gradient(180deg, #F5A623 0%, #E8852A 40%, var(--bg) 100%); }
-  100% { background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 40%); }
+  40% { background: linear-gradient(180deg, var(--amber-pill) 0%, #E8852A 40%, var(--bg) 100%); }
+  100% { background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 40%); }
 }
 
 @keyframes sunset {
@@ -5169,11 +5269,11 @@ form[data-save-error="true"] {
   20%  { background-color: #7B3F2B; }
   45%  { background-color: #E8833A; }
   70%  { background-color: #F5C06F; }
-  100% { background-color: #FFFBF5; }
+  100% { background-color: var(--dawn-wash); }
 }
 
 @keyframes sunset-ritual {
-  0%   { background-color: #FFFBF5; }
+  0%   { background-color: var(--dawn-wash); }
   25%  { background-color: #E8833A; }
   55%  { background-color: #C25B7A; }
   80%  { background-color: #3D1A4A; }
@@ -5236,7 +5336,7 @@ form[data-save-error="true"] {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-full);
   animation: twinkle 2s ease-in-out infinite;
 }
@@ -5253,12 +5353,12 @@ form[data-save-error="true"] {
 }
 
 .greeting-screen--sunrise {
-  background: linear-gradient(180deg, #F5A623 0%, #FFFBF5 50%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--amber-pill) 0%, var(--dawn-wash) 50%, var(--bg) 100%);
   animation: sunrise 2.5s ease-out forwards;
 }
 
 .greeting-screen--sunset {
-  background: linear-gradient(180deg, var(--bg) 0%, #FFF8F2 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
 }
 
 .greeting-screen__text {
@@ -5983,9 +6083,9 @@ body.focus-open { overflow: hidden; }
   --focus-sun-soft:  rgba(255, 243, 216, 0.50);
   --focus-sun-glow:  rgba(255, 236, 205, 0.35);
   --focus-ink:       #3A2A18;
-  --focus-ink-muted: #8B7560;
+  --focus-ink-muted: var(--warm-line-hover);
   --focus-card:      rgba(255, 255, 255, 0.58);
-  --focus-line:      rgba(139, 117, 96, 0.22);
+  --focus-line:      oklch(var(--lch-ink-dark) / 0.22);
 }
 .focus-overlay--midday {
   --focus-sky:       #FCF4E0;
@@ -6519,7 +6619,7 @@ body.focus-open { overflow: hidden; }
 .sometime-row__tasks .task-card--completed .task-card__title { padding-right: 26px; }
 
 /* Muted, slightly desaturated inks */
-.stamp--red-done       { color: #A8372C; }
+.stamp--red-done       { color: var(--stamp-red); }
 .stamp--navy-star      { color: #1F3D5C; }
 .stamp--green-check    { color: #2D6A4F; }
 .stamp--brown-complete { color: #6B4A2B; }
@@ -6555,7 +6655,7 @@ body.focus-open { overflow: hidden; }
   flex-direction: column;
   align-items: center;
   padding: clamp(40px, 6svh, 88px) 24px clamp(48px, 8svh, 120px);
-  color: #3a2e23;
+  color: var(--warm-ink);
   position: relative;
 }
 .ritual-doc__page {
@@ -6570,7 +6670,7 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__dateline {
   letter-spacing: 0.02em;
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
@@ -6581,22 +6681,22 @@ body.focus-open { overflow: hidden; }
   font-weight: 400;
   line-height: 1.18;
   letter-spacing: -0.01em;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__prose {
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.7;
-  color: #3a2e23;
+  color: var(--warm-ink);
   margin: 0;
 }
-.ritual-doc__prose--muted { color: #7a6550; font-style: italic; }
+.ritual-doc__prose--muted { color: var(--warm-ink-soft); font-style: italic; }
 .ritual-doc__prompt {
   font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.5;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__divider {
@@ -6622,11 +6722,11 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.55;
-  color: #3a2e23;
+  color: var(--warm-ink);
   padding: 0;
   text-decoration: none;
 }
-.ritual-doc__list-item:hover { color: #1f1a13; }
+.ritual-doc__list-item:hover { color: var(--ink); }
 .ritual-doc__list-mark {
   flex: 0 0 auto;
   width: 28px;
@@ -6634,13 +6734,13 @@ body.focus-open { overflow: hidden; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #A8372C;
+  color: var(--brick);
 }
 .ritual-doc__list-mark .stamp { width: 28px; height: 28px; opacity: 0.9; }
 .ritual-doc__list-main { flex: 1; }
 .ritual-doc__list-meta {
   font-size: 14px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   margin-top: 2px;
 }
@@ -6650,9 +6750,9 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.6;
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
-.ritual-doc__meter strong { font-weight: 700; color: #2a1f15; }
+.ritual-doc__meter strong { font-weight: 700; color: var(--warm-ink); }
 .ritual-doc__meter-bar {
   margin-top: 10px;
   height: 2px;
@@ -6664,7 +6764,7 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__meter-fill {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: linear-gradient(90deg, #D89B5E, #A8372C);
+  background: linear-gradient(90deg, #D89B5E, var(--brick));
   border-radius: 1px;
   transition: width 0.6s ease-out;
 }
@@ -6691,7 +6791,7 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 20px;
   font-style: italic;
-  color: #A8372C;
+  color: var(--brick);
   background: none;
   border: 0;
   padding: 6px 0;
@@ -6703,14 +6803,14 @@ body.focus-open { overflow: hidden; }
   transition: color 120ms ease, text-decoration-color 120ms ease;
 }
 .ritual-doc__link:hover {
-  color: #831F16;
-  text-decoration-color: #831F16;
+  color: var(--brick-hover);
+  text-decoration-color: var(--brick-hover);
 }
 .ritual-doc__link--back {
-  color: #8b7560;
-  text-decoration-color: rgba(139, 117, 96, 0.35);
+  color: var(--warm-line-hover);
+  text-decoration-color: oklch(var(--lch-ink-dark) / 0.35);
 }
-.ritual-doc__link--back:hover { color: #5e4d3b; text-decoration-color: #5e4d3b; }
+.ritual-doc__link--back:hover { color: var(--warm-ink-soft); text-decoration-color: var(--warm-ink-soft); }
 
 /* Stepper dots at the bottom */
 .ritual-doc__stepper {
@@ -6723,19 +6823,19 @@ body.focus-open { overflow: hidden; }
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(139, 117, 96, 0.28);
+  background: oklch(var(--lch-ink-dark) / 0.28);
 }
-.ritual-doc__stepper-dot--active { background: #A8372C; }
+.ritual-doc__stepper-dot--active { background: var(--brick); }
 
 /* Variants per ritual (seasonal warmth) */
 .ritual-doc--sunrise {
-  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 55%, #FAF2E4 100%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--dawn-wash) 55%, var(--bg) 100%);
 }
 .ritual-doc--sunset {
-  background: linear-gradient(180deg, #FFF4EA 0%, #F8EADB 55%, #EED8C0 100%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 100%);
 }
 .ritual-doc--weekly {
-  background: linear-gradient(180deg, #FAF6EF 0%, #F5EDE0 100%);
+  background: linear-gradient(180deg, var(--sky-wash) 0%, var(--bg) 100%);
 }
 
 /* Sunset reflection — one line, centered, private */
@@ -6749,26 +6849,26 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.6;
-  color: #2a1f15;
+  color: var(--warm-ink);
   padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(139, 117, 96, 0.28);
+  background: oklch(var(--lch-surface) / 0.55);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.28);
   border-radius: 6px;
   box-shadow: inset 0 1px 2px rgba(120, 90, 60, 0.05);
   outline: none;
   transition: border-color 120ms ease, background 120ms ease;
 }
 .ritual-doc__reflection-input::placeholder {
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-style: italic;
 }
 .ritual-doc__reflection-input:focus {
-  border-color: #A8372C;
-  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--brick);
+  background: oklch(var(--lch-surface) / 0.85);
 }
 .ritual-doc__reflection-hint {
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   text-align: center;
   margin: 0;
@@ -6777,7 +6877,7 @@ body.focus-open { overflow: hidden; }
 /* Evening decisions — handwritten-style tags */
 .ritual-doc__card {
   padding: 14px 0;
-  border-bottom: 1px dashed rgba(139, 117, 96, 0.28);
+  border-bottom: 1px dashed oklch(var(--lch-ink-dark) / 0.28);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -6786,12 +6886,12 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__card-title {
   font-family: var(--font-serif);
   font-size: 18px;
-  color: #2a1f15;
+  color: var(--warm-ink);
   line-height: 1.4;
 }
 .ritual-doc__card-meta {
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
 }
 .ritual-doc__decisions {
@@ -6813,21 +6913,21 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 15px;
-  color: #7a6550;
+  color: var(--warm-ink-soft);
   padding: 5px 14px;
-  border: 1px solid rgba(139, 117, 96, 0.35);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.35);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
   transition: all 120ms ease;
 }
 .ritual-doc__decision:hover .ritual-doc__decision-ui {
-  color: #2a1f15;
-  border-color: #8b7560;
+  color: var(--warm-ink);
+  border-color: var(--warm-line-hover);
 }
 .ritual-doc__decision input:checked + .ritual-doc__decision-ui {
-  color: #FFFBF5;
-  background: #A8372C;
-  border-color: #A8372C;
+  color: var(--dawn-wash);
+  background: var(--brick);
+  border-color: var(--brick);
 }
 
 /* Weekly checkin: lined-paper inputs + reading-list goals */
@@ -6836,14 +6936,14 @@ body.focus-open { overflow: hidden; }
   align-items: baseline;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(139, 117, 96, 0.22);
+  border-bottom: 1px solid oklch(var(--lch-ink-dark) / 0.22);
 }
 .ritual-doc__goal-num {
   width: 20px;
   text-align: right;
   font-family: var(--font-serif);
   font-style: italic;
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-size: 16px;
   flex: 0 0 auto;
 }
@@ -6852,14 +6952,14 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.5;
-  color: #2a1f15;
+  color: var(--warm-ink);
   background: transparent;
   border: 0;
   outline: none;
   padding: 4px 0;
 }
 .ritual-doc__goal-input::placeholder {
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-style: italic;
 }
 
@@ -6869,7 +6969,7 @@ body.focus-open { overflow: hidden; }
   gap: 14px;
   padding: 12px 0;
   cursor: pointer;
-  border-bottom: 1px dashed rgba(139, 117, 96, 0.22);
+  border-bottom: 1px dashed oklch(var(--lch-ink-dark) / 0.22);
 }
 .ritual-doc__goal-check:last-of-type { border-bottom: 0; }
 .ritual-doc__goal-check input { position: absolute; opacity: 0; pointer-events: none; }
@@ -6877,12 +6977,12 @@ body.focus-open { overflow: hidden; }
   flex: 0 0 auto;
   width: 20px;
   height: 20px;
-  border: 1px solid rgba(139, 117, 96, 0.45);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.45);
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.4);
+  background: oklch(var(--lch-surface) / 0.4);
   transition: all 120ms ease;
   margin-top: 2px;
 }
@@ -6891,18 +6991,18 @@ body.focus-open { overflow: hidden; }
   background: #2D6A4F;
   border-color: #2D6A4F;
 }
-.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: #FFFBF5; }
+.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: var(--dawn-wash); }
 .ritual-doc__goal-check-title {
   flex: 1;
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.5;
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
 .ritual-doc__goal-check--done .ritual-doc__goal-check-title {
-  color: #8b7560;
+  color: var(--warm-line-hover);
   text-decoration: line-through;
-  text-decoration-color: rgba(139, 117, 96, 0.45);
+  text-decoration-color: oklch(var(--lch-ink-dark) / 0.45);
 }
 
 /* Sunset wrap (closing card) */
@@ -6915,14 +7015,14 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: clamp(36px, 5vw, 52px);
   font-weight: 400;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__wrap-sub {
   font-family: var(--font-serif);
   font-size: 19px;
   font-style: italic;
-  color: #7a6550;
+  color: var(--warm-ink-soft);
   margin: 8px 0 0;
 }
 
@@ -6935,9 +7035,9 @@ body.focus-open { overflow: hidden; }
   pointer-events: none;
   opacity: 0.6;
 }
-.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, #FFE7C2 0%, transparent 70%); }
-.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, #F3CFA6 0%, transparent 70%); }
-.ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, #EEDFC7 0%, transparent 70%); }
+.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, oklch(var(--lch-dawn-wash-2)) 0%, transparent 70%); }
+.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, var(--sky-wash) 0%, transparent 70%); }
+.ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, var(--bg2) 0%, transparent 70%); }
 
 /* Softer sunrise/sunset fade-in */
 @keyframes ritualDocFade {
@@ -6959,12 +7059,12 @@ body.focus-open { overflow: hidden; }
   padding: 6px 10px;
   margin: 0 12px 8px;
   font-size: 11px;
-  color: #8b6a1a;
-  background: #fdf6e3;
+  color: var(--bc-text);
+  background: var(--bc-bg);
   border: 1px solid rgba(139, 106, 26, 0.2);
   border-radius: 4px;
 }
-.r-errors__dot { font-weight: 900; color: #b8871e; }
+.r-errors__dot { font-weight: 900; color: var(--bc-line); }
 .r-errors__msg { opacity: 0.85; }
 
 .modal__comments-error {
@@ -6974,18 +7074,18 @@ body.focus-open { overflow: hidden; }
   padding: 12px 14px;
   margin-bottom: 12px;
   font-size: 13px;
-  color: #6b4a2b;
-  background: #faf1e6;
+  color: var(--amber-text);
+  background: var(--amber-bg);
   border: 1px solid rgba(107, 74, 43, 0.15);
   border-radius: 6px;
 }
 .modal__comments-error-retry {
-  color: #A8372C;
+  color: var(--brick);
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.modal__comments-error-retry:hover { color: #831F16; }
+.modal__comments-error-retry:hover { color: var(--brick-hover); }
 
 /* ----- Onboarding (guided first week) ------------------------------------ */
 .onboarding-doc {
@@ -6995,7 +7095,7 @@ body.focus-open { overflow: hidden; }
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
-  background: linear-gradient(180deg, #FFFBF5 0%, #FAF2E4 100%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 100%);
 }
 .onboarding-doc__page {
   max-width: 520px;
@@ -7008,7 +7108,7 @@ body.focus-open { overflow: hidden; }
 .onboarding-doc__dateline {
   letter-spacing: 0.02em;
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
@@ -7018,14 +7118,14 @@ body.focus-open { overflow: hidden; }
   font-size: clamp(30px, 4vw, 42px);
   font-weight: 400;
   line-height: 1.18;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .onboarding-doc__prose {
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.7;
-  color: #3a2e23;
+  color: var(--warm-ink);
   margin: 0;
 }
 .onboarding-doc__form {
@@ -7040,17 +7140,17 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 22px;
   text-align: center;
-  color: #2a1f15;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(139, 117, 96, 0.28);
-  border-bottom: 2px solid rgba(139, 117, 96, 0.45);
+  color: var(--warm-ink);
+  background: oklch(var(--lch-surface) / 0.65);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.28);
+  border-bottom: 2px solid oklch(var(--lch-ink-dark) / 0.45);
   border-radius: 6px 6px 2px 2px;
   padding: 14px 18px;
   outline: none;
 }
 .onboarding-doc__text-input:focus {
-  border-color: #A8372C;
-  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--brick);
+  background: oklch(var(--lch-surface) / 0.9);
 }
 .onboarding-doc__select {
   width: 100%;
@@ -7058,8 +7158,8 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-sans);
   font-size: 16px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(139, 117, 96, 0.3);
+  background: oklch(var(--lch-surface) / 0.75);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.3);
   border-radius: 6px;
 }
 .onboarding-doc__stamp-grid {
@@ -7074,8 +7174,8 @@ body.focus-open { overflow: hidden; }
   .onboarding-doc__stamp-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .onboarding-doc__stamp-option {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(139, 117, 96, 0.22);
+  background: oklch(var(--lch-surface) / 0.55);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.22);
   border-radius: 6px;
   padding: 14px 6px;
   cursor: pointer;
@@ -7085,18 +7185,18 @@ body.focus-open { overflow: hidden; }
   justify-content: center;
 }
 .onboarding-doc__stamp-option:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(139, 117, 96, 0.5);
+  background: oklch(var(--lch-surface) / 0.85);
+  border-color: oklch(var(--lch-ink-dark) / 0.5);
 }
 .onboarding-doc__stamp-option--selected {
-  background: #fff;
-  border-color: #A8372C;
+  background: var(--surface);
+  border-color: var(--brick);
   box-shadow: 0 0 0 2px rgba(168, 55, 44, 0.15);
 }
 .onboarding-doc__stamp-preview {
   padding: 24px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px dashed rgba(139, 117, 96, 0.3);
+  background: oklch(var(--lch-surface) / 0.55);
+  border: 1px dashed oklch(var(--lch-ink-dark) / 0.3);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -7108,7 +7208,7 @@ body.focus-open { overflow: hidden; }
   font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #8b7560;
+  color: var(--warm-line-hover);
 }
 .onboarding-doc__step-dots {
   display: flex;
@@ -7120,9 +7220,9 @@ body.focus-open { overflow: hidden; }
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(139, 117, 96, 0.28);
+  background: oklch(var(--lch-ink-dark) / 0.28);
 }
-.onboarding-doc__step-dot--active { background: #A8372C; }
+.onboarding-doc__step-dot--active { background: var(--brick); }
 
 .onboarding-doc__basecamp-icon,
 .onboarding-doc__hey-icon {
@@ -7140,7 +7240,7 @@ body.focus-open { overflow: hidden; }
   gap: 10px;
   font-family: var(--font-serif);
   font-size: 16px;
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
 .onboarding-doc__feature-list li {
   padding-left: 16px;
@@ -7151,34 +7251,34 @@ body.focus-open { overflow: hidden; }
   content: "·";
   position: absolute;
   left: 0;
-  color: #A8372C;
+  color: var(--brick);
   font-weight: 900;
 }
 .onboarding-doc__closer-preview {
-  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 100%);
-  border: 1px solid rgba(139, 117, 96, 0.22);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--dawn-wash) 100%);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.22);
   border-radius: 10px;
   padding: 24px;
   text-align: left;
   font-family: var(--font-serif);
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
 .onboarding-doc__closer-preview-label {
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   margin-bottom: 8px;
   font-family: var(--font-sans);
 }
 .onboarding-doc__closer-preview-title {
   font-size: 22px;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0 0 4px;
 }
 .onboarding-doc__closer-preview-sub {
   font-size: 14px;
-  color: #7a6550;
+  color: var(--warm-ink-soft);
   font-style: italic;
   margin: 0;
 }
@@ -7186,13 +7286,13 @@ body.focus-open { overflow: hidden; }
 /* Onboarding restart footer link (in settings) */
 .onboarding-restart-link {
   font-size: 12px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(139, 117, 96, 0.35);
+  text-decoration-color: oklch(var(--lch-ink-dark) / 0.35);
 }
-.onboarding-restart-link:hover { color: #5e4d3b; }
+.onboarding-restart-link:hover { color: var(--warm-ink-soft); }
 
 
 /* ==========================================================================

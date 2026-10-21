@@ -1,4 +1,17 @@
 module ApplicationHelper
+  # Solid 24px glyph from app/assets/images/icons (Fizzy's set), painted as a CSS
+  # mask so it takes the surrounding text colour. Decorative unless a label is given.
+  def icon(name, label: nil, class: nil)
+    tag.span class: [ "icon", binding.local_variable_get(:class) ],
+      style: "--svg: url('#{asset_path("icons/#{name}.svg")}')",
+      role: (label ? "img" : nil), "aria-label": label, "aria-hidden": (label ? nil : "true")
+  end
+
+  # <html data-theme>: an explicit light/dark choice; "system" leaves it off so the OS decides.
+  def theme_attribute
+    current_user.theme if respond_to?(:logged_in?) && logged_in? && current_user.theme.in?(%w[light dark])
+  end
+
   BASECAMP_RICH_TEXT_TAGS = %w[p br a ul ol li strong em b i del s div span h1 h2 h3 h4 blockquote code pre].freeze
 
   # Basecamp comments and descriptions are rich-text HTML: keep the formatting and

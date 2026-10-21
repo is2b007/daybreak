@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %>>
   <head>
     <title><%= content_for(:title) || "Daybreak" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,8 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="application-name" content="Daybreak">
-    <meta name="theme-color" content="#FDFCFA">
-    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0E1A1F" media="(prefers-color-scheme: dark)">
+    <meta name="color-scheme" content="<%= theme_attribute || "light dark" %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
