@@ -7512,19 +7512,9 @@ body.focus-open { overflow: hidden; }
 .rri:not(.on) .rri-tile { filter: saturate(0.7); }
 .rri:hover .rri-tile { transform: translateY(-1px); filter: none; }
 
-/* "Me" row: avatar and name at the top of the sidebar, like Basecamp */
-.sb-bot--top {
-  padding: 2px 12px 10px;
-  border-bottom: 1px solid var(--line2);
-  margin-bottom: 6px;
-}
-.sb-bot--top .sb-bot-link {
-  padding: 5px 6px;
-  margin: 0 -6px;
-  border-radius: 8px;
-}
-.sb-bot--top .sb-bot-link:hover { background: oklch(var(--lch-ink-darkest) / 5%); }
-.sb.sb--collapsed .sb-bot--top { border-bottom: 0; margin-bottom: 0; }
+/* Account row at the foot of the sidebar: quiet hover like Basecamp */
+.sb-bot .sb-bot-link { border-radius: 8px; }
+.sb-bot .sb-bot-link:hover { background: oklch(var(--lch-ink-darkest) / 5%); }
 
 /* Today on white, with a dawn edge instead of a full wash */
 .day-view__tasks {

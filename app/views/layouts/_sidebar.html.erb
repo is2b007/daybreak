@@ -9,18 +9,6 @@
     </button>
   </div>
 
-  <div class="sb-bot sb-bot--top">
-    <%# Do not use display:contents on the link — it breaks <img> painting in Safari/WebKit. %>
-    <%= link_to settings_path, class: "sb-bot-link", title: "Settings" do %>
-      <% if current_user.basecamp_avatar_url.present? %>
-        <%= image_tag basecamp_avatar_path, alt: "", class: "sb-avatar sb-avatar--photo", size: "28x28", decoding: "async" %>
-      <% else %>
-        <div class="sb-avatar"><%= current_user.greeting_name.first.upcase %></div>
-      <% end %>
-      <div class="sb-username"><%= current_user.greeting_name %></div>
-    <% end %>
-  </div>
-
   <nav class="sb-nav">
     <%= link_to root_path, class: "sbi #{controller_name == 'weeks' ? 'on' : ''}", title: "Week (W)" do %>
       <%= render "icons/nav/week" %>
@@ -62,4 +50,15 @@
     <% end %>
   </nav>
 
+  <div class="sb-bot">
+    <%# Do not use display:contents on the link — it breaks <img> painting in Safari/WebKit. %>
+    <%= link_to settings_path, class: "sb-bot-link", title: "Settings" do %>
+      <% if current_user.basecamp_avatar_url.present? %>
+        <%= image_tag basecamp_avatar_path, alt: "", class: "sb-avatar sb-avatar--photo", size: "28x28", decoding: "async" %>
+      <% else %>
+        <div class="sb-avatar"><%= current_user.greeting_name.first.upcase %></div>
+      <% end %>
+      <div class="sb-username"><%= current_user.greeting_name %></div>
+    <% end %>
+  </div>
 </aside>
