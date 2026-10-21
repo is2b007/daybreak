@@ -11,6 +11,7 @@ class BasecampClient
   API_HOSTS_WITH_BEARER = %w[3.basecampapi.com 3.basecamp.com].freeze
   # my/profile sometimes returns a direct CDN URL (no API hop); still same /people/…/avatar path shape.
   BASECAMP_AVATAR_STATIC_HOST_SUFFIX = ".basecamp-static.com".freeze
+  DONE_COLUMN_TYPE = "Kanban::DoneColumn".freeze
 
   class AuthError < StandardError; end
   class RateLimitError < StandardError; end
@@ -161,6 +162,24 @@ class BasecampClient
     get("/todos/#{todo_id}.json")
   end
 
+  def card(card_id)
+    get("/card_tables/cards/#{card_id}.json")
+  end
+
+  # Cards have no completion endpoint: Basecamp completes one by moving it into its
+  # table's Done column (card -> column -> card table -> lists).
+  def complete_card(card_id)
+    card = card(card_id)
+    return if card["completed"] || card.dig("parent", "type") == DONE_COLUMN_TYPE
+
+    column = get("/card_tables/columns/#{card.dig("parent", "id")}.json")
+    table = get("/card_tables/#{column.dig("parent", "id")}.json")
+    done = Array(table["lists"]).find { |list| list["type"] == DONE_COLUMN_TYPE }
+    raise "Basecamp card table #{table["id"]} has no Done column" unless done
+
+    post("/card_tables/cards/#{card_id}/moves.json", { column_id: done["id"] })
+  end
+
   # Flat routes are canonical (bc3-api). bucket_id is ignored and kept for callers.
   def complete_todo(bucket_id, todo_id = nil)
     id = todo_id.presence || bucket_id
@@ -172,19 +191,21 @@ class BasecampClient
     delete("/todos/#{id}/completion.json")
   end
 
-  def schedule_entries(schedule_id)
-    get_paginated("/schedules/#{schedule_id}/entries.json")
-  end
+  # Every schedule entry the user can see in +starts_on+..+ends_on+, recurring ones
+  # already expanded by Basecamp (so DST and odd frequencies are its problem, not ours).
+  # Occurrences share their series id, so each gets "<id>:<date>" to stay unique.
+  def upcoming_schedule(starts_on:, ends_on:)
+    report = get("/reports/schedules/upcoming.json", {
+      window_starts_on: starts_on.to_date.iso8601,
+      window_ends_on: ends_on.to_date.iso8601
+    })
+    return nil unless report.is_a?(Hash)
 
-  # List plus locally expanded recurrences that fall in +starts_on+..+ends_on+.
-  # The official list is the series, not occurrences; GET .../occurrences/:date.json
-  # is one-day-at-a-time, so common frequencies are expanded here.
-  def schedule_entries_in_window(schedule_id, starts_on:, ends_on:)
-    entries = schedule_entries(schedule_id)
-    return [] unless entries.is_a?(Array)
-
-    range = starts_on.to_date..ends_on.to_date
-    entries.flat_map { |entry| expand_schedule_entry_for_range(entry, range) }
+    one_off = Array(report["schedule_entries"])
+    occurrences = Array(report["recurring_schedule_entry_occurrences"]).map do |entry|
+      entry.merge("id" => "#{entry["id"]}:#{occurrence_date(entry)}")
+    end
+    (one_off + occurrences).select { |entry| entry.is_a?(Hash) }
   end
 
   def my_profile
@@ -197,23 +218,6 @@ class BasecampClient
     ensure_fresh_token!
     uri = URI.parse(url_string)
     fetch_avatar_http(uri, retrying: false)
-  end
-
-  # Discovers schedule IDs from the user's projects via the project "dock".
-  # Returns [{ project_id:, project_name:, schedule_id: }, ...]
-  def schedules
-    projects_data = projects
-    return [] unless projects_data.is_a?(Array)
-
-    projects_data.flat_map do |project|
-      schedule = project["dock"]&.find { |d| d["name"] == "schedule" }
-      next [] unless schedule && schedule["enabled"]
-      [ {
-        project_id: project["id"],
-        project_name: project["name"],
-        schedule_id: schedule["id"]
-      } ]
-    end
   end
 
   def comments(bucket_id, recording_id = nil)
@@ -519,116 +523,13 @@ class BasecampClient
     out
   end
 
-  def expand_schedule_entry_for_range(entry, range)
-    return [] unless entry.is_a?(Hash)
+  # The occurrence's own day, from its app_url (".../occurrences/20260722") when present.
+  def occurrence_date(entry)
+    stamp = entry["app_url"].to_s[%r{/occurrences/(\d{8})}, 1]
+    return Date.strptime(stamp, "%Y%m%d").iso8601 if stamp
 
-    rec = entry["recurrence_schedule"]
-    return [ entry ] unless rec.is_a?(Hash) && rec["frequency"].present?
-
-    origin_start = parse_bc_time(entry["starts_at"])
-    return [ entry ] unless origin_start
-
-    origin_end = parse_bc_time(entry["ends_at"]) || origin_start
-    duration = origin_end - origin_start
-    origin_date = civil_date_from_timestamp(entry["starts_at"], origin_start)
-
-    occurrence_dates_in_range(rec, origin_date, range).map do |date|
-      new_start = origin_start + (date - origin_date).days
-      entry.merge(
-        "id" => "#{entry["id"]}:#{date.iso8601}",
-        "starts_at" => new_start.iso8601(3),
-        "ends_at" => (new_start + duration).iso8601(3)
-      )
-    end
-  end
-
-  def occurrence_dates_in_range(rec, origin_date, range)
-    start_date = parse_bc_date(rec["start_date"]) || origin_date
-    end_date = parse_bc_date(rec["end_date"])
-    first = [ range.begin, start_date ].max
-    last = end_date ? [ range.end, end_date ].min : range.end
-    return [] if first > last
-
-    (first..last).select { |date| occurrence_on?(rec, origin_date, date, start_date) }
-  end
-
-  def occurrence_on?(rec, origin_date, date, start_date)
-    return false if date < start_date
-
-    freq = rec["frequency"].to_s
-    case freq
-    when "every_day"
-      days = Array(rec["days"])
-      days.empty? || days.map(&:to_i).include?(date.wday)
-    when "every_weekday"
-      (1..5).include?(date.wday)
-    when "every_week"
-      date.wday == origin_date.wday
-    when "every_other_week"
-      date.wday == origin_date.wday && (((date - origin_date).to_i / 7) % 2).zero?
-    when "every_day_of_month"
-      date.day == origin_date.day
-    when "every_year"
-      date.month == origin_date.month && date.day == origin_date.day
-    when "custom_week"
-      interval = rec["week_interval"].to_i
-      interval = 2 if interval < 2
-      date.wday == origin_date.wday && (((date - origin_date).to_i / 7) % interval).zero?
-    when "every_month"
-      nth_weekday_of_month?(date, rec, origin_date)
-    when "custom_month"
-      interval = rec["month_interval"].to_i
-      interval = 2 if interval < 2
-      months = (date.year * 12 + date.month) - (origin_date.year * 12 + origin_date.month)
-      return false unless months >= 0 && (months % interval).zero?
-
-      if rec["week_instance"].present?
-        nth_weekday_of_month?(date, rec, origin_date)
-      else
-        target = Array(rec["days"]).first&.to_i || origin_date.day
-        date.day == target
-      end
-    else
-      date == origin_date
-    end
-  end
-
-  def nth_weekday_of_month?(date, rec, origin_date)
-    return false unless date.wday == origin_date.wday
-
-    instance = rec["week_instance"].to_i
-    if instance == -1
-      (date + 7).month != date.month
-    else
-      ((date.day - 1) / 7) + 1 == instance
-    end
-  end
-
-  def parse_bc_time(value)
-    return nil if value.blank?
-
-    Time.iso8601(value.to_s)
-  rescue ArgumentError, TypeError
-    begin
-      Time.parse(value.to_s)
-    rescue ArgumentError, TypeError
-      nil
-    end
-  end
-
-  def parse_bc_date(value)
-    return nil if value.blank?
-    Date.iso8601(value.to_s)
+    entry["starts_at"].to_s[0, 10]
   rescue ArgumentError
-    nil
-  end
-
-  def civil_date_from_timestamp(raw, parsed)
-    str = raw.to_s
-    return Date.iso8601(str[0, 10]) if str.match?(/\A\d{4}-\d{2}-\d{2}/)
-
-    parsed.to_date
-  rescue ArgumentError
-    parsed.to_date
+    entry["starts_at"].to_s[0, 10]
   end
 end

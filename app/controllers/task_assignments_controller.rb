@@ -45,7 +45,7 @@ class TaskAssignmentsController < ApplicationController
     if @task.basecamp? && @task.external_id.present?
       begin
         client = BasecampClient.new(current_user)
-        @bc_todo = client.todo(@task.external_id)
+        @bc_todo = @task.basecamp_card? ? client.card(@task.external_id) : client.todo(@task.external_id)
         @bc_comments = Array(client.comments(@task.basecamp_bucket_id, @task.external_id))
       rescue BasecampClient::AuthError
         @bc_comments_error = "Your Basecamp session looks expired."

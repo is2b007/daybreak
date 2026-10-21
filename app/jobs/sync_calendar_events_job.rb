@@ -33,21 +33,10 @@ class SyncCalendarEventsJob < ApplicationJob
   end
 
   def sync_basecamp(user, week_start, week_end)
-    client = BasecampClient.new(user)
-    seen_ids = []
-    client.schedules.each do |schedule|
-      entries = client.schedule_entries_in_window(
-        schedule[:schedule_id],
-        starts_on: week_start,
-        ends_on: week_end
-      )
-      next unless entries.is_a?(Array)
+    entries = BasecampClient.new(user).upcoming_schedule(starts_on: week_start, ends_on: week_end)
+    return false unless entries.is_a?(Array)
 
-      entries.each do |entry|
-        ext = upsert_basecamp(user, entry, week_start, week_end)
-        seen_ids << ext if ext.present?
-      end
-    end
+    seen_ids = entries.filter_map { |entry| upsert_basecamp(user, entry, week_start, week_end) }
     prune_stale_calendar_events!(user, :basecamp, week_start, week_end, seen_ids)
     true
   rescue BasecampClient::AuthError => e
@@ -68,14 +57,16 @@ class SyncCalendarEventsJob < ApplicationJob
       external_id: ext,
       source: :basecamp
     )
-    event.update!(
+    attrs = {
       title: entry["summary"] || entry["title"] || "(untitled)",
       starts_at: starts_at,
       ends_at: entry["ends_at"] && Time.parse(entry["ends_at"]),
       all_day: entry["all_day"] == true,
-      description: entry["description"],
       basecamp_bucket_id: entry.dig("bucket", "id")&.to_s
-    )
+    }
+    # The upcoming report carries no description; keep the one we already have.
+    attrs[:description] = entry["description"] if entry.key?("description")
+    event.update!(attrs)
     ext
   end
 
