@@ -1,4 +1,12 @@
 module ApplicationHelper
+  BASECAMP_RICH_TEXT_TAGS = %w[p br a ul ol li strong em b i del s div span h1 h2 h3 h4 blockquote code pre].freeze
+
+  # Basecamp comments and descriptions are rich-text HTML: keep the formatting and
+  # entities, drop anything that isn't plain markup.
+  def basecamp_rich_text(html)
+    sanitize(html.to_s, tags: BASECAMP_RICH_TEXT_TAGS, attributes: %w[href target rel])
+  end
+
   def format_sunset_hm(minutes)
     m = minutes.to_i
     return "0:00" if m <= 0

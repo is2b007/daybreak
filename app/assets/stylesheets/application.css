@@ -5070,7 +5070,7 @@ select.form-input {
   font-size: var(--font-size-sm);
   color: var(--text);
   line-height: 1.5;
-  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* Comment form */
@@ -6378,7 +6378,7 @@ body.focus-open { overflow: hidden; }
   font-size: 14px;
   line-height: 1.55;
   color: var(--focus-ink);
-  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .focus__comment-time {
