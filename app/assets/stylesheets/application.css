@@ -7679,3 +7679,35 @@ body.focus-open { overflow: hidden; }
 .sometime-row__tasks .task-card__check { margin-top: 0; }
 .sometime-row__tasks .task-card__title { font-size: 13px; }
 .sometime-row__tasks .task-card__project-label { display: none; }
+
+/* ==========================================================================
+   ROOM TO BREATHE — BC5-sized type and spacing
+   ========================================================================== */
+body { font-size: 16px; line-height: 1.5; }
+
+/* Wider days: about 220px each before another day fits */
+@container (min-width: 440px)  { .kanban > turbo-frame { --week-visible-days: 2; } }
+@container (min-width: 660px)  { .kanban > turbo-frame { --week-visible-days: 3; } }
+@container (min-width: 880px)  { .kanban > turbo-frame { --week-visible-days: 4; } }
+@container (min-width: 1100px) { .kanban > turbo-frame { --week-visible-days: 5; } }
+@container (min-width: 1320px) { .kanban > turbo-frame { --week-visible-days: 6; } }
+@container (min-width: 1540px) { .kanban > turbo-frame { --week-visible-days: 7; } }
+@container (max-width: 439px)  { .kanban > turbo-frame { --week-visible-days: 1; } }
+
+.kanban__column-header { padding: 20px 16px 12px; }
+.kanban__tasks { padding: 4px 12px 8px; }
+.kanban__quick-add { margin: 4px 12px 10px; }
+.task-card { padding: 14px 16px; margin-bottom: 10px; column-gap: 10px; }
+.task-card__project-label { margin-top: 6px; font-size: 12px; }
+
+/* Sidebar */
+.sb-nav { padding: 8px 12px; gap: 6px; }
+.sbi { font-size: 15px; padding: 7px 10px; gap: 11px; }
+
+/* Today page */
+.day-view__tasks-header { padding: 24px 24px 12px; }
+.day-view__tasks-list { padding: 12px 18px; }
+
+/* Right rail */
+.right-panel__body,
+.r-empty { padding-inline: 20px; }
