@@ -78,6 +78,25 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal [ "600", "3600" ], captured.select { |k, _| k == "timed_reminder_durations[]" }.map(&:last)
   end
 
+  test "update_calendar_event keeps an all-day event on its day whatever the zone" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |_method, _path, pairs|
+      captured = pairs
+      { code: 200, body: "", location: nil, success: true }
+    end
+
+    day = Time.utc(2026, 4, 15)
+    client.update_calendar_event(
+      calendar_id: "7", event_id: "42", title: "Offsite",
+      starts_at: day, ends_at: day, all_day: true, time_zone: "America/New_York",
+      reminders: [ 86_400 ]
+    )
+
+    assert_includes captured, [ "calendar_event[starts_at]", "2026-04-15" ]
+    assert_includes captured, [ "all_day_reminder_durations[]", "86400" ]
+  end
+
   test "calendars unwraps hey-sdk CalendarListPayload shape" do
     client = HeyClient.new(@user)
     wrapped = {
