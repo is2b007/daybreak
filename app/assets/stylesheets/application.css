@@ -1836,9 +1836,6 @@ select.form-input {
    Fade the card's *contents*, not the card. Fading .task-card itself also faded
    the stamp sitting inside it — 0.55 card x 0.86 stamp left the ink at ~0.47 and
    the whole point of the stamp barely visible. */
-.task-card--completed {
-  border-left-color: var(--muted2);
-}
 
 .task-card--completed .task-card__title,
 .task-card--completed .task-card__bottom,
@@ -7516,10 +7513,9 @@ body.focus-open { overflow: hidden; }
 .sb-bot .sb-bot-link { border-radius: 8px; }
 .sb-bot .sb-bot-link:hover { background: oklch(var(--lch-ink-darkest) / 5%); }
 
-/* Today on white, with a dawn edge instead of a full wash */
+/* Today on white instead of a full wash */
 .day-view__tasks {
   background: var(--surface);
-  box-shadow: inset 3px 0 0 var(--dawn);
 }
 
 /* Sometime this week: a slim strip of chips */
@@ -7590,3 +7586,9 @@ body.focus-open { overflow: hidden; }
 :root[data-theme="dark"] .stamp--green-check    { color: #5FA882; }
 :root[data-theme="dark"] .stamp--brown-complete { color: #B88A5E; }
 :root[data-theme="dark"] .stamp--black-dot      { color: #B9C0C4; }
+
+/* No coloured accent lines down the left edge of cards or blocks */
+.timeline__block--calendar,
+.timeline__block--task,
+.timeline__block--basecamp,
+.timeline__block--hey { border-left: none; }
