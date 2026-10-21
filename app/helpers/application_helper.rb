@@ -7,6 +7,11 @@ module ApplicationHelper
       role: (label ? "img" : nil), "aria-label": label, "aria-hidden": (label ? nil : "true")
   end
 
+  # Full-colour app tile for an integration (Basecamp, HEY), as on the rail and task cards.
+  def source_tile(name, class: nil)
+    image_tag "tiles/#{name}.svg", alt: "", class: [ "src-tile", binding.local_variable_get(:class) ], decoding: "async"
+  end
+
   # <html data-theme>: an explicit light/dark choice; "system" leaves it off so the OS decides.
   def theme_attribute
     current_user.theme if respond_to?(:logged_in?) && logged_in? && current_user.theme.in?(%w[light dark])

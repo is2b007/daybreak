@@ -84,7 +84,11 @@
           </div>
         <% end %>
       <% else %>
-        <div class="r-empty" data-bc-inbox-panel-target="empty">No Basecamp tasks</div>
+        <div class="r-empty" data-bc-inbox-panel-target="empty">
+          <%= source_tile "basecamp", class: "r-empty__tile" %>
+          <p class="r-empty__title">Nothing assigned to you</p>
+          <p class="r-empty__sub">To-dos assigned to you in Basecamp show up here, ready to drag onto a day.</p>
+        </div>
       <% end %>
       <div class="r-list__loader" data-bc-inbox-panel-target="loader"><div class="r-list__spinner"></div></div>
     </div>
@@ -141,12 +145,18 @@
         <% end %>
         <div data-hey-inbox-panel-target="sentinel" class="hey-inbox__sentinel" aria-hidden="true"></div>
         <div class="r-list__loader" data-hey-inbox-panel-target="loader"><div class="r-list__spinner"></div></div>
-        <div class="r-empty" data-hey-inbox-panel-target="empty" <%= @rp_hey_emails&.any? ? 'hidden' : '' %>>No emails in this mailbox</div>
+        <div class="r-empty" data-hey-inbox-panel-target="empty" <%= @rp_hey_emails&.any? ? 'hidden' : '' %>>
+          <%= source_tile "hey", class: "r-empty__tile" %>
+          <p class="r-empty__title">All clear</p>
+          <p class="r-empty__sub">No emails in this mailbox.</p>
+        </div>
       </div>
     <% else %>
       <div class="r-empty">
-        <%= link_to "Connect HEY", auth_hey_path, class: "r-empty__link" %>
-        <span class="r-empty__sub">to see your inbox here</span>
+        <%= source_tile "hey", class: "r-empty__tile" %>
+        <p class="r-empty__title">Bring in your HEY inbox</p>
+        <p class="r-empty__sub">Turn emails into tasks by dragging them onto a day.</p>
+        <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--primary btn--small" %>
       </div>
     <% end %>
   </div>
@@ -216,7 +226,9 @@
         <% end %>
       <% else %>
         <div class="r-empty">
-          <%= link_to "Set weekly goals", weekly_checkin_path, style: "color: var(--amber); text-decoration: none;" %>
+          <p class="r-empty__title">No goals this week yet</p>
+          <p class="r-empty__sub">Pick two or three things that would make the week a good one.</p>
+          <%= link_to "Set weekly goals", weekly_checkin_path, class: "btn btn--primary btn--small" %>
         </div>
       <% end %>
     </div>
@@ -229,11 +241,11 @@
     <%= icon "column-right", class: "rri--panel-toggle-icon" %>
   </button>
   <button class="rri on" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
-    <%= icon "basecamp", class: "nav-icon nav-icon--brand" %>
+    <%= source_tile "basecamp", class: "rri-tile" %>
     <span class="rri-tip">Basecamp</span>
   </button>
   <button class="rri" data-action="click->right-panel#switchTab" data-tab="hey" data-right-panel-target="railBtn">
-    <%= icon "hey", class: "nav-icon nav-icon--brand" %>
+    <%= source_tile "hey", class: "rri-tile" %>
     <span class="rri-tip">HEY</span>
   </button>
   <div class="r-rail-div" aria-hidden="true"></div>

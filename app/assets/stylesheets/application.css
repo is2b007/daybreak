@@ -7477,3 +7477,106 @@ body.focus-open { overflow: hidden; }
     overflow-y: auto;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   LAYOUT REFRESH: app tiles, "Me" row, Today on white, Sometime strip,
+   empty states
+   -------------------------------------------------------------------------- */
+
+/* Full-colour app tiles for Basecamp and HEY */
+.src-tile {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex: none;
+  display: inline-block;
+}
+.task-card__project-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+.task-card__project-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rri .rri-tile {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px oklch(var(--lch-shadow) / 12%);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+.rri:not(.on) .rri-tile { filter: saturate(0.7); }
+.rri:hover .rri-tile { transform: translateY(-1px); filter: none; }
+
+/* "Me" row: avatar and name at the top of the sidebar, like Basecamp */
+.sb-bot--top {
+  padding: 2px 12px 10px;
+  border-bottom: 1px solid var(--line2);
+  margin-bottom: 6px;
+}
+.sb-bot--top .sb-bot-link {
+  padding: 5px 6px;
+  margin: 0 -6px;
+  border-radius: 8px;
+}
+.sb-bot--top .sb-bot-link:hover { background: oklch(var(--lch-ink-darkest) / 5%); }
+.sb.sb--collapsed .sb-bot--top { border-bottom: 0; margin-bottom: 0; }
+
+/* Today on white, with a dawn edge instead of a full wash */
+.day-view__tasks {
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--dawn);
+}
+
+/* Sometime this week: a slim strip of chips */
+.sometime-row {
+  background: var(--bg);
+  padding: 10px 16px;
+}
+.sometime-row__empty {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 3rem;
+  padding: 5px 12px;
+  margin: 0;
+}
+
+/* Empty states: one line, a hint, and a button where there is something to do */
+.r-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.r-empty__tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  margin-bottom: 4px;
+}
+.r-empty__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.r-empty__sub {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  max-width: 24ch;
+}
+
+/* With the panel closed no tab is showing, so no rail icon reads as selected */
+.right.right--collapsed .rri.on { background: transparent; }
+.right.right--collapsed .rri.on::after { display: none; }
+.right.right--collapsed .rri:not(.on) .rri-tile,
+.right.right--collapsed .rri.on .rri-tile { filter: none; }

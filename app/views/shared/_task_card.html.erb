@@ -41,7 +41,9 @@
 
     <div class="task-card__project-label">
       <% if task.hey? || task.hey_app_url.present? %>
-        HEY Email
+        <%= source_tile "hey" %><span>HEY</span>
+      <% elsif task.basecamp? %>
+        <%= source_tile "basecamp" %><span><%= task.project_name.presence || "Basecamp" %></span>
       <% elsif task.project_name.present? %>
         <%= task.project_name %>
       <% end %>

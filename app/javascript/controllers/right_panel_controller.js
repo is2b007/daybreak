@@ -41,7 +41,8 @@ export default class extends Controller {
     try {
       stored = localStorage.getItem(COLLAPSED_KEY)
     } catch (_) { /* private mode */ }
-    this.element.classList.toggle("right--collapsed", stored === "1")
+    // Closed until the person opens it: the week gets the full width by default
+    this.element.classList.toggle("right--collapsed", stored !== "0")
   }
 
   toggle() {
@@ -55,8 +56,13 @@ export default class extends Controller {
     this.#syncToggle()
   }
 
+  /** Rail icons open the panel on their tab; clicking the open tab's icon closes it. */
   switchTab(event) {
-    this.#activateTab(event.currentTarget.dataset.tab)
+    const tab = event.currentTarget.dataset.tab
+    const collapsed = this.element.classList.contains("right--collapsed")
+    const alreadyOn = event.currentTarget.classList.contains("on")
+    if (collapsed || alreadyOn) this.toggle()
+    this.#activateTab(tab)
   }
 
   /** After Sunrise “Plan today”, open the panel and focus Basecamp inbox for dragging. */
