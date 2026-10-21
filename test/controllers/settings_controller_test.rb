@@ -45,4 +45,14 @@ class SettingsControllerTest < ActionController::TestCase
   ensure
     HeyClient.define_singleton_method(:new, original) if original
   end
+
+  test "show asks for a reconnect after HEY refused the connection" do
+    @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_reconnect_needed_at: 1.hour.ago)
+
+    get :show
+
+    assert_response :success
+    assert_match(/HEY stopped accepting Daybreak/, response.body)
+    assert_match(/Reconnect HEY/, response.body)
+  end
 end

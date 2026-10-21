@@ -14,7 +14,10 @@ class HeyClient
   # Public OAuth client ID — shared by all HEY API consumers.
   # HEY uses PKCE instead of a client_secret, so no registration is required.
   CLIENT_ID  = "khMWSVDVSq78oyKA3KtxmYRv"
-  INSTALL_ID = "daybreak"
+  # HEY binds a token family to the install_id it was issued under and treats a
+  # malformed or different one as another device. Credentials issued before Daybreak
+  # minted per-user ids were issued under this one, so their refreshes keep sending it.
+  LEGACY_INSTALL_ID = "daybreak"
 
   class AuthError < StandardError; end
   # The token endpoint refused the refresh token itself (invalid_grant): resending it can never work.
@@ -40,7 +43,16 @@ class HeyClient
     Base64.urlsafe_encode64(digest, padding: false)
   end
 
-  def self.authorize_url(redirect_uri, code_challenge:, state:)
+  # A version-4 UUID, the shape hey-cli and the mobile apps send.
+  def self.generate_install_id
+    SecureRandom.uuid
+  end
+
+  def self.install_id_for(user)
+    user.hey_install_id.presence || LEGACY_INSTALL_ID
+  end
+
+  def self.authorize_url(redirect_uri, code_challenge:, state:, install_id:)
     params = {
       client_id: CLIENT_ID,
       grant_type: "authorization_code",
@@ -48,12 +60,12 @@ class HeyClient
       state: state,
       code_challenge: code_challenge,
       code_challenge_method: "S256",
-      install_id: INSTALL_ID
+      install_id: install_id
     }
     "#{BASE_AUTH_URL}/oauth/authorizations/new?#{params.to_query}"
   end
 
-  def self.exchange_code(code, redirect_uri, code_verifier:)
+  def self.exchange_code(code, redirect_uri, code_verifier:, install_id:)
     uri = URI("#{BASE_AUTH_URL}/oauth/tokens")
     response = http_post_form(uri, {
       grant_type: "authorization_code",
@@ -61,20 +73,20 @@ class HeyClient
       code: code,
       redirect_uri: redirect_uri,
       code_verifier: code_verifier,
-      install_id: INSTALL_ID
+      install_id: install_id
     })
 
     raise AuthError, "HEY token exchange failed: #{response.code}" unless response.is_a?(Net::HTTPSuccess)
     JSON.parse(response.body)
   end
 
-  def self.refresh_token(refresh_token)
+  def self.refresh_token(refresh_token, install_id: LEGACY_INSTALL_ID)
     uri = URI("#{BASE_AUTH_URL}/oauth/tokens")
     response = http_post_form(uri, {
       grant_type: "refresh_token",
       client_id: CLIENT_ID,
       refresh_token: refresh_token,
-      install_id: INSTALL_ID
+      install_id: install_id
     })
 
     unless response.is_a?(Net::HTTPSuccess)
@@ -744,7 +756,7 @@ class HeyClient
       end
 
       begin
-        data = self.class.refresh_token(@user.hey_refresh_token)
+        data = self.class.refresh_token(@user.hey_refresh_token, install_id: self.class.install_id_for(@user))
       rescue RefreshRefused
         disconnect_hey!
         refused = true
@@ -773,7 +785,12 @@ class HeyClient
   # Mirrored emails and events stay until the user reconnects or disconnects.
   def disconnect_hey!
     Rails.logger.warn("HEY refused the stored credentials for user #{@user.id}; marking HEY disconnected")
-    @user.update!(hey_access_token: nil, hey_refresh_token: nil, hey_token_expires_at: nil)
+    @user.update!(
+      hey_access_token: nil,
+      hey_refresh_token: nil,
+      hey_token_expires_at: nil,
+      hey_reconnect_needed_at: Time.current
+    )
   end
 
   def refresh_and_retry!(method, path, body, allow: [], rejected_token: nil)

@@ -13,7 +13,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
     sent = []
     stub_http(client, sent, [ response(401), response(200, '{"calendars":[]}') ])
 
-    with_class_stub(HeyClient, :refresh_token, ->(_rt) { { "access_token" => "new-a", "refresh_token" => "new-r", "expires_in" => 3600 } }) do
+    with_class_stub(HeyClient, :refresh_token, ->(_rt, **) { { "access_token" => "new-a", "refresh_token" => "new-r", "expires_in" => 3600 } }) do
       assert_equal [], client.calendars
     end
 
@@ -27,7 +27,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
     sent = []
     stub_http(client, sent, Array.new(10) { response(401) })
 
-    with_class_stub(HeyClient, :refresh_token, ->(_rt) { { "access_token" => "new-a", "expires_in" => 3600 } }) do
+    with_class_stub(HeyClient, :refresh_token, ->(_rt, **) { { "access_token" => "new-a", "expires_in" => 3600 } }) do
       assert_raises(HeyClient::AuthError) { client.calendars }
     end
 
@@ -40,7 +40,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
     sent = []
     stub_http(client, sent, Array.new(10) { response(401) })
 
-    refused = ->(_rt) { raise HeyClient::RefreshRefused, "invalid_grant" }
+    refused = ->(_rt, **) { raise HeyClient::RefreshRefused, "invalid_grant" }
     with_class_stub(HeyClient, :refresh_token, refused) do
       assert_raises(HeyClient::AuthError) { client.calendars }
     end
@@ -48,6 +48,21 @@ class TokenRefreshTest < ActiveSupport::TestCase
     assert_equal 1, sent.size
     refute @user.reload.hey_connected?
     assert_nil @user.hey_refresh_token
+    assert @user.hey_reconnect_needed_at.present?
+  end
+
+  test "HEY refreshes under the install id the tokens were issued to" do
+    connect_hey(expires_at: 1.minute.ago)
+    seen = []
+    renew = ->(_rt, install_id:) { seen << install_id; { "access_token" => "new-a", "expires_in" => 3600 } }
+
+    with_class_stub(HeyClient, :refresh_token, renew) do
+      HeyClient.new(@user).refresh_access_token!(fresh_until: Time.current)
+      @user.update!(hey_install_id: "1b4e28ba-2fa1-41d2-883f-0016d3cca427", hey_token_expires_at: 1.minute.ago)
+      HeyClient.new(@user).refresh_access_token!(fresh_until: Time.current)
+    end
+
+    assert_equal [ "daybreak", "1b4e28ba-2fa1-41d2-883f-0016d3cca427" ], seen
   end
 
   test "HEY keeps credentials when the token endpoint fails for another reason" do
@@ -55,7 +70,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
     client = HeyClient.new(@user)
     stub_http(client, [], Array.new(10) { response(401) })
 
-    outage = ->(_rt) { raise HeyClient::AuthError, "HEY token refresh failed: 503" }
+    outage = ->(_rt, **) { raise HeyClient::AuthError, "HEY token refresh failed: 503" }
     with_class_stub(HeyClient, :refresh_token, outage) do
       assert_raises(HeyClient::AuthError) { client.calendars }
     end
@@ -104,7 +119,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
     sent = []
     stub_http(client, sent, Array.new(10) { response(401) })
 
-    with_class_stub(BasecampClient, :refresh_token, ->(_rt) { { "access_token" => "new-a", "expires_in" => 3600 } }) do
+    with_class_stub(BasecampClient, :refresh_token, ->(_rt, **) { { "access_token" => "new-a", "expires_in" => 3600 } }) do
       assert_raises(BasecampClient::AuthError) { client.my_profile }
     end
 
@@ -114,7 +129,7 @@ class TokenRefreshTest < ActiveSupport::TestCase
   test "RefreshTokensJob renews soon-to-expire HEY tokens through the client" do
     connect_hey(expires_at: 1.day.from_now)
     calls = 0
-    renew = ->(rt) { calls += 1; assert_equal "old-r", rt; { "access_token" => "new-a", "refresh_token" => "new-r", "expires_in" => 1209600 } }
+    renew = ->(rt, **) { calls += 1; assert_equal "old-r", rt; { "access_token" => "new-a", "refresh_token" => "new-r", "expires_in" => 1209600 } }
 
     with_class_stub(HeyClient, :refresh_token, renew) do
       RefreshTokensJob.perform_now

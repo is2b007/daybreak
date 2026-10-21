@@ -1,0 +1,50 @@
+<% content_for :title, "Connect HEY" %>
+<% content_for :full_screen, true %>
+
+<div class="onboarding">
+  <div class="connect-hey">
+    <div class="connect-hey__header">
+      <h1 class="connect-hey__title">Connect HEY</h1>
+      <p class="connect-hey__subtitle">
+        HEY only sends you back to your own computer, so there&rsquo;s one extra step when Daybreak runs on a server.
+      </p>
+    </div>
+
+    <ol class="connect-hey__steps">
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">1</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Approve Daybreak in HEY</div>
+          <%= link_to "Open HEY", @authorize_url, class: "btn btn--primary", target: "_blank", rel: "noopener" %>
+          <p class="connect-hey__step-hint">Opens in a new tab. Keep this one open.</p>
+        </div>
+      </li>
+
+      <li class="connect-hey__step">
+        <div class="connect-hey__step-num">2</div>
+        <div class="connect-hey__step-body">
+          <div class="connect-hey__step-label">Paste the address you land on</div>
+          <p class="connect-hey__step-hint connect-hey__step-hint--lead">
+            After you approve, that tab shows a page that can&rsquo;t load, at an address starting with
+            <code>http://127.0.0.1:<%= HeyConnectionsController::PASTE_REDIRECT_PORT %></code>. That&rsquo;s expected.
+            Copy the whole address from its address bar and paste it here within 10 minutes.
+          </p>
+          <%= form_with url: complete_hey_path, method: :post do |f| %>
+            <div class="connect-hey__paste-row">
+              <%= f.text_field :callback_url,
+                    placeholder: "http://127.0.0.1:#{HeyConnectionsController::PASTE_REDIRECT_PORT}/auth/hey/callback?code=…",
+                    class: "form-input connect-hey__token-input",
+                    autocomplete: "off",
+                    required: true %>
+              <%= f.submit "Finish connecting", class: "btn btn--primary connect-hey__submit" %>
+            </div>
+          <% end %>
+        </div>
+      </li>
+    </ol>
+
+    <div class="connect-hey__footer">
+      <%= link_to "← Back", auth_hey_path, class: "connect-hey__back" %>
+    </div>
+  </div>
+</div>
