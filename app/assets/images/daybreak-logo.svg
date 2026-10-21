@@ -1,4 +1,29 @@
-<svg width="588" height="534" viewBox="0 0 588 534" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M116.684 149.209C152.067 88.1045 206.873 62.9341 265.236 57.6395C428.108 42.8783 645.516 287.192 443.506 423.922C389.96 460.163 334.008 476.202 282 476.971C220.578 477.879 164.657 457.488 124.698 423.922C57.5264 367.495 35.4607 273.837 108.191 181.534" stroke="#E8852A" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M154.91 424.746C289.274 232.744 296.882 169.536 426.23 431.68" stroke="#E8852A" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Daybreak">
+  <defs>
+    <linearGradient id="dbd-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF3FF"/><stop offset=".6" stop-color="#C6DCF6"/><stop offset="1" stop-color="#A9C6EA"/></linearGradient>
+    <linearGradient id="dbd-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9CC8F2"/><stop offset=".5" stop-color="#D9E9F7"/><stop offset=".72" stop-color="#FFE7C7"/></linearGradient>
+    <radialGradient id="dbd-sun" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#FFF3B0"/><stop offset=".5" stop-color="#FFCB3D"/><stop offset="1" stop-color="#F59A1B"/></radialGradient>
+    <radialGradient id="dbd-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE3A0" stop-opacity=".9"/><stop offset="1" stop-color="#FFE3A0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="dbd-hill" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#FFB14A"/><stop offset=".5" stop-color="#F28A1E"/><stop offset="1" stop-color="#E06F12"/></linearGradient>
+    <filter id="dbd-blur8"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="dbd-blur3"><feGaussianBlur stdDeviation="3"/></filter>
+    <clipPath id="dbd-inner"><path d="M256 62C348 62 446 206 446 334C446 424 366 454 256 454C146 454 66 424 66 334C66 206 164 62 256 62Z"/></clipPath>
+    <clipPath id="dbd-hills"><path d="M40 360C80 300 120 262 158 262C196 262 214 322 256 322C306 322 346 186 404 186C438 186 462 214 480 240V480H40Z"/></clipPath>
+  </defs>
+  <!-- glass shell -->
+  <path d="M256 32C370 32 478 196 478 340C478 446 384 484 256 484C128 484 34 446 34 340C34 196 142 32 256 32Z" fill="url(#dbd-glass)"/>
+  <g clip-path="url(#dbd-inner)">
+    <rect width="512" height="512" fill="url(#dbd-sky)"/>
+    <circle cx="250" cy="292" r="150" fill="url(#dbd-glow)"/>
+    <circle cx="250" cy="292" r="80" fill="url(#dbd-sun)"/>
+    <path d="M40 360C80 300 120 262 158 262C196 262 214 322 256 322C306 322 346 186 404 186C438 186 462 214 480 240V480H40Z" fill="url(#dbd-hill)"/>
+    <g clip-path="url(#dbd-hills)">
+      <path d="M176 280C198 322 222 348 258 356C304 364 342 296 384 214" fill="none" stroke="#B9500A" stroke-width="36" opacity=".45" filter="url(#dbd-blur8)"/>
+      <path d="M50 350C86 300 124 272 158 272C178 272 192 290 204 308" fill="none" stroke="#FFE0B0" stroke-width="7" opacity=".6" filter="url(#dbd-blur3)"/>
+      <path d="M300 276C336 216 370 198 404 198C432 198 452 218 470 240" fill="none" stroke="#FFE0B0" stroke-width="7" opacity=".6" filter="url(#dbd-blur3)"/>
+    </g>
+  </g>
+  <!-- glass highlights -->
+  <path d="M256 62C348 62 446 206 446 334C446 424 366 454 256 454C146 454 66 424 66 334C66 206 164 62 256 62Z" fill="none" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="4"/>
+  <path d="M120 200C150 130 200 70 256 58" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" opacity=".7" filter="url(#dbd-blur3)"/>
 </svg>
