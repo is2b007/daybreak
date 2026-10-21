@@ -10,7 +10,8 @@
   <% end %>
 <% end %>
 
-<div class="ritual-doc ritual-doc--sunset" data-controller="ritual">
+<div class="ritual-doc ritual-doc--sunset ritual-doc--with-sky" data-controller="ritual">
+  <%= render "rituals/sky", mode: "sundown", play: false %>
   <% if @step == 1 %>
     <%= render "evening_review",
         completed_tasks: @completed_tasks,

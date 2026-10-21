@@ -7502,3 +7502,84 @@ body.focus-open { overflow: hidden; }
     overflow-y: auto;
   }
 }
+
+/* --------------------------------------------------------------------------
+   SKY — animated sunrise/sundown scene (sky_controller.js, sky/scene.js)
+   -------------------------------------------------------------------------- */
+.ritual-doc--with-sky { padding-top: 0; }
+.ritual-doc--with-sky::before { display: none; }
+
+.sky {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky--banner {
+  align-self: stretch;
+  flex: 0 0 auto;
+  height: clamp(180px, 32svh, 320px);
+  margin: 0 -24px clamp(28px, 4svh, 52px);
+  /* Melt the bottom edge into the page instead of a hard band */
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}
+
+.sky--immersive {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sky__controls {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+  pointer-events: auto;
+  opacity: 0.75;
+  transition: opacity var(--transition-base);
+}
+
+.sky:hover .sky__controls,
+.sky__controls:focus-within { opacity: 1; }
+
+.sky__button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  color: oklch(98% 0.01 80);
+  background: oklch(20% 0.02 260 / 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.sky__button:hover { background: oklch(20% 0.02 260 / 0.42); }
+.sky__button:focus-visible { outline: 2px solid oklch(98% 0.01 80); outline-offset: 2px; }
+.sky__button .icon { --icon-size: 14px; }
+.sky__sound-icon { width: 16px; height: 16px; }
+.sky__sound-mute { display: none; }
+.sky__button--off .sky__sound-waves { display: none; }
+.sky__button--off .sky__sound-mute { display: inline; }
+
+/* Wrap screen: the night sky fills the page, so the words turn to starlight */
+.ritual-doc--wrap:has(.sky--immersive) {
+  --warm-ink: oklch(97% 0.012 80);
+  --warm-ink-soft: oklch(88% 0.02 80);
+  --warm-line-hover: oklch(84% 0.03 80);
+  --ink-medium: oklch(80% 0.02 80);
+  min-height: 100%;
+  overflow: hidden;
+}

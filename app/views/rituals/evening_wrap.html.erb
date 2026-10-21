@@ -7,6 +7,7 @@
      data-controller="ritual"
      data-ritual-sunset-play-value="<%= @play_sunset ? 'true' : 'false' %>"
      data-ritual-redirect-url-value="<%= @ritual_revisit ? '' : root_path %>">
+  <%= render "rituals/sky", mode: "sundown", play: @play_sunset, immersive: true %>
   <div class="ritual-doc__page">
     <h1 class="ritual-doc__wrap-title">The day is closed.</h1>
     <p class="ritual-doc__wrap-sub">Rest well. Tomorrow begins at sunrise.</p>
