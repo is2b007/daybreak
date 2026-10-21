@@ -1,6 +1,8 @@
 class RefreshTokensJob < ApplicationJob
   queue_as :maintenance
 
+  REFRESH_WINDOW = 2.days
+
   def perform
     refresh_basecamp_tokens
     refresh_hey_tokens
@@ -8,13 +10,14 @@ class RefreshTokensJob < ApplicationJob
 
   private
 
+  # Both refreshes go through the clients' locked path, so this job cannot race a sync
+  # that is refreshing the same user and spend a rotated refresh token twice.
   def refresh_basecamp_tokens
-    User.where("basecamp_token_expires_at < ?", 2.days.from_now)
+    User.where("basecamp_token_expires_at < ?", REFRESH_WINDOW.from_now)
         .where.not(basecamp_refresh_token: nil)
         .find_each do |user|
       begin
-        data = BasecampClient.refresh_token(user.basecamp_refresh_token)
-        BasecampClient.persist_tokens!(user, data)
+        BasecampClient.new(user).refresh_access_token!(fresh_until: REFRESH_WINDOW.from_now)
       rescue => e
         Rails.logger.error("Basecamp token refresh failed for user #{user.id}: #{e.message}")
       end
@@ -22,18 +25,11 @@ class RefreshTokensJob < ApplicationJob
   end
 
   def refresh_hey_tokens
-    User.where("hey_token_expires_at < ?", 2.days.from_now)
+    User.where("hey_token_expires_at < ?", REFRESH_WINDOW.from_now)
         .where.not(hey_refresh_token: nil)
         .find_each do |user|
       begin
-        data = HeyClient.refresh_token(user.hey_refresh_token)
-        expires_in = data["expires_in"]&.to_i
-        expires_at = expires_in&.positive? ? expires_in.seconds.from_now : 2.weeks.from_now
-        user.update!(
-          hey_access_token:     data["access_token"],
-          hey_refresh_token:    data["refresh_token"].presence || user.hey_refresh_token,
-          hey_token_expires_at: expires_at
-        )
+        HeyClient.new(user).refresh_access_token!(fresh_until: REFRESH_WINDOW.from_now)
       rescue => e
         Rails.logger.error("HEY token refresh failed for user #{user.id}: #{e.message}")
       end
