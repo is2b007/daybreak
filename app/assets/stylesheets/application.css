@@ -31,21 +31,21 @@
      below is derived from them. Ink ramp follows 37signals' Fizzy. */
   --lch-canvas: 100% 0 0;
   --lch-surface: 100% 0 0;
-  --lch-ink-darkest: 26% 0.05 264;
-  --lch-ink-darker: 40% 0.026 262;
-  --lch-ink-dark: 56% 0.014 260;
-  --lch-ink-medium: 66% 0.008 258;
-  --lch-ink-light: 84% 0.005 256;
-  --lch-ink-lighter: 92% 0.003 254;
-  --lch-ink-lightest: 96% 0.002 252;
-  --lch-dawn: 72% 0.17 58;          /* logo amber — fills */
-  --lch-dawn-strong: 64% 0.17 52;   /* amber that reads as text on canvas */
-  --lch-dawn-text: 50% 0.13 50;     /* amber text on the wash */
+  --lch-ink-darkest: 32.09% 0.0204 233.83;   /* Basecamp ink-4 */
+  --lch-ink-darker: 42% 0.018 234;
+  --lch-ink-dark: 53% 0.015 234;            /* Basecamp ink-5 */
+  --lch-ink-medium: 66% 0.01 234;
+  --lch-ink-light: 84% 0.006 234;
+  --lch-ink-lighter: 92% 0.004 234;
+  --lch-ink-lightest: 96% 0.003 234;
+  --lch-dawn: 73.27% 0.1818 50.86;  /* Basecamp orange — fills */
+  --lch-dawn-strong: 64% 0.18 50.86; /* amber that reads as text on canvas */
+  --lch-dawn-text: 54% 0.16 50.86;  /* amber body text (BC orange-deep is 58.2%, just under AA) */
   --lch-dawn-wash: 97.5% 0.022 75;
   --lch-dawn-wash-2: 93% 0.06 72;
   --lch-sky: 80% 0.08 235;          /* logo sky — focus and evening */
   --lch-sky-wash: 96% 0.02 235;
-  --lch-bc: 89% 0.18 95;            /* Basecamp gold */
+  --lch-bc: 90.34% 0.1292 91.09;    /* Basecamp yellow */
   --lch-bc-ink: 20% 0.02 240;
   --lch-bc-wash: 97% 0.05 98;
   --lch-bc-text: 45% 0.09 85;
@@ -54,7 +54,7 @@
   --lch-hey-wash: 96.5% 0.03 145;
   --lch-hey-text: 42% 0.11 148;
   --lch-red: 55% 0.19 30;
-  --lch-link: 57% 0.19 260;
+  --lch-link: 53.5% 0.1602 254.08;  /* Basecamp link */
 
   --ink: oklch(var(--lch-ink-darkest));
   --ink-darker: oklch(var(--lch-ink-darker));
@@ -135,7 +135,7 @@
   --gradient-sunset-end: var(--sky-wash);
 
   /* Typography — system stack, as Basecamp and HEY ship; serif only where you read or reflect */
-  --font-sans: "Adwaita Sans", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-sans: -apple-system, BlinkMacSystemFont, Aptos, Roboto, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";  /* HEY app stack */
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
   --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
   --font-size-xs: 0.6875rem;
@@ -241,13 +241,13 @@
     color-scheme: dark;
     --lch-canvas: 20% 0.0195 232.58;
     --lch-surface: 23.5% 0.02 235;
-    --lch-ink-darkest: 96.02% 0.0034 260;
-    --lch-ink-darker: 86% 0.0061 260;
-    --lch-ink-dark: 73.97% 0.009 260;
-    --lch-ink-medium: 62% 0.0122 260;
-    --lch-ink-light: 40% 0.0148 260;
-    --lch-ink-lighter: 30% 0.0178 260;
-    --lch-ink-lightest: 25% 0.0204 260;
+    --lch-ink-darkest: 91.97% 0.0059 239.83;
+    --lch-ink-darker: 84% 0.0065 240;
+    --lch-ink-dark: 72% 0.009 240;
+    --lch-ink-medium: 61% 0.012 240;
+    --lch-ink-light: 40% 0.0148 240;
+    --lch-ink-lighter: 30% 0.0178 240;
+    --lch-ink-lightest: 25% 0.0204 240;
     --lch-dawn: 74% 0.16 60;
     --lch-dawn-strong: 78% 0.14 62;
     --lch-dawn-text: 82% 0.11 66;
@@ -263,7 +263,7 @@
     --lch-hey-wash: 27% 0.04 145;
     --lch-hey-text: 82% 0.1 147;
     --lch-red: 72% 0.15 35;
-    --lch-link: 74% 0.12 255;
+    --lch-link: 72% 0.13 254.08;
     --lch-shadow: 0% 0 0;
     --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
     --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
@@ -275,13 +275,13 @@
   color-scheme: dark;
   --lch-canvas: 20% 0.0195 232.58;
   --lch-surface: 23.5% 0.02 235;
-  --lch-ink-darkest: 96.02% 0.0034 260;
-  --lch-ink-darker: 86% 0.0061 260;
-  --lch-ink-dark: 73.97% 0.009 260;
-  --lch-ink-medium: 62% 0.0122 260;
-  --lch-ink-light: 40% 0.0148 260;
-  --lch-ink-lighter: 30% 0.0178 260;
-  --lch-ink-lightest: 25% 0.0204 260;
+  --lch-ink-darkest: 91.97% 0.0059 239.83;
+  --lch-ink-darker: 84% 0.0065 240;
+  --lch-ink-dark: 72% 0.009 240;
+  --lch-ink-medium: 61% 0.012 240;
+  --lch-ink-light: 40% 0.0148 240;
+  --lch-ink-lighter: 30% 0.0178 240;
+  --lch-ink-lightest: 25% 0.0204 240;
   --lch-dawn: 74% 0.16 60;
   --lch-dawn-strong: 78% 0.14 62;
   --lch-dawn-text: 82% 0.11 66;
@@ -297,7 +297,7 @@
   --lch-hey-wash: 27% 0.04 145;
   --lch-hey-text: 82% 0.1 147;
   --lch-red: 72% 0.15 35;
-  --lch-link: 74% 0.12 255;
+  --lch-link: 72% 0.13 254.08;
   --lch-shadow: 0% 0 0;
   --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
   --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
@@ -328,6 +328,12 @@ body:has(.shell) {
 }
 /* Ensure [hidden] always wins over any display rule in author CSS */
 [hidden] { display: none !important; }
+
+/* Basecamp's focus ring: ink outline, no extra colour, works in both themes */
+:focus-visible {
+  outline: max(2px, 0.1em) solid var(--ink);
+  outline-offset: max(2px, 0.1em);
+}
 
 /* Icons — mask-painted SVGs from app/assets/images/icons; see ApplicationHelper#icon */
 .icon {
@@ -492,7 +498,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sb-toggle:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -636,7 +642,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 /* Nav glyphs: solid Fizzy icons via the icon helper */
 .sbi .icon,
 .rri .icon.nav-icon {
-  --icon-size: 18px;
+  --icon-size: 1.25em;
 }
 
 .rri .icon.nav-icon--brand {
@@ -931,7 +937,7 @@ img.sb-avatar--photo {
 }
 
 .right__resizer:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -1062,7 +1068,7 @@ a.rri:hover {
 }
 
 .rri.rri--panel-toggle:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -1554,11 +1560,11 @@ a.rri:hover {
   font-size: 12px;
   font-weight: 500;
   font-family: var(--font-sans);
-  padding: 6px 14px;
-  border-radius: 20px; /* pill by default — matches ritual decision chip */
-  border: 1px solid var(--warm-line);
-  background: var(--warm-surface-2);
-  color: var(--warm-ink);
+  padding: 0.5em 1em;
+  border-radius: 3rem; /* HEY pill */
+  border: 1px solid transparent;
+  background: oklch(var(--lch-ink-darkest) / 5%); /* Basecamp's quiet ink fill */
+  color: var(--ink);
   cursor: pointer;
   transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
   text-decoration: none;
@@ -1566,9 +1572,8 @@ a.rri:hover {
 }
 
 .btn:hover {
-  color: var(--warm-ink);
-  border-color: var(--warm-line-hover);
-  background: var(--warm-surface);
+  color: var(--ink);
+  background: oklch(var(--lch-ink-darkest) / 8%);
   text-decoration: none;
 }
 
@@ -1591,16 +1596,16 @@ a.rri:hover {
   border-color: var(--brick-active);
 }
 
-/* Secondary — cream paper, warm border (same as base; kept for explicit intent) */
+/* Secondary — HEY's default button: transparent pill with an ink outline */
 .btn--secondary {
-  background: var(--warm-surface-2);
-  color: var(--warm-ink);
-  border-color: var(--warm-line);
+  background: transparent;
+  color: var(--ink);
+  border-color: oklch(var(--lch-ink-darkest) / 50%);
 }
 
 .btn--secondary:hover {
-  background: var(--warm-surface);
-  border-color: var(--warm-line-hover);
+  background: oklch(var(--lch-ink-darkest) / 5%);
+  border-color: var(--ink);
 }
 
 .btn--ghost {
@@ -1722,9 +1727,9 @@ a.rri:hover {
 .form-input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--bg);
+  border: 1px solid oklch(var(--lch-ink-darkest) / 15%);
+  border-radius: 6px;
+  background: var(--surface);
   color: var(--text);
   font-size: var(--font-size-base);
   transition: border-color var(--transition-fast);
@@ -1732,7 +1737,12 @@ a.rri:hover {
 
 .form-input:focus {
   outline: none;
-  border-color: var(--amber);
+  border-color: oklch(var(--lch-ink-darkest) / 50%);
+}
+
+.form-input:focus-visible {
+  outline: max(2px, 0.1em) solid var(--ink);
+  outline-offset: 0;
 }
 
 .form-input--large {
@@ -3995,7 +4005,7 @@ select.form-input {
 }
 
 .sunset-decision input:focus-visible + .sunset-decision__ui {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -5046,7 +5056,7 @@ select.form-input {
 }
 
 .modal__title-input:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -6514,7 +6524,7 @@ body.focus-open { overflow: hidden; }
 
 /* Task card focus hint */
 .task-card:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 1px;
 }
 
