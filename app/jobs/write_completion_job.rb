@@ -18,7 +18,11 @@ class WriteCompletionJob < ApplicationJob
     case task.source
     when "basecamp"
       client = BasecampClient.new(user)
-      client.complete_todo(task.basecamp_bucket_id, task.external_id)
+      if task.basecamp_card?
+        client.complete_card(task.external_id)
+      else
+        client.complete_todo(task.basecamp_bucket_id, task.external_id)
+      end
     when "hey"
       # Email-sourced tasks (source: local + hey_app_url) must never call complete_todo.
       # Only HEY calendar todos have a real external_id.

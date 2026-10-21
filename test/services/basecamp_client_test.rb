@@ -113,13 +113,30 @@ class BasecampClientTest < ActiveSupport::TestCase
     assert_equal "<div>Line one<br>Line two &amp; more</div>", body[:content]
   end
 
-  test "schedule_entries paginates the official flat list" do
+  test "upcoming_schedule asks Basecamp for the window and keys occurrences by day" do
     client = BasecampClient.new(users(:one))
-    path = nil
-    client.define_singleton_method(:get_paginated) { |p, _params = {}| path = p; [] }
+    asked = nil
+    report = {
+      "schedule_entries" => [ { "id" => 4, "summary" => "Offsite", "starts_at" => "2026-11-03T10:00:00Z" } ],
+      "recurring_schedule_entry_occurrences" => [
+        {
+          "id" => 10,
+          "summary" => "Weekly sync",
+          "recurring" => true,
+          "starts_at" => "2026-11-02T09:00:00.000-05:00",
+          "app_url" => "https://3.basecamp.com/1/buckets/2/schedule_entries/10/occurrences/20261102"
+        },
+        { "id" => 10, "summary" => "Weekly sync", "recurring" => true, "starts_at" => "2026-11-09T09:00:00.000-06:00" }
+      ],
+      "assignables" => []
+    }
+    client.define_singleton_method(:get) { |path, params = {}| asked = [ path, params ]; report }
 
-    client.schedule_entries("12")
-    assert_equal "/schedules/12/entries.json", path
+    rows = client.upcoming_schedule(starts_on: Date.new(2026, 11, 2), ends_on: Date.new(2026, 11, 9))
+
+    assert_equal "/reports/schedules/upcoming.json", asked[0]
+    assert_equal({ window_starts_on: "2026-11-02", window_ends_on: "2026-11-09" }, asked[1])
+    assert_equal [ 4, "10:2026-11-02", "10:2026-11-09" ], rows.map { |r| r["id"] }
   end
 
   test "pick_account prefers product bc3 then href then resource" do
@@ -177,27 +194,27 @@ class BasecampClientTest < ActiveSupport::TestCase
     assert_nil client.send(:safe_next_page_uri, "https://3.basecampapi.com/999/projects.json")
   end
 
-  test "expand_schedule_entry_for_range expands weekly meetings into the window" do
+  test "complete_card moves the card into its table's Done column" do
     client = BasecampClient.new(users(:one))
-    week = Date.new(2026, 4, 13)..Date.new(2026, 4, 19)
-    entry = {
-      "id" => 10,
-      "summary" => "Weekly sync",
-      "starts_at" => "2026-03-18T15:00:00Z",
-      "ends_at" => "2026-03-18T16:00:00Z",
-      "recurrence_schedule" => { "frequency" => "every_week", "start_date" => "2026-03-18" }
+    pages = {
+      "/card_tables/cards/77.json" => { "id" => 77, "completed" => false, "parent" => { "id" => 30, "type" => "Kanban::Column" } },
+      "/card_tables/columns/30.json" => { "id" => 30, "parent" => { "id" => 20 } },
+      "/card_tables/20.json" => { "id" => 20, "lists" => [ { "id" => 30, "type" => "Kanban::Column" }, { "id" => 31, "type" => "Kanban::DoneColumn" } ] }
     }
+    moved = nil
+    client.define_singleton_method(:get) { |path, _params = {}| pages.fetch(path) }
+    client.define_singleton_method(:post) { |path, body| moved = [ path, body ] }
 
-    rows = client.send(:expand_schedule_entry_for_range, entry, week)
-    assert_equal [ "10:2026-04-15" ], rows.map { |r| r["id"] }
-    assert_equal "2026-04-15T15:00:00.000Z", Time.parse(rows.first["starts_at"]).utc.iso8601(3)
+    client.complete_card(77)
+
+    assert_equal [ "/card_tables/cards/77/moves.json", { column_id: 31 } ], moved
   end
 
-  test "expand_schedule_entry_for_range leaves one-off entries unchanged" do
+  test "complete_card leaves a card already in Done alone" do
     client = BasecampClient.new(users(:one))
-    week = Date.new(2026, 4, 13)..Date.new(2026, 4, 19)
-    entry = { "id" => 4, "starts_at" => "2026-04-14T10:00:00Z", "ends_at" => "2026-04-14T11:00:00Z" }
+    client.define_singleton_method(:get) { |_path, _params = {}| { "id" => 77, "parent" => { "id" => 31, "type" => "Kanban::DoneColumn" } } }
+    client.define_singleton_method(:post) { |*| flunk "should not move" }
 
-    assert_equal [ entry ], client.send(:expand_schedule_entry_for_range, entry, week)
+    assert_nil client.complete_card(77)
   end
 end

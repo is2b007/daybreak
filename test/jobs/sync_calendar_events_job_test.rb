@@ -359,4 +359,34 @@ class SyncCalendarEventsJobTest < ActiveJob::TestCase
     assert_equal [ 600, 3600 ], events.first.hey_reminder_seconds
     assert_equal "Europe/Zagreb", events.first.hey_time_zone
   end
+
+  test "sync_basecamp reads the upcoming report, keeps descriptions and prunes what Basecamp dropped" do
+    @user.update!(hey_access_token: nil, hey_refresh_token: nil, basecamp_access_token: "b", basecamp_account_id: "1")
+    kept = @user.calendar_events.create!(source: :basecamp, external_id: "10:2026-04-14", title: "Old",
+                                         starts_at: Time.utc(2026, 4, 14, 14), description: "Agenda")
+    gone = @user.calendar_events.create!(source: :basecamp, external_id: "99", title: "Cancelled",
+                                         starts_at: Time.utc(2026, 4, 15, 14))
+    asked = nil
+    client = Object.new
+    client.define_singleton_method(:upcoming_schedule) do |starts_on:, ends_on:|
+      asked = [ starts_on, ends_on ]
+      [ { "id" => "10:2026-04-14", "summary" => "Weekly sync", "all_day" => false,
+          "starts_at" => "2026-04-14T09:00:00.000-05:00", "ends_at" => "2026-04-14T10:00:00.000-05:00" } ]
+    end
+
+    original = BasecampClient.method(:new)
+    BasecampClient.define_singleton_method(:new) { |_u| client }
+    begin
+      SyncCalendarEventsJob.perform_now(@user.id, week_start: @week.iso8601)
+    ensure
+      BasecampClient.define_singleton_method(:new, original)
+    end
+
+    assert_equal [ @week, @week + 6.days ], asked.map(&:to_date)
+    kept.reload
+    assert_equal "Weekly sync", kept.title
+    assert_equal "Agenda", kept.description
+    assert_equal Time.utc(2026, 4, 14, 14), kept.starts_at
+    refute CalendarEvent.exists?(gone.id)
+  end
 end

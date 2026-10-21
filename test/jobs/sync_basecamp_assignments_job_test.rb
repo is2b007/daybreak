@@ -96,4 +96,25 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
       assert_equal Date.new(2026, 4, 20), user.current_week_start
     end
   end
+
+  test "imports cards and remembers they are cards" do
+    user = users(:one)
+    user.update!(basecamp_account_id: "9")
+    fake_class = Class.new do
+      define_method(:initialize) { |_user| nil }
+      define_method(:my_assignments) do
+        [ { "id" => 77, "type" => "Kanban::Card", "content" => "Design review",
+            "bucket" => { "id" => 5, "name" => "Launch" },
+            "children" => [ { "id" => 78, "type" => "Kanban::Step", "content" => "Gather notes" } ] } ]
+      end
+    end
+
+    SyncBasecampAssignmentsJob.perform_now(user.id, basecamp_client_class: fake_class)
+
+    task = user.task_assignments.find_by!(external_id: "77", source: :basecamp)
+    assert task.basecamp_card?
+    assert_equal "Design review", task.title
+    assert_match %r{/buckets/5/card_tables/cards/77\z}, task.basecamp_web_url
+    refute user.task_assignments.exists?(external_id: "78")
+  end
 end

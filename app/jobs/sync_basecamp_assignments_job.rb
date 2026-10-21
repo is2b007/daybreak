@@ -29,9 +29,19 @@ class SyncBasecampAssignmentsJob < ApplicationJob
 
   private
 
+  # Cards come through /my/assignments as "Kanban::Card"; their steps ride along
+  # as children and are left to Basecamp.
+  def importable?(assignment)
+    assignment.is_a?(Hash) &&
+      (assignment["type"].to_s.casecmp?("todo") || card?(assignment))
+  end
+
+  def card?(assignment)
+    assignment["type"].to_s == TaskAssignment::BASECAMP_CARD_TYPE
+  end
+
   def upsert_basecamp_assignment(user, assignment)
-    return unless assignment.is_a?(Hash)
-    return unless assignment["type"].to_s.casecmp?("todo")
+    return unless importable?(assignment)
 
     title = assignment["title"].presence || assignment["content"].presence || "(untitled)"
     external_id = assignment["id"].to_s
@@ -44,6 +54,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
       updates[:basecamp_bucket_id] = bucket_id if bucket_id.present? && existing.basecamp_bucket_id.blank?
       project_name = assignment.dig("bucket", "name")
       updates[:project_name] = project_name if project_name.present? && existing.project_name.blank?
+      updates[:basecamp_recording_type] = assignment["type"] if card?(assignment) && !existing.basecamp_card?
       existing.update!(updates) if updates.any?
     else
       user.task_assignments.create!(
@@ -53,6 +64,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
         description: assignment["description"],
         project_name: assignment.dig("bucket", "name"),
         basecamp_bucket_id: assignment.dig("bucket", "id")&.to_s,
+        basecamp_recording_type: (assignment["type"] if card?(assignment)),
         week_bucket: "inbox",
         size: :medium,
         status: assignment["completed"] ? :completed : :pending
@@ -63,8 +75,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
   # GET /my/assignments.json is active-only. Completed todos vanish from that
   # payload; mark matching local rows complete without creating history items.
   def stamp_completed_basecamp_assignment(user, assignment)
-    return unless assignment.is_a?(Hash)
-    return unless assignment["type"].to_s.casecmp?("todo")
+    return unless importable?(assignment)
 
     existing = user.task_assignments.find_by(external_id: assignment["id"].to_s, source: :basecamp)
     return if existing.nil? || existing.completed?

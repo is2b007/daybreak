@@ -128,12 +128,19 @@ class TaskAssignment < ApplicationRecord
     hey_app_url if hey_app_url&.match?(%r{\Ahttps?://}i)
   end
 
-  # Web app URL for this todo (API ids match the web UI).
+  BASECAMP_CARD_TYPE = "Kanban::Card"
+
+  def basecamp_card?
+    basecamp? && basecamp_recording_type == BASECAMP_CARD_TYPE
+  end
+
+  # Web app URL for this todo or card (API ids match the web UI).
   def basecamp_web_url
     return nil unless basecamp?
     return nil if user&.basecamp_account_id.blank?
     return nil if basecamp_bucket_id.blank? || external_id.blank?
 
-    "https://3.basecamp.com/#{user.basecamp_account_id}/buckets/#{basecamp_bucket_id}/todos/#{external_id}"
+    path = basecamp_card? ? "card_tables/cards" : "todos"
+    "https://3.basecamp.com/#{user.basecamp_account_id}/buckets/#{basecamp_bucket_id}/#{path}/#{external_id}"
   end
 end
