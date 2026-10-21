@@ -5,6 +5,9 @@ class SyncBasecampAssignmentsJob < ApplicationJob
     user = User.find_by(id: user_id)
     return if user.nil?
 
+    # Before the assignment calls, so a failure there never leaves the rail without a photo.
+    user.sync_basecamp_avatar_url_from_api!
+
     client = basecamp_client_class.new(user)
 
     assignments = client.my_assignments
@@ -16,8 +19,6 @@ class SyncBasecampAssignmentsJob < ApplicationJob
     if completed.is_a?(Array)
       completed.each { |assignment| stamp_completed_basecamp_assignment(user, assignment) }
     end
-
-    user.sync_basecamp_avatar_url_from_api!
   rescue BasecampClient::AuthError => e
     Rails.logger.warn("Basecamp auth failed for user #{user_id}: #{e.message}")
   rescue BasecampClient::RateLimitError

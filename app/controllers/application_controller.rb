@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
   around_action :set_user_timezone
   before_action :load_active_timer
   before_action :load_right_panel_data
+  before_action :backfill_basecamp_avatar
 
   private
 
@@ -22,6 +23,16 @@ class ApplicationController < ActionController::Base
     return unless logged_in? && current_user&.onboarded?
 
     @active_timer = current_user.local_timer_sessions.running.first
+  end
+
+  # Users who signed in before the photo existed (or whose login-time fetch failed)
+  # get it on their next page view instead of waiting for the next sync.
+  def backfill_basecamp_avatar
+    return unless logged_in? && current_user.basecamp_avatar_url.blank? && current_user.basecamp_account_id.present?
+    return if Rails.cache.read("basecamp_avatar_backfill/#{current_user.id}")
+
+    Rails.cache.write("basecamp_avatar_backfill/#{current_user.id}", true, expires_in: 1.hour)
+    current_user.sync_basecamp_avatar_url_from_api!
   end
 
   def load_right_panel_data

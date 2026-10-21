@@ -7783,3 +7783,109 @@ body { font-size: 16px; line-height: 1.5; }
 .day-view__tasks,
 .day-view__timeline-column { background: var(--canvas); }
 .kanban__column { --col-bg: var(--canvas); }
+
+/* ============================================================
+   SHORT TIMELINE BLOCKS — under 30 min, title and time share one line
+   ============================================================ */
+.timeline__block--short {
+  padding: 0;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.timeline__block--short .hey-timeline-event__row--main,
+.timeline__block--short:has(> .hey-timeline-event__resize) .hey-timeline-event__row--main {
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  padding: 0 4px 0 10px;
+}
+
+.timeline__block--short .hey-timeline-event__delete {
+  width: 18px;
+  height: 14px;
+  font-size: 13px;
+}
+
+.timeline__block--short .hey-timeline-event__body {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.timeline__block--short .hey-timeline-event__body strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.timeline__block--short .hey-timeline-event__body .text-xs {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   RIGHT PANEL FILTERS — quiet menu buttons, BC5 style
+   ============================================================ */
+.r-filter {
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: none;
+}
+
+.r-select,
+.r-sort {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%236b6560' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  flex: 0 1 auto;
+  field-sizing: content;
+  max-width: 60%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  background: transparent var(--chevron) no-repeat right 8px center / 10px;
+  padding: 6px 24px 6px 8px;
+  transition: background-color 120ms ease;
+}
+
+.r-sort {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.r-select:hover,
+.r-sort:hover {
+  background-color: color-mix(in oklch, var(--text) 7%, transparent);
+}
+
+.r-select:focus,
+.r-sort:focus {
+  border: none;
+}
+
+.r-select:focus-visible,
+.r-sort:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .r-select,
+  :root:not([data-theme="light"]) .r-sort {
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  }
+}
+
+[data-theme="dark"] .r-select,
+[data-theme="dark"] .r-sort {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+}
