@@ -145,11 +145,12 @@ class CalendarEventsController < ApplicationController
       starts_at: starts,
       ends_at: ends,
       all_day: @event.all_day,
-      time_zone: current_user.timezone,
+      time_zone: @event.hey_time_zone.presence || current_user.timezone,
       description: @event.description,
       location: @event.location,
       url: @event.hey_event_url,
-      entry_id: @event.hey_entry_id
+      entry_id: @event.hey_entry_id,
+      reminders: @event.hey_reminder_seconds
     )
 
     if result.nil?

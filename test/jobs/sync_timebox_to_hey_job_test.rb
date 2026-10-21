@@ -86,6 +86,15 @@ class SyncTimeboxToHeyJobTest < ActiveJob::TestCase
     assert_not @user.calendar_events.exists?(source: :daybreak, external_id: CalendarEvent.daybreak_timebox_external_id(@task.id))
   end
 
+  test "patching the mirror resends the reminders sync saw on it" do
+    @user.calendar_events.create!(source: :hey, external_id: "old-event-id", title: "Boxed",
+                                  starts_at: @task.planned_start_at, hey_reminder_seconds: [ 600 ])
+
+    SyncTimeboxToHeyJob.perform_now(@task.id)
+
+    assert_equal [ 600 ], @hey_fake.event_updates.last[:reminders]
+  end
+
   test "creates a new event when existing mirror PATCH fails" do
     @hey_fake.define_singleton_method(:update_calendar_event) do |**kwargs|
       (@event_updates ||= []) << kwargs

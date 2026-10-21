@@ -35,22 +35,66 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal [], client.calendars
   end
 
-  test "calendar_id_for_timed_writes prefers default then personal calendar" do
+  test "calendar_id_for_timed_writes prefers the Settings default, then HEY's own default calendar" do
     @user.update_column(:hey_default_calendar_id, "cal-explicit")
     client = HeyClient.new(@user)
     assert_equal "cal-explicit", client.calendar_id_for_timed_writes
 
     @user.update_column(:hey_default_calendar_id, nil)
     client = HeyClient.new(@user)
+    # HEY lists the personal calendar and Maybe first; filing on either is wrong.
     wrapped = {
       "calendars" => [
-        { "calendar" => { "id" => 7, "name" => "Work", "personal" => false } },
-        { "calendar" => { "id" => 1, "name" => "Personal", "personal" => true } }
+        { "calendar" => { "id" => 1, "personal" => true, "owned" => true, "kind" => "normal" } },
+        { "calendar" => { "id" => 2, "name" => "Maybe", "owned" => true, "kind" => "maybe" } },
+        { "calendar" => { "id" => 3, "name" => "Holidays", "owned" => false, "external" => true, "kind" => "normal" } },
+        { "calendar" => { "id" => 7, "name" => "Calendar", "owned" => true, "personal" => false, "kind" => "normal" } }
       ]
     }
     client.define_singleton_method(:get) { |path| path == "/calendars.json" ? wrapped : nil }
 
-    assert_equal "1", client.calendar_id_for_timed_writes
+    assert_equal "7", client.calendar_id_for_timed_writes
+  end
+
+  test "update_calendar_event resends reminders and writes clock times in the event's own zone" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |method, path, pairs|
+      captured = pairs
+      { code: 200, body: "", location: nil, success: true }
+    end
+
+    zone = ActiveSupport::TimeZone["Europe/Zagreb"]
+    client.update_calendar_event(
+      calendar_id: "7", event_id: "42",
+      title: "Standup",
+      starts_at: zone.local(2026, 4, 15, 9, 0), ends_at: zone.local(2026, 4, 15, 9, 30),
+      all_day: false, time_zone: "America/New_York",
+      reminders: [ 600, 3600 ]
+    )
+
+    assert_includes captured, [ "calendar_event[starts_at_time]", "03:00:00" ]
+    assert_includes captured, [ "calendar_event[starts_at_time_zone_name]", "America/New_York" ]
+    assert_equal [ "600", "3600" ], captured.select { |k, _| k == "timed_reminder_durations[]" }.map(&:last)
+  end
+
+  test "update_calendar_event keeps an all-day event on its day whatever the zone" do
+    client = HeyClient.new(@user)
+    captured = nil
+    client.define_singleton_method(:form_request) do |_method, _path, pairs|
+      captured = pairs
+      { code: 200, body: "", location: nil, success: true }
+    end
+
+    day = Time.utc(2026, 4, 15)
+    client.update_calendar_event(
+      calendar_id: "7", event_id: "42", title: "Offsite",
+      starts_at: day, ends_at: day, all_day: true, time_zone: "America/New_York",
+      reminders: [ 86_400 ]
+    )
+
+    assert_includes captured, [ "calendar_event[starts_at]", "2026-04-15" ]
+    assert_includes captured, [ "all_day_reminder_durations[]", "86400" ]
   end
 
   test "calendars unwraps hey-sdk CalendarListPayload shape" do

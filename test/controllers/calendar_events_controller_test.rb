@@ -86,6 +86,17 @@ class CalendarEventsControllerTest < ActionController::TestCase
     assert_equal 30, ev.starts_at.in_time_zone(@user.timezone).min
   end
 
+  test "PATCH slot sends back the event's reminders and its own time zone" do
+    @hey_event.update!(hey_reminder_seconds: [ 600 ], hey_time_zone: "Europe/Zagreb")
+
+    patch :slot, params: { id: @hey_event.id, date: "2026-04-13", hour: "10", minute: "30" }
+
+    assert_response :no_content
+    update = @hey_fake.updates.last
+    assert_equal [ 600 ], update[:reminders]
+    assert_equal "Europe/Zagreb", update[:time_zone]
+  end
+
   test "PATCH update accepts wall minutes on day column date in user timezone" do
     patch :update,
       params: {

@@ -186,7 +186,8 @@ class HeyClient
   end
 
   # HEY calendar id for timed events (timebox mirror, HEY event PATCH): explicit default in Settings,
-  # else personal calendar (hey-cli findPersonalCalendarID).
+  # else the calendar HEY itself files new events on (hey-cli isDefaultEventCalendar). Never the
+  # personal calendar: HEY lists it but answers 404 to an event filed there.
   def calendar_id_for_timed_writes
     return @__calendar_id_timed if instance_variable_defined?(:@__calendar_id_timed)
 
@@ -194,7 +195,7 @@ class HeyClient
     return @__calendar_id_timed = explicit if explicit.present?
 
     list = calendars
-    @__calendar_id_timed = personal_calendar_id(list)&.to_s.presence
+    @__calendar_id_timed = default_event_calendar_id(list)&.to_s.presence
   end
 
   # Todos — list path matches hey-cli (`hey todo list`): personal calendar recordings, type Calendar::Todo.
@@ -339,7 +340,9 @@ class HeyClient
 
   # Official writes (hey-sdk CalendarEventsService): form to /calendar/events.json
   # with calendar_event[set_time_zone]=1 so zone names are not dropped.
-  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil, time_zone: nil, description: nil, location: nil, url: nil, entry_id: nil)
+  # +reminders+ are the event's reminder offsets in seconds. HEY unschedules every reminder an
+  # update leaves out (hey-sdk UpdateCalendarEventParams), so callers pass back what sync stored.
+  def update_calendar_event(calendar_id:, event_id:, title: nil, starts_at: nil, ends_at: nil, all_day: nil, time_zone: nil, description: nil, location: nil, url: nil, entry_id: nil, reminders: nil)
     return nil if starts_at.blank? || ends_at.blank?
 
     ref = parse_event_ref(event_id)
@@ -355,7 +358,8 @@ class HeyClient
       location: location,
       url: url,
       entry_id: entry_id,
-      occurrence: ref[:occurrence]
+      occurrence: ref[:occurrence],
+      reminders: reminders
     )
     path = if ref[:occurrence]
       "/calendar/events/#{ref[:series_id]}/occurrences/#{ref[:date]}.json"
@@ -624,6 +628,19 @@ class HeyClient
       cal["id"] = cal["id"].to_s
       cal
     end
+  end
+
+  # Mirrors hey-cli isDefaultEventCalendar: the first owned, normal calendar that is neither the
+  # personal one nor a subscription. Maybe comes before it in HEY's list, so "first owned" is wrong.
+  def default_event_calendar_id(calendars)
+    hit = calendars.find do |c|
+      truthy?(c["owned"]) && !truthy?(c["personal"]) && !truthy?(c["external"]) && c["kind"].to_s == "normal"
+    end
+    hit&.dig("id")
+  end
+
+  def truthy?(value)
+    [ true, "true", 1, "1" ].include?(value)
   end
 
   # Mirrors hey-cli findPersonalCalendarID.
@@ -895,10 +912,11 @@ class HeyClient
     data.is_a?(Hash)
   end
 
-  def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:, description: nil, location: nil, url: nil, entry_id: nil, occurrence: false)
+  def calendar_event_form_pairs(calendar_id:, title:, starts_at:, ends_at:, all_day:, time_zone:, description: nil, location: nil, url: nil, entry_id: nil, occurrence: false, reminders: nil)
     tz = time_zone.to_s.presence || "UTC"
-    ls = starts_at
-    le = ends_at || starts_at
+    # All-day dates have no zone; moving them would shift the day.
+    ls = all_day ? starts_at : in_zone(starts_at, tz)
+    le = all_day ? (ends_at || starts_at) : in_zone(ends_at || starts_at, tz)
     pairs = [
       [ "calendar_event[calendar_id]", calendar_id.to_s ],
       [ "calendar_event[summary]", title.to_s ],
@@ -920,11 +938,23 @@ class HeyClient
     pairs << [ "calendar_event[location]", location.to_s ]
     pairs << [ "calendar_event[url]", url.to_s ]
     pairs << [ "calendar_event[entry_id]", entry_id.to_s ]
+    Array(reminders).each do |seconds|
+      pairs << [ all_day ? "all_day_reminder_durations[]" : "timed_reminder_durations[]", seconds.to_i.to_s ]
+    end
     if occurrence
       pairs << [ "apply_to_future", "0" ]
       pairs << [ "repeat_frequency", "custom" ]
     end
     pairs
+  end
+
+  # Clock times go out in the zone named beside them, so a time from Daybreak's zone is moved
+  # into the event's own zone first (09:00 in Zagreb is 03:00 in New York, not 09:00).
+  def in_zone(value, tz)
+    zone = ActiveSupport::TimeZone[tz.to_s]
+    return value unless zone && value.acts_like?(:time)
+
+    value.in_time_zone(zone)
   end
 
   def date_only(value)
