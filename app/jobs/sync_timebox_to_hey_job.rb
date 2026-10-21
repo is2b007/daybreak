@@ -32,7 +32,9 @@ class SyncTimeboxToHeyJob < ApplicationJob
           starts_at: local_start,
           ends_at: local_end,
           all_day: false,
-          time_zone: tz_name
+          time_zone: tz_name,
+          # HEY drops reminders an update leaves out; keep the ones sync last saw.
+          reminders: user.calendar_events.hey.find_by(external_id: prev_id.to_s)&.hey_reminder_seconds
         )
         new_id = patched.presence
       end
