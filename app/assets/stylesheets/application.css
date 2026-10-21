@@ -6779,48 +6779,57 @@ body.focus-open { overflow: hidden; }
   transition: width 0.6s ease-out;
 }
 
-/* Hyperlink-style submit buttons */
+/* Ritual actions: the primary pill sits left, under the text it follows;
+   a quiet back link trails after it. */
 .ritual-doc__actions {
   display: flex;
-  /* Default: right-align the primary action. The `:has` rule below detects
-     the back-link pattern (back arrow + primary button) and switches to
-     space-between. This is more reliable than `:only-child`, which breaks
-     when the actions container is a <form> with a hidden input sibling
-     (as in sunrise). */
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
-  gap: 16px;
+  gap: 12px 20px;
   margin-top: 8px;
 }
-
-/* Back link present → put back on the left, primary on the right. */
-.ritual-doc__actions:has(> .ritual-doc__link--back) {
-  justify-content: space-between;
+.ritual-doc__actions > .ritual-doc__link--back { order: 2; }
+/* The wrap screen is centred; a lone back link there becomes an outlined pill */
+.ritual-doc--wrap .ritual-doc__actions { justify-content: center; }
+.ritual-doc__actions > .ritual-doc__link--back:only-child {
+  color: var(--ink);
+  border-color: oklch(from var(--ink) l c h / 50%);
+  padding-inline: 1.25em;
 }
 .ritual-doc__link {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-style: italic;
-  color: var(--brick);
-  background: none;
-  border: 0;
-  padding: 6px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font: 500 15px/1 var(--font-sans);
+  color: var(--brick-ink);
+  background: var(--brick);
+  border: 1px solid var(--brick);
+  border-radius: 3rem;
+  padding: 0.7em 1.25em;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(168, 55, 44, 0.4);
-  transition: color 120ms ease, text-decoration-color 120ms ease;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 .ritual-doc__link:hover {
-  color: var(--brick-hover);
-  text-decoration-color: var(--brick-hover);
+  background: var(--brick-hover);
+  border-color: var(--brick-hover);
+  color: var(--brick-ink);
+  text-decoration: none;
 }
 .ritual-doc__link--back {
-  color: var(--warm-line-hover);
-  text-decoration-color: oklch(var(--lch-ink-dark) / 0.35);
+  color: var(--ink-dark);
+  background: transparent;
+  border-color: transparent;
+  padding-inline: 0.25em;
 }
-.ritual-doc__link--back:hover { color: var(--warm-ink-soft); text-decoration-color: var(--warm-ink-soft); }
+.ritual-doc__link--back:hover {
+  color: var(--ink);
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 
 /* Stepper dots at the bottom */
 .ritual-doc__stepper {
@@ -7590,6 +7599,11 @@ body.focus-open { overflow: hidden; }
   --warm-ink-soft: oklch(88% 0.02 80);
   --warm-line-hover: oklch(84% 0.03 80);
   --ink-medium: oklch(80% 0.02 80);
+  --ink-dark: oklch(86% 0.015 80);
+  --ink: oklch(97% 0.012 80);
+  --brick: oklch(97% 0.012 80);
+  --brick-hover: oklch(100% 0 0);
+  --brick-ink: oklch(22% 0.02 260);
   min-height: 100%;
   overflow: hidden;
 }
