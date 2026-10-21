@@ -14,8 +14,8 @@ const SKY = [
   [0.00, [10, 14, 34], [26, 30, 58]],
   [0.18, [24, 30, 66], [92, 64, 104]],
   [0.36, [62, 92, 150], [240, 150, 92]],
-  [0.60, [120, 178, 228], [255, 206, 150]],
-  [1.00, [176, 220, 248], [255, 240, 214]]
+  [0.60, [112, 170, 226], [246, 196, 160]],
+  [1.00, [150, 200, 240], [214, 230, 244]]
 ]
 
 const lerp = (a, b, t) => a + (b - a) * t
@@ -161,10 +161,10 @@ export class SkyScene {
 
     // No sun, only its light: a warm bloom that swells up from below the horizon
     const bloomY = h * (1.15 - 0.25 * e)
-    const bloomR = Math.max(w, h) * (0.45 + 0.55 * e) * (1 + 0.02 * Math.sin(time * 0.6))
+    const bloomR = Math.max(w, h) * (0.35 + 0.3 * e) * (1 + 0.02 * Math.sin(time * 0.6))
     const bloom = ctx.createRadialGradient(w * 0.5, bloomY, 0, w * 0.5, bloomY, bloomR)
-    bloom.addColorStop(0, `rgba(255, 196, 120, ${0.7 * clamp01(e * 1.8)})`)
-    bloom.addColorStop(0.45, `rgba(255, 170, 110, ${0.28 * clamp01(e * 1.8)})`)
+    bloom.addColorStop(0, `rgba(255, 190, 130, ${0.42 * clamp01(e * 1.8)})`)
+    bloom.addColorStop(0.45, `rgba(255, 170, 120, ${0.14 * clamp01(e * 1.8)})`)
     bloom.addColorStop(1, "rgba(255, 170, 110, 0)")
     ctx.fillStyle = bloom
     ctx.fillRect(0, 0, w, h)
@@ -172,7 +172,7 @@ export class SkyScene {
     // Soft cloud wisps drifting across, tinted by the light
     for (const c of this.clouds) {
       const x = ((c.x + time * c.speed) % 1.4) - 0.2
-      const tint = mix([255, 236, 220], [120, 110, 160], night)
+      const tint = mix([255, 255, 255], [120, 110, 160], night)
       const cloud = ctx.createRadialGradient(x * w, c.y * h, 0, x * w, c.y * h, c.w * w)
       cloud.addColorStop(0, rgb(tint, 0.28 - night * 0.12))
       cloud.addColorStop(1, rgb(tint, 0))

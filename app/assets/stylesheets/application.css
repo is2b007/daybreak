@@ -6847,11 +6847,10 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__stepper-dot--active { background: var(--brick); }
 
 /* Variants per ritual (seasonal warmth) */
-.ritual-doc--sunrise {
-  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--dawn-wash) 55%, var(--bg) 100%);
-}
+.ritual-doc--sunrise,
 .ritual-doc--sunset {
-  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 100%);
+  /* The sky banner carries the colour; the page under it stays plain */
+  background: var(--bg);
 }
 .ritual-doc--weekly {
   background: linear-gradient(180deg, var(--sky-wash) 0%, var(--bg) 100%);
@@ -7054,8 +7053,8 @@ body.focus-open { overflow: hidden; }
   pointer-events: none;
   opacity: 0.6;
 }
-.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, oklch(var(--lch-dawn-wash-2)) 0%, transparent 70%); }
-.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, var(--sky-wash) 0%, transparent 70%); }
+.ritual-doc--sunrise::before,
+.ritual-doc--sunset::before  { display: none; }
 .ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, var(--bg2) 0%, transparent 70%); }
 
 /* Softer sunrise/sunset fade-in */
