@@ -1,5 +1,5 @@
-// The sky behind sunrise and sundown: a sun that rises (or sets) between the
-// logo's two amber hills, with stars, drifting motes and a slow ambient loop.
+// The sky behind sunrise and sundown: no sun drawn, just the sky lightening
+// (or darkening) with a warm glow from below, stars, motes and a slow loop.
 //
 // `elevation` drives everything: 0 is night, ~0.35 dawn/dusk, 1 full day.
 // Sunrise animates 0 → SUNRISE_REST; sundown animates SUNDOWN_START → 0.
@@ -17,10 +17,6 @@ const SKY = [
   [0.60, [120, 178, 228], [255, 206, 150]],
   [1.00, [176, 220, 248], [255, 240, 214]]
 ]
-
-const HILL_BACK  = [[255, 196, 120], [232, 132, 40]]   // lit gradient, top → bottom
-const HILL_FRONT = [[255, 170, 70], [214, 100, 18]]
-const HILL_NIGHT = [46, 42, 74]
 
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp01 = (t) => Math.min(1, Math.max(0, t))
@@ -140,9 +136,7 @@ export class SkyScene {
     if (!w) return
     this.currentElevation = e
     this.lastTime = time
-    // Hills keep a landscape proportion, so a tall immersive sky gets more sky, not taller hills
-    const hillH = Math.min(h, w * 0.3)
-    const horizon = h - hillH * 0.22
+    const horizon = h
     const night = clamp01(1 - e / 0.4)
 
     // Sky
@@ -165,47 +159,15 @@ export class SkyScene {
       this.drawShootingStar(time, night)
     }
 
-    // Sun: rises from behind the hills along a shallow arc
-    const sunR = Math.max(26, Math.min(w, h) * 0.11)
-    const sunX = w * 0.5 + (e - 0.5) * w * 0.06
-    const sunY = horizon + sunR * 1.4 - e * (horizon * 0.62)
-    const glowR = sunR * (4.2 + 0.25 * Math.sin(time * 0.8))
-    const glow = ctx.createRadialGradient(sunX, sunY, sunR * 0.4, sunX, sunY, glowR)
-    glow.addColorStop(0, `rgba(255, 214, 140, ${0.55 * clamp01(e * 1.6)})`)
-    glow.addColorStop(1, "rgba(255, 214, 140, 0)")
-    ctx.fillStyle = glow
+    // No sun, only its light: a warm bloom that swells up from below the horizon
+    const bloomY = h * (1.15 - 0.25 * e)
+    const bloomR = Math.max(w, h) * (0.45 + 0.55 * e) * (1 + 0.02 * Math.sin(time * 0.6))
+    const bloom = ctx.createRadialGradient(w * 0.5, bloomY, 0, w * 0.5, bloomY, bloomR)
+    bloom.addColorStop(0, `rgba(255, 196, 120, ${0.7 * clamp01(e * 1.8)})`)
+    bloom.addColorStop(0.45, `rgba(255, 170, 110, ${0.28 * clamp01(e * 1.8)})`)
+    bloom.addColorStop(1, "rgba(255, 170, 110, 0)")
+    ctx.fillStyle = bloom
     ctx.fillRect(0, 0, w, h)
-
-    const disk = ctx.createRadialGradient(sunX - sunR * 0.3, sunY - sunR * 0.35, sunR * 0.1, sunX, sunY, sunR)
-    disk.addColorStop(0, "rgb(255, 250, 225)")
-    disk.addColorStop(0.45, "rgb(255, 222, 128)")
-    disk.addColorStop(1, rgb(mix([255, 188, 70], [242, 110, 40], 1 - clamp01(e * 1.5))))
-    ctx.fillStyle = disk
-    ctx.beginPath()
-    ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Light rays through the dawn haze
-    if (e > 0.25) {
-      ctx.save()
-      ctx.globalCompositeOperation = "lighter"
-      const rays = 9
-      for (let i = 0; i < rays; i++) {
-        const a = -Math.PI / 2 + (i - (rays - 1) / 2) * 0.22 + Math.sin(time * 0.15 + i) * 0.03
-        const len = h * 1.1
-        const ray = ctx.createLinearGradient(sunX, sunY, sunX + Math.cos(a) * len, sunY + Math.sin(a) * len)
-        ray.addColorStop(0, `rgba(255, 220, 160, ${0.035 * clamp01((e - 0.25) * 3)})`)
-        ray.addColorStop(1, "rgba(255, 220, 160, 0)")
-        ctx.fillStyle = ray
-        ctx.beginPath()
-        ctx.moveTo(sunX, sunY)
-        ctx.lineTo(sunX + Math.cos(a - 0.05) * len, sunY + Math.sin(a - 0.05) * len)
-        ctx.lineTo(sunX + Math.cos(a + 0.05) * len, sunY + Math.sin(a + 0.05) * len)
-        ctx.closePath()
-        ctx.fill()
-      }
-      ctx.restore()
-    }
 
     // Soft cloud wisps drifting across, tinted by the light
     for (const c of this.clouds) {
@@ -223,15 +185,10 @@ export class SkyScene {
       ctx.restore()
     }
 
-    // The logo's twin hills: back hill left, front hill right, lit by the sun
-    const light = clamp01(e * 1.4)
-    this.drawHill(w * -0.1, w * 0.64, horizon - hillH * 0.2, h, HILL_BACK, light, 0.92)
-    this.drawHill(w * 0.36, w * 1.12, horizon - hillH * 0.1, h, HILL_FRONT, light, 1)
-
     // Motes of light drift up in the morning; fireflies blink low at dusk
     for (const m of this.motes) {
       const rise = this.mode === "sunrise"
-      const y = rise ? (1 - ((m.y + time * m.drift) % 1)) : (0.62 + ((m.y * 0.35 + Math.sin(time * 0.4 + m.sway) * 0.03)))
+      const y = rise ? (1 - ((m.y + time * m.drift) % 1)) : (0.6 + ((m.y * 0.38 + Math.sin(time * 0.4 + m.sway) * 0.03)))
       const x = m.x + Math.sin(time * 0.5 + m.sway) * 0.01
       const a = rise
         ? 0.5 * clamp01(e * 1.5) * Math.sin(Math.PI * y)
@@ -242,34 +199,6 @@ export class SkyScene {
       ctx.arc(x * w, y * h, m.r, 0, Math.PI * 2)
       ctx.fill()
     }
-  }
-
-  drawHill(x0, x1, peakY, h, [lit0, lit1], light, scale) {
-    const { ctx } = this
-    const top = mix(HILL_NIGHT, lit0, light)
-    const bottom = mix(HILL_NIGHT, lit1, light * 0.9)
-    const g = ctx.createLinearGradient(0, peakY, 0, h)
-    g.addColorStop(0, rgb(top))
-    g.addColorStop(1, rgb(bottom))
-    ctx.fillStyle = g
-    const mid = (x0 + x1) / 2
-    ctx.beginPath()
-    ctx.moveTo(x0, h)
-    ctx.bezierCurveTo(x0 + (mid - x0) * 0.45, peakY - h * 0.02 * scale, mid - (x1 - x0) * 0.24, peakY, mid, peakY)
-    ctx.bezierCurveTo(mid + (x1 - x0) * 0.24, peakY, x1 - (x1 - mid) * 0.45, peakY + h * 0.02, x1, h)
-    ctx.closePath()
-    ctx.fill()
-
-    // Glossy rim, as on the logo; a cool moonlit edge once the sun is gone
-    ctx.save()
-    ctx.clip()
-    const sheen = ctx.createLinearGradient(0, peakY, 0, peakY + h * 0.08)
-    const rim = mix([170, 180, 235], [255, 255, 255], light)
-    sheen.addColorStop(0, rgb(rim, 0.28 * light + 0.22 * (1 - light)))
-    sheen.addColorStop(1, rgb(rim, 0))
-    ctx.fillStyle = sheen
-    ctx.fillRect(x0, peakY, x1 - x0, h * 0.08)
-    ctx.restore()
   }
 
   drawShootingStar(time, night) {
