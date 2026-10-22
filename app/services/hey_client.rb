@@ -463,6 +463,22 @@ class HeyClient
     put("/calendar/time_tracks/#{time_track_id}.json", { "calendar_time_track" => inner })
   end
 
+  # Full HTML of the newest message in an email thread. The box listing and the
+  # topic's entry index only carry summaries; GET /messages/:id has the body.
+  # Returns { content:, entry_count: } or nil when the URL isn't a topic.
+  def email_body(app_url)
+    topic_id = app_url.to_s[%r{/topics/(\d+)}, 1]
+    return nil if topic_id.blank?
+
+    entries = Array(get("/topics/#{topic_id}/entries.json")).select { |e| e.is_a?(Hash) && e["id"].present? }
+    latest = entries.max_by { |e| e["created_at"].to_s }
+    return nil if latest.nil?
+
+    message = get("/messages/#{latest["id"]}.json")
+    content = message.is_a?(Hash) ? (message["content"].presence || latest["content"]) : latest["content"]
+    { content: content.to_s, entry_count: entries.size }
+  end
+
   # Journal
 
   def journal_entry(day)

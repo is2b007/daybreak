@@ -59,6 +59,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
     if existing
       updates = {}
       updates[:title] = title if existing.title != title
+      updates[:description] = assignment["description"] if assignment["description"].present? && existing.description != assignment["description"]
       bucket_id = assignment.dig("bucket", "id")&.to_s
       updates[:basecamp_bucket_id] = bucket_id if bucket_id.present? && existing.basecamp_bucket_id.blank?
       project_name = assignment.dig("bucket", "name")

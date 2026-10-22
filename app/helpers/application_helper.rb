@@ -22,7 +22,43 @@ module ApplicationHelper
   # Basecamp comments and descriptions are rich-text HTML: keep the formatting and
   # entities, drop anything that isn't plain markup.
   def basecamp_rich_text(html)
-    sanitize(html.to_s, tags: BASECAMP_RICH_TEXT_TAGS, attributes: %w[href target rel])
+    sanitize(flatten_bc_attachments(html.to_s), tags: BASECAMP_RICH_TEXT_TAGS, attributes: %w[href target rel class])
+  end
+
+  EMAIL_TAGS = (BASECAMP_RICH_TEXT_TAGS + %w[u h5 h6 hr table thead tbody tfoot tr td th caption small sub sup]).freeze
+
+  # Email HTML is untrusted: keep its structure, drop scripts, styles, images
+  # (tracking pixels) and every attribute except links.
+  def email_html(html)
+    doc = Nokogiri::HTML5.fragment(html.to_s)
+    doc.css("style, script, head, title, img").each(&:remove)
+    doc.css("a[href]").each do |a|
+      a["target"] = "_blank"
+      a["rel"] = "noopener noreferrer"
+    end
+    sanitize(doc.to_html, tags: EMAIL_TAGS, attributes: %w[href target rel])
+  end
+
+  # Basecamp embeds mentions and files as <bc-attachment>. Sanitising alone keeps
+  # only stray caption text, so turn them into "@Name" and a file chip first.
+  def flatten_bc_attachments(html)
+    return html unless html.include?("bc-attachment")
+
+    doc = Nokogiri::HTML5.fragment(html)
+    doc.css("bc-attachment").each do |node|
+      type = node["content-type"].to_s
+      if type.include?("mention")
+        name = node.at_css("figcaption")&.text.presence || node.text.strip
+        node.replace(Nokogiri::XML::Text.new("@#{name.strip}", doc.document))
+      else
+        label = node["filename"].presence || node.at_css("figcaption")&.text.presence || node["caption"].presence || "Attachment"
+        chip = Nokogiri::XML::Node.new("span", doc.document)
+        chip["class"] = "bc-file"
+        chip.content = "📎 #{label.strip}"
+        node.replace(chip)
+      end
+    end
+    doc.to_html
   end
 
   def format_sunset_hm(minutes)

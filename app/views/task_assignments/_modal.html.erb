@@ -1,4 +1,4 @@
-<%# locals: (task:, bc_comments: [], bc_comments_error: nil, card_columns: nil) %>
+<%# locals: (task:, bc_comments: [], bc_comments_error: nil, card_columns: nil, card_steps: []) %>
 <% hey_from_email = task.hey_app_url.present? %>
 <div class="modal-overlay"
      data-controller="modal"
@@ -152,10 +152,33 @@
           </div>
         <% end %>
 
+        <% if card_steps.present? %>
+          <div class="modal__section">
+            <div class="modal__section-label">Steps · <%= card_steps.count { |st| st["completed"] } %> of <%= card_steps.size %> done</div>
+            <ul class="card-steps">
+              <% card_steps.each do |step| %>
+                <li class="card-steps__item <%= 'card-steps__item--done' if step["completed"] %>">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <% if step["completed"] %>
+                      <circle cx="8" cy="8" r="7" fill="#16A34A"/><path d="M5 8.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    <% else %>
+                      <circle cx="8" cy="8" r="6.6" stroke="currentColor" stroke-width="1.25"/>
+                    <% end %>
+                  </svg>
+                  <span class="card-steps__title"><%= step["title"].presence || step["content"] %></span>
+                  <% if step["due_on"].present? %>
+                    <span class="card-steps__due"><%= Date.parse(step["due_on"]).strftime("%b %-d") rescue step["due_on"] %></span>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
         <% if task.basecamp? && task.description.to_s.include?("<") %>
           <div class="modal__section">
             <div class="modal__section-label">Description</div>
-            <div class="modal__richtext"><%= basecamp_rich_text(task.description) %></div>
+            <div class="modal__richtext rich-text"><%= basecamp_rich_text(task.description) %></div>
           </div>
         <% else %>
           <div class="modal__section">
@@ -197,7 +220,7 @@
                 <div class="modal__comment-item-author">
                   <%= c.dig("creator", "name") %>
                 </div>
-                <div class="modal__comment-item-content"><%= basecamp_rich_text(c["content"]) %></div>
+                <div class="modal__comment-item-content rich-text"><%= basecamp_rich_text(c["content"]) %></div>
                 <% if c["created_at"].present? %>
                   <div class="modal__comment-item-time">
                     <%= time_ago_in_words(Time.parse(c["created_at"])) %> ago

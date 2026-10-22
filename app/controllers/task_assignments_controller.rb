@@ -8,6 +8,7 @@ class TaskAssignmentsController < ApplicationController
 
   def show
     load_bc_comments
+    load_bc_record
     @hey_email_body = nil
     @card_columns = load_card_columns if @task.basecamp_card?
     if @task.hey_app_url.present?
@@ -300,11 +301,12 @@ class TaskAssignmentsController < ApplicationController
 
     @card_columns = load_card_columns
     load_bc_comments
+    load_bc_record
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
           turbo_stream.update("modal", partial: "task_assignments/modal",
-            locals: { task: @task, bc_comments: @bc_comments, bc_comments_error: @bc_comments_error, card_columns: @card_columns }),
+            locals: { task: @task, bc_comments: @bc_comments, bc_comments_error: @bc_comments_error, card_columns: @card_columns, card_steps: @card_steps }),
           (@task.completed? ? turbo_stream.remove("inbox_task_#{@task.id}") :
             turbo_stream.replace("inbox_task_#{@task.id}", partial: "layouts/inbox_item", locals: { task: @task }))
         ]
@@ -653,6 +655,23 @@ class TaskAssignmentsController < ApplicationController
 
   def task_params
     params.require(:task_assignment).permit(:title, :description, :size, :planned_duration_minutes, :status)
+  end
+
+  # Fresh description (and card steps) from Basecamp: the sync only stores the
+  # description when it first imports an item, so edits there would never show.
+  def load_bc_record
+    @card_steps = []
+    return unless @task.basecamp? && @task.external_id.present?
+
+    client = BasecampClient.new(current_user)
+    record = @task.basecamp_card? ? client.card(@task.external_id) : client.todo(@task.external_id)
+    return unless record.is_a?(Hash)
+
+    description = @task.basecamp_card? ? record["content"] : record["description"]
+    @task.update_columns(description: description) if description.present? && description != @task.description
+    @card_steps = Array(record["steps"]).select { |step| step.is_a?(Hash) }
+  rescue StandardError => e
+    Rails.logger.warn("Basecamp record fetch failed for task #{@task.id}: #{e.class}: #{e.message}")
   end
 
   def load_bc_comments

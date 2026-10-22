@@ -30,6 +30,7 @@ Rails.application.routes.draw do
       get :more
     end
     member do
+      get   :body
       patch :triage
       patch :dismiss
       post  :plan

@@ -182,4 +182,37 @@ class HeyEmailsControllerTest < ActionController::TestCase
 
     assert_nil other_email.reload.triaged_at
   end
+
+  test "GET body fetches the newest message and renders it sanitised" do
+    fake = Object.new
+    fake.define_singleton_method(:email_body) do |url|
+      raise "wrong url" unless url == "https://app.hey.com/topics/101"
+      { content: "<p>Full <b>body</b><script>x()</script></p>", entry_count: 3 }
+    end
+    original = HeyClient.method(:new)
+    HeyClient.define_singleton_method(:new) { |*_args| fake }
+    begin
+      get :body, params: { id: @email.id }
+    ensure
+      HeyClient.define_singleton_method(:new, original)
+    end
+
+    assert_response :success
+    assert_includes response.body, "Full <b>body</b>"
+    assert_includes response.body, "Latest of 3 messages"
+    refute_includes response.body, "<script>"
+  end
+
+  test "GET body falls back to the snippet when HEY can't be reached" do
+    original = HeyClient.method(:new)
+    HeyClient.define_singleton_method(:new) { |*_args| raise HeyClient::AuthError, "expired" }
+    begin
+      get :body, params: { id: @email.id }
+    ensure
+      HeyClient.define_singleton_method(:new, original)
+    end
+
+    assert_response :success
+    assert_includes response.body, "Can we wrap this up?"
+  end
 end

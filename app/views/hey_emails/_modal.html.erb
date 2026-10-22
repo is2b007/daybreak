@@ -39,8 +39,11 @@
               title="<%= email.received_at&.in_time_zone&.strftime("%A %-d %B %Y, %-l:%M%P") %>"><%= inbox_time(email.received_at) %></time>
       </div>
 
-      <% if email.snippet.present? %>
-        <p class="email-modal__snippet"><%= email.snippet %></p>
+      <%= turbo_frame_tag dom_id(email, :body), src: body_hey_email_path(email), loading: :lazy do %>
+        <% if email.snippet.present? %>
+          <p class="email-modal__snippet"><%= email.snippet %></p>
+        <% end %>
+        <p class="email-modal__loading" aria-live="polite">Loading the full email…</p>
       <% end %>
 
       <% if email.safe_hey_url.present? %>

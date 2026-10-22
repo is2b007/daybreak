@@ -9,6 +9,18 @@ class HeyEmailsController < ApplicationController
     end
   end
 
+  # GET /hey_emails/:id/body — lazy turbo frame inside the email modal with the
+  # full message, so the modal opens instantly on the synced snippet.
+  def body
+    @body = Rails.cache.fetch([ "hey_email_body", @email.id, @email.updated_at.to_i ], expires_in: 1.hour) do
+      HeyClient.new(current_user).email_body(@email.hey_url)
+    end
+    render partial: "hey_emails/body", locals: { email: @email, body: @body }
+  rescue StandardError => e
+    Rails.logger.warn("HEY email body fetch failed for #{@email.id}: #{e.class}: #{e.message}")
+    render partial: "hey_emails/body", locals: { email: @email, body: nil }
+  end
+
   # GET /hey_emails/more?offset=75 — JSON fragment for infinite scroll in the HEY panel.
   def more
     offset = [ params[:offset].to_i, 0 ].max
