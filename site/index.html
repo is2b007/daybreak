@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Daybreak · A calm planner for Basecamp and HEY</title>
-  <meta name="description" content="Daybreak is a calm, self-hosted planner that puts your Basecamp to-dos and HEY calendar on one week, with a short ritual to open the day and another to close it.">
+  <meta name="description" content="Daybreak is a calm, self-hosted planner where work meets the rest of your life: your Basecamp to-dos and HEY calendar on one week, with a short ritual to open the day and another to close it.">
   <meta name="theme-color" content="#9cc8f2">
   <meta property="og:title" content="Daybreak">
   <meta property="og:description" content="A calm, self-hosted planner for Basecamp and HEY.">
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/daybreak-icon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/newsreader-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css?v=7">
+  <link rel="stylesheet" href="assets/site.css?v=9">
   <script>matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.add("motion")</script>
   <script src="assets/vendor/motion-12.23.12.js" defer></script>
   <script type="module" src="assets/site.js?v=4"></script>
@@ -42,7 +42,7 @@
       <div class="hero__copy">
         <p class="eyebrow-chip">Open source · Self-hosted · Made for one</p>
         <h1 id="hero-title">Know what today is for.</h1>
-        <p class="lede">Daybreak is a calm planner on top of <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>. Your to-dos and your calendar share one week. Each morning you choose what the day is for, each evening you close it, and in between you get on with it.</p>
+        <p class="lede">Daybreak is a calm planner for where work meets the rest of your life. Your <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> to-dos and your <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> calendar share one week, so the launch review and the dentist finally sit side by side. Each morning you choose what the day is for, and each evening you close it.</p>
         <div class="actions">
           <a class="pill pill--ink" href="#self-host">Run your own</a>
           <a class="pill pill--glass" href="https://github.com/is2b007/daybreak">View on GitHub</a>
@@ -163,13 +163,14 @@
     <section class="band" id="apps" aria-labelledby="apps-title">
       <div class="wrap">
         <header class="section-head" data-reveal>
-          <p class="eyebrow">Basecamp and HEY</p>
-          <h2 id="apps-title">Built on the apps you already live in.</h2>
-          <p class="section-lede">Daybreak isn't one more place to keep work. It reads what's already on your plate, lets you decide when each thing happens, and sends the result back where it belongs.</p>
+          <p class="eyebrow">Work, meet life</p>
+          <h2 id="apps-title">Where work and life meet.</h2>
+          <p class="section-lede">I live in HEY and Basecamp. Some days are mostly work, some are mostly life, and most are a bit of both. I wanted one place where the two meet in the middle, so I could plan the day I actually have. That's Daybreak.</p>
+          <p class="section-sign">Kosta, who made it</p>
         </header>
         <div class="duo" data-reveal>
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40">Basecamp</h3>
+            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40"><span>Basecamp<small>Your work</small></span></h3>
             <div class="flow">
               <p class="flow__label">Comes in</p>
               <ul class="flow__list">
@@ -188,7 +189,7 @@
             </div>
           </article>
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40">HEY <span class="optional">Optional</span></h3>
+            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40"><span>HEY<small>Everything else</small></span> <span class="optional">Optional</span></h3>
             <div class="flow">
               <p class="flow__label">Comes in</p>
               <ul class="flow__list">
@@ -328,7 +329,7 @@
           <li>
             <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             <b>Just for you</b>
-            <p>One person, one plan. Your team keeps working in <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span>, and Daybreak never asks them for anything.</p>
+            <p>One install for one person. Your team keeps working in <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span>, and Daybreak never asks them for anything.</p>
           </li>
           <li>
             <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -338,7 +339,7 @@
           <li>
             <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
             <b>Private</b>
-            <p>Your plan lives in one SQLite file on your server. No analytics in the app, or on this page.</p>
+            <p>Your week lives in one SQLite file on your server. No analytics in the app, or on this page.</p>
           </li>
           <li>
             <svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>

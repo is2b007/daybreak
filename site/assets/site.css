@@ -394,6 +394,9 @@ h2 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.06; letter-spacing: -0.
 .sheet { color: var(--ink-dark); background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: clamp(24px, 3.4vw, 40px); display: grid; gap: 28px; align-content: start; }
 .sheet__title { display: flex; align-items: center; gap: 14px; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
 .sheet__title img { border-radius: 10px; }
+.section-sign { font-size: 15px; font-weight: 600; color: var(--ink-dark); }
+.section-sign::before { content: "— "; }
+.sheet__title small { display: block; margin-top: 2px; font-size: 15px; font-weight: 500; letter-spacing: 0; color: var(--ink-dark); }
 .optional { margin-left: auto; font-size: 12px; font-weight: 600; letter-spacing: 0; padding: 4px 10px; border-radius: 9999px; background: var(--ink-lighter); color: var(--ink-darker); }
 .flow { display: grid; gap: 12px; }
 .flow__label { display: inline-flex; align-items: center; gap: 6px; justify-self: start; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky-text); }
