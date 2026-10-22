@@ -297,7 +297,11 @@ class TaskAssignmentsController < ApplicationController
     column_id = params.require(:column_id).to_s
     BasecampClient.new(current_user).move_card(@task.external_id, column_id)
     @task.update!(basecamp_column_id: column_id, basecamp_column_name: params[:column_title].presence)
-    @task.complete! if params[:column_type] == BasecampClient::DONE_COLUMN_TYPE && !@task.completed?
+    if params[:column_type] == BasecampClient::DONE_COLUMN_TYPE && !@task.completed?
+      @task.complete!
+      # The card is already in Done on Basecamp; this closes the mirrored HEY to-do.
+      WriteCompletionJob.perform_later(@task.id) if @task.hey_mirrored_todo_id.present?
+    end
 
     @card_columns = load_card_columns
     load_bc_comments
