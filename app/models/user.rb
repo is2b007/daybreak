@@ -16,7 +16,7 @@ class User < ApplicationRecord
   validates :basecamp_uid, presence: true, uniqueness: true
   validates :timezone, presence: true
   validates :stamp_choice, inclusion: { in: %w[red_done navy_star green_check brown_complete black_dot] }
-  validates :theme, inclusion: { in: %w[system light dark] }
+  validates :theme, inclusion: { in: %w[system light dark sun] }
   validates :work_hours_target, numericality: { greater_than: 0, less_than_or_equal_to: 24 }
 
   STAMP_OPTIONS = %w[red_done navy_star green_check brown_complete black_dot].freeze
@@ -62,6 +62,16 @@ class User < ApplicationRecord
 
   def record_sunset_played!
     update_column(:last_sunset_played_date, today_in_zone)
+  end
+
+  # "Follow the sun": light from 6am until an hour after Sundown, dark otherwise.
+  # Kept in step with ambient_controller.js, which flips it live in the browser.
+  def sun_theme_now(at = Time.current)
+    local = at.in_time_zone(timezone)
+    hour = local.hour + local.min / 60.0
+    hh, mm = sundown_time.to_s.split(":").map(&:to_i)
+    dark_from = ((hh || 17) + (mm || 0) / 60.0 + 1).clamp(16.5, 22.0)
+    hour >= 6 && hour < dark_from ? "light" : "dark"
   end
 
   def today_in_zone

@@ -14,7 +14,13 @@ module ApplicationHelper
 
   # <html data-theme>: an explicit light/dark choice; "system" leaves it off so the OS decides.
   def theme_attribute
-    current_user.theme if respond_to?(:logged_in?) && logged_in? && current_user.theme.in?(%w[light dark])
+    return unless respond_to?(:logged_in?) && logged_in?
+    return current_user.sun_theme_now if current_user.theme == "sun"
+    current_user.theme if current_user.theme.in?(%w[light dark])
+  end
+
+  def follows_the_sun?
+    respond_to?(:logged_in?) && logged_in? && current_user.theme == "sun"
   end
 
   BASECAMP_RICH_TEXT_TAGS = %w[p br a ul ol li strong em b i del s div span h1 h2 h3 h4 blockquote code pre].freeze
