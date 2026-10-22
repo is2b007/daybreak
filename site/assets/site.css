@@ -44,11 +44,16 @@
   --shadow-lg: 0 0 0 1px oklch(0% 0 0 / 6%), 0 0.4em 1em oklch(30% 0.03 240 / 10%), 0 2em 4em oklch(30% 0.03 240 / 14%);
 
   /* Fixed: the hero sky is always a morning sky, whatever the theme */
-  --sky-ink: oklch(30% 0.025 240);
-  --sky-ink-soft: oklch(38% 0.02 240);
+  --sky-ink: oklch(25% 0.03 240);
+  --sky-ink-soft: oklch(31% 0.03 240);
+  --sky-accent: oklch(37% 0.12 45);
+  --sky-glass: oklch(100% 0 0 / 62%);
+  --sky-glass-line: oklch(100% 0 0 / 80%);
+  --night-accent: oklch(84% 0.11 65);
+  --night-glass: oklch(18% 0.04 268 / 55%);
   --night-ink: oklch(96% 0.008 260);
-  --night-ink-soft: oklch(82% 0.02 260);
-  --night-card: oklch(100% 0 0 / 7%);
+  --night-ink-soft: oklch(88% 0.018 260);
+  --night-card: oklch(14% 0.035 268 / 45%);
   --night-line: oklch(100% 0 0 / 12%);
 
   --radius: 10px;
@@ -108,7 +113,8 @@
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 72px; }
 body {
   margin: 0;
-  background: var(--canvas);
+  /* Behind the sky canvas; also the no-JS fallback */
+  background: oklch(80% 0.06 235);
   color: var(--ink-darker);
   font: 17px/1.55 var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -144,7 +150,7 @@ p { margin: 0; }
 .pill:focus-visible { outline: 3px solid var(--dawn); outline-offset: 3px; }
 .pill--ink { background: oklch(30% 0.022 234); color: #fff; box-shadow: 0 6px 18px oklch(30% 0.03 240 / 25%); }
 .pill--ink:hover { background: oklch(24% 0.022 234); }
-.pill--glass { background: oklch(100% 0 0 / 55%); color: var(--sky-ink); box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 70%); backdrop-filter: blur(8px); }
+.pill--glass { background: var(--sky-glass); color: var(--sky-ink); box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 70%); backdrop-filter: blur(8px); }
 .pill--glass:hover { background: oklch(100% 0 0 / 75%); }
 .pill--light { background: var(--night-ink); color: oklch(24% 0.03 260); }
 .pill--sm { min-height: 36px; padding: 0 16px; font-size: 14px; }
@@ -156,20 +162,21 @@ p { margin: 0; }
   transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 .masthead.is-scrolled {
-  background: color-mix(in oklch, var(--canvas) 86%, transparent);
+  background: var(--sky-glass);
   backdrop-filter: saturate(1.4) blur(14px);
-  box-shadow: 0 1px 0 var(--line);
+  box-shadow: 0 1px 0 oklch(0% 0 0 / 6%);
 }
+.is-night .masthead.is-scrolled { background: var(--night-glass); box-shadow: 0 1px 0 var(--night-line); }
+.is-night .brand, .is-night .nav a, .is-night .nav a:hover { color: var(--night-ink); }
+.is-night .masthead .pill--ink { background: var(--night-ink); color: oklch(22% 0.03 260); }
 .masthead__inner {
   max-width: 1200px; margin: 0 auto;
   height: 64px; display: flex; align-items: center; gap: 28px;
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
 }
 .brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--sky-ink); font-weight: 800; font-size: 21px; letter-spacing: -0.03em; }
-.masthead.is-scrolled .brand { color: var(--ink-darkest); }
 .nav { display: flex; gap: 22px; margin-left: auto; }
-.nav a { color: var(--sky-ink-soft); text-decoration: none; font-size: 15px; font-weight: 500; }
-.masthead.is-scrolled .nav a { color: var(--ink-dark); }
+.nav a { color: var(--sky-ink); text-decoration: none; font-size: 15px; font-weight: 500; }
 .nav a:hover { color: var(--sky-ink); }
 @media (max-width: 720px) {
   .nav { display: none; }
@@ -183,13 +190,7 @@ p { margin: 0; }
   isolation: isolate;
 }
 .sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: -1; }
-.hero > .sky { height: min(100%, 980px); }
-/* Blend the morning horizon into the page */
-.hero::after {
-  content: ""; position: absolute; left: 0; right: 0; z-index: -1;
-  top: calc(min(100%, 980px) - 300px); height: 300px;
-  background: linear-gradient(to bottom, transparent, var(--canvas));
-}
+.sky--page { position: fixed; inset: 0; height: 100vh; height: 100lvh; }
 .hero__copy {
   max-width: 820px; margin: 0 auto; text-align: center;
   padding: clamp(48px, 9vw, 104px) var(--gutter-r) 0 var(--gutter-l);
@@ -206,8 +207,8 @@ p { margin: 0; }
 
 .eyebrow-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 14px 5px 6px; border-radius: 9999px;
-  background: oklch(100% 0 0 / 50%); box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 70%);
+  padding: 6px 14px; border-radius: 9999px;
+  background: var(--sky-glass); box-shadow: inset 0 0 0 1px var(--sky-glass-line);
   backdrop-filter: blur(8px);
   font-size: 14px; font-weight: 600; color: var(--sky-ink);
   white-space: nowrap;
@@ -216,13 +217,26 @@ p { margin: 0; }
 .eyebrow-chip img { border-radius: 6px; }
 .eyebrow-chip img + img { margin-left: -2px; margin-right: 4px; }
 .hero h1 {
-  font-family: var(--font-serif); font-weight: 400;
-  font-size: clamp(44px, 8vw, 92px); line-height: 1.02; letter-spacing: -0.025em;
+  font-weight: 800;
+  font-size: clamp(44px, 8vw, 92px); line-height: 1; letter-spacing: -0.045em;
   color: var(--sky-ink);
 }
-.lede { font-size: clamp(18px, 2.2vw, 21px); line-height: 1.5; max-width: 34em; color: var(--sky-ink-soft); }
+.lede { text-wrap: pretty; font-size: clamp(18px, 2.2vw, 21px); line-height: 1.5; max-width: 34em; color: var(--sky-ink-soft); }
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 4px; }
-.fine { font-size: 14px; color: var(--sky-ink-soft); opacity: 0.85; }
+.fine { font-size: 14px; color: var(--sky-ink-soft); }
+
+/* Basecamp and HEY, named in running text, get their tile in a pill */
+.mention {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 1px 9px 1px 3px; margin: 0 1px;
+  border-radius: 9999px;
+  background: var(--surface); box-shadow: var(--shadow);
+  color: var(--ink-darkest); font-weight: 600; font-size: 0.94em;
+  line-height: 1.35; vertical-align: 0.08em; white-space: nowrap;
+}
+.mention img { width: 1.15em; height: 1.15em; border-radius: 0.3em; }
+.hero .mention { background: oklch(100% 0 0 / 70%); color: var(--sky-ink); box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 80%), 0 2px 6px oklch(30% 0.03 240 / 10%); }
+.night .mention, .ritual--sundown .mention { background: oklch(100% 0 0 / 12%); color: var(--night-ink); box-shadow: inset 0 0 0 1px var(--night-line); }
 
 /* App mock */
 .app {
@@ -312,7 +326,14 @@ p { margin: 0; }
 
 /* Sections */
 .band { padding-block: clamp(72px, 10vw, 128px); }
-.band--panel { background: var(--panel); }
+/* Text set straight on the sky uses the sky's own inks, whatever the theme;
+   cards and mocks keep the theme tokens */
+.band { color: var(--sky-ink-soft); }
+.band h2 { color: var(--sky-ink); }
+.band .eyebrow { color: var(--sky-accent); }
+.band .section-lede, .band .small, .split__copy > p:not(.eyebrow), .facts li, .aside-note { color: var(--sky-ink-soft); }
+.facts b, .aside-note b, .split__copy em { color: var(--sky-ink); }
+.dusk { height: 150vh; height: 150svh; }
 .section-head { max-width: 720px; display: grid; gap: 14px; margin-bottom: clamp(36px, 5vw, 56px); }
 .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dawn-text); }
 h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 800; }
@@ -320,7 +341,7 @@ h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.
 .small { font-size: 14px; color: var(--ink-dark); }
 
 .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.sheet { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: clamp(24px, 3.4vw, 36px); display: grid; gap: 22px; align-content: start; }
+.sheet { color: var(--ink-dark); background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: clamp(24px, 3.4vw, 36px); display: grid; gap: 22px; align-content: start; }
 .sheet__title { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
 .sheet__title img { border-radius: 9px; }
 .optional { margin-left: auto; font-size: 12px; font-weight: 600; letter-spacing: 0; padding: 3px 10px; border-radius: 9999px; background: var(--ink-lighter); color: var(--ink-dark); }
@@ -334,16 +355,16 @@ h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: clamp(40px, 7vw, 96px); align-items: center; }
 .split--flip { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
 .split__copy { display: grid; gap: 18px; align-content: start; min-width: 0; }
-.split__copy > p:not(.eyebrow):not(.small) { font-size: 18px; color: var(--ink-dark); max-width: 32em; }
-.split__copy em { font-style: normal; font-weight: 600; color: var(--ink-darkest); }
+.split__copy > p:not(.eyebrow):not(.small) { font-size: 18px; max-width: 32em; }
+.split__copy em { font-style: normal; font-weight: 600; }
 @media (max-width: 860px) {
   .split, .split--flip { grid-template-columns: minmax(0, 1fr); }
   .split--flip .shot { order: 2; }
 }
 
 .facts { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 18px; }
-.facts li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; align-items: center; color: var(--ink-dark); }
-.facts b { color: var(--ink-darkest); font-weight: 600; }
+.facts li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; align-items: center; }
+.facts b { font-weight: 600; }
 .fact__mark { width: 76px; height: 52px; display: grid; place-items: center; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink-darker); }
 .fact__mark svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .fact__mark--stamps { display: flex; justify-content: center; }
@@ -381,7 +402,7 @@ h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.
 .ritual .sky { border-radius: inherit; }
 .ritual__body { display: grid; gap: 14px; padding: clamp(24px, 4vw, 40px); max-width: 30em; }
 .ritual h3 { font-size: clamp(32px, 4vw, 44px); line-height: 1.05; font-weight: 400; }
-.ritual__kicker { font-size: 16px; }
+.ritual__kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .ritual--sunrise { color: var(--sky-ink-soft); background: linear-gradient(oklch(66% 0.09 250), oklch(82% 0.09 55)); }
 .ritual--sunrise h3 { color: var(--sky-ink); }
 .ritual--sundown { color: var(--night-ink-soft); background: linear-gradient(oklch(22% 0.05 270), oklch(32% 0.06 320)); }
@@ -393,8 +414,8 @@ h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.
 .journal__head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--night-ink-soft); }
 .journal__head img { border-radius: 4px; }
 .journal .serif { font-size: 19px; color: var(--night-ink); line-height: 1.4; }
-.aside-note { margin-top: 28px; max-width: 46em; color: var(--ink-dark); font-size: 16px; }
-.aside-note b { color: var(--ink-darkest); font-weight: 600; }
+.aside-note { margin-top: 28px; max-width: 46em; font-size: 16px; }
+.aside-note b { font-weight: 600; }
 @media (max-width: 860px) { .rituals { grid-template-columns: minmax(0, 1fr); } .ritual { min-height: 440px; } }
 
 /* Focus */
@@ -406,16 +427,16 @@ h2 { font-size: clamp(32px, 4.6vw, 50px); line-height: 1.08; letter-spacing: -0.
 
 /* What it won't do */
 .nots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.nots li { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 22px; color: var(--ink-dark); display: grid; gap: 6px; align-content: start; }
-.nots b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink-darkest); }
+.nots li { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 22px; color: var(--ink-dark); }
+.nots b { display: block; margin-bottom: 6px; font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink-darkest); }
 @media (max-width: 900px) { .nots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .nots { grid-template-columns: minmax(0, 1fr); } }
 
 /* Night: self-host and footer under the same sky */
-.night { position: relative; isolation: isolate; overflow: hidden; color: var(--night-ink-soft); background: oklch(18% 0.04 268); padding-top: clamp(80px, 11vw, 140px); }
+.night { position: relative; color: var(--night-ink-soft); padding-top: clamp(80px, 11vw, 140px); }
+html:not(.has-sky) .night { background: oklch(18% 0.04 268); }
 .night h2, .night h3 { color: var(--night-ink); }
-.night h2.serif { font-weight: 400; font-size: clamp(38px, 5.6vw, 64px); letter-spacing: -0.025em; }
-.night .eyebrow { color: oklch(80% 0.12 60); }
+.night .eyebrow { color: var(--night-accent); }
 .night .section-lede, .night .small { color: var(--night-ink-soft); }
 .night a:not(.pill):not(.brand) { color: oklch(84% 0.08 245); }
 .night code { color: var(--night-ink); }
