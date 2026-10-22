@@ -17,8 +17,9 @@ export default class extends Controller {
       if (this.autoSelectValue) {
         // Onboarding: auto-populate the dropdown
         if (this.hasSelectTarget) {
-          const match = Array.from(this.selectTarget.options).find(o => o.value === detected)
-          if (match) this.selectTarget.value = detected
+          // Browsers report plain "UTC"; Rails lists it as Etc/UTC
+          const match = Array.from(this.selectTarget.options).find(o => o.value === detected || o.value === `Etc/${detected}`)
+          if (match) this.selectTarget.value = match.value
         }
         if (this.hasMessageTarget) {
           const offset  = new Date().toTimeString().match(/GMT([+-]\d{4})/)?.[1]

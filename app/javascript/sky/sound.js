@@ -24,7 +24,7 @@ export function setSoundEnabled(on) {
   }
 }
 
-const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12)
+export const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12)
 
 const CUES = {
   // C major 9, opening upward
@@ -167,15 +167,19 @@ export class RitualSound {
   }
 
   reverb(ctx) {
-    const seconds = 3
-    const length = ctx.sampleRate * seconds
-    const impulse = ctx.createBuffer(2, length, ctx.sampleRate)
-    for (let ch = 0; ch < 2; ch++) {
-      const data = impulse.getChannelData(ch)
-      for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.4)
-    }
-    const conv = ctx.createConvolver()
-    conv.buffer = impulse
-    return conv
+    return makeReverb(ctx)
   }
+}
+
+// A soft room: decaying noise as the impulse response, no sample files
+export function makeReverb(ctx, seconds = 3) {
+  const length = ctx.sampleRate * seconds
+  const impulse = ctx.createBuffer(2, length, ctx.sampleRate)
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch)
+    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.4)
+  }
+  const conv = ctx.createConvolver()
+  conv.buffer = impulse
+  return conv
 }

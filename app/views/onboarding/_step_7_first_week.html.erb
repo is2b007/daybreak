@@ -1,27 +1,13 @@
-<p class="ritual-doc__dateline">Step 7 of 7</p>
-<h1 class="ritual-doc__title">You&rsquo;re ready, <%= current_user.greeting_name %>.</h1>
+<%= render layout: "step", locals: { step: 7, elevation: 0.86, moment: "morning" } do %>
+  <h1 class="onb__title" id="onb-title-7" tabindex="-1" data-reveal="words">Good morning, <%= current_user.greeting_name %>.</h1>
+  <p class="onb__prose" data-reveal>
+    You&rsquo;re all set. Your work is arriving quietly in the background.
+    Tomorrow, open Daybreak for your first sunrise: a short look back, then you set the day.
+  </p>
 
-<p class="ritual-doc__prose">
-  Your Basecamp inbox is filling in quietly in the background.
-  Tomorrow morning, open Daybreak for your first sunrise &mdash;
-  a short look back, then set the day.
-</p>
-
-<div class="onboarding-doc__closer-preview" aria-hidden="true">
-  <div class="task-card task-card--medium">
-    <div class="task-card__header">
-      <span class="task-card__title">A sample to-do</span>
-    </div>
-    <div class="task-card__stamp" style="opacity: 0.85;">
-      <%= render "stamps/#{current_user.stamp_choice}" %>
-    </div>
-  </div>
-</div>
-
-<%= form_with url: onboarding_path, method: :patch do |f| %>
-  <%= f.hidden_field :step, value: 7 %>
-  <div class="ritual-doc__actions">
-    <%= link_to "Back", onboarding_path(step: 6), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
-    <button type="submit" class="ritual-doc__link">Open my week <span aria-hidden="true">&rarr;</span></button>
-  </div>
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { turbo: false, action: "submit->onboarding#finish", reveal: "" } do |f| %>
+    <%= f.hidden_field :step, value: 7 %>
+    <%= link_to "Back", onboarding_path(step: 6), class: "onb__button onb__button--quiet" %>
+    <button type="submit" class="onb__button onb__button--primary">Open my week</button>
+  <% end %>
 <% end %>

@@ -1,21 +1,16 @@
-<p class="ritual-doc__dateline">Step 2 of 7</p>
-<h1 class="ritual-doc__title">What should we call you?</h1>
-<p class="ritual-doc__prose">Just a first name &mdash; it&rsquo;s how Daybreak says hello in the morning.</p>
+<%= render layout: "step", locals: { step: 2, elevation: 0.16 } do %>
+  <h1 class="onb__title" id="onb-title-2" tabindex="-1" data-reveal="words">What should we call you?</h1>
+  <p class="onb__prose" data-reveal>Just a first name. It&rsquo;s how Daybreak says good morning.</p>
 
-<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
-  <%= f.hidden_field :step, value: 2 %>
-  <div class="ritual-doc__goal-row">
-    <input type="text"
-           name="name"
-           value="<%= current_user.name %>"
-           class="ritual-doc__goal-input"
-           placeholder="your first name"
-           autocomplete="given-name"
-           autofocus
-           required>
-  </div>
-  <div class="ritual-doc__actions">
-    <span></span>
-    <button type="submit" class="ritual-doc__link">Continue <span aria-hidden="true">&rarr;</span></button>
-  </div>
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__form" do |f| %>
+    <%= f.hidden_field :step, value: 2 %>
+    <label class="sr-only" for="onb-name">Your first name</label>
+    <input type="text" id="onb-name" name="name" value="<%= current_user.name %>"
+           class="onb__input" placeholder="Your first name" autocomplete="given-name"
+           autofocus required data-reveal data-action="keydown->onboarding#type">
+    <div class="onb__actions" data-reveal>
+      <%= link_to "Back", onboarding_path(step: 1), class: "onb__button onb__button--quiet" %>
+      <button type="submit" class="onb__button onb__button--primary">Continue</button>
+    </div>
+  <% end %>
 <% end %>

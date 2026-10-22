@@ -2,7 +2,8 @@ class OnboardingController < ApplicationController
   skip_before_action :require_onboarding!
   before_action :redirect_if_onboarded, except: [ :restart ]
 
-  STEPS = 7
+  STEP_NAMES = %w[welcome name stamp basecamp hey timezone first_week].freeze
+  STEPS = STEP_NAMES.size
 
   def show
     @step = (params[:step] || 1).to_i.clamp(1, STEPS)

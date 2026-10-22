@@ -1,28 +1,24 @@
-<div class="onboarding-doc">
-  <div class="onboarding-doc__page">
-    <%= turbo_frame_tag "onboarding_step" do %>
-      <% case @step %>
-      <% when 1 %>
-        <%= render "step_1_welcome" %>
-      <% when 2 %>
-        <%= render "step_2_name" %>
-      <% when 3 %>
-        <%= render "step_3_stamp" %>
-      <% when 4 %>
-        <%= render "step_4_basecamp" %>
-      <% when 5 %>
-        <%= render "step_5_hey" %>
-      <% when 6 %>
-        <%= render "step_6_timezone" %>
-      <% when 7 %>
-        <%= render "step_7_first_week" %>
-      <% end %>
-    <% end %>
-
-    <div class="ritual-doc__stepper" aria-hidden="true">
-      <% (1..OnboardingController::STEPS).each do |s| %>
-        <span class="ritual-doc__stepper-dot <%= 'ritual-doc__stepper-dot--active' if s == @step %>"></span>
-      <% end %>
-    </div>
+<% content_for :title, "Welcome to Daybreak" %>
+<div class="onb" data-controller="onboarding" data-tone="night">
+  <div class="sky sky--immersive" aria-hidden="true">
+    <canvas class="sky__canvas" data-onboarding-target="canvas"></canvas>
   </div>
+
+  <div class="sky__controls onb__controls">
+    <button type="button" class="sky__button" data-onboarding-target="soundToggle" data-action="onboarding#toggleSound" aria-label="Sound" aria-pressed="true">
+      <svg class="sky__sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor"/><path class="sky__sound-waves" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sky__sound-mute" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="onb__stage">
+    <%= turbo_frame_tag "onboarding_step", class: "onb__frame", data: { onboarding_target: "frame", turbo_action: "advance" } do %>
+      <%= render "step_#{@step}_#{OnboardingController::STEP_NAMES[@step - 1]}" %>
+    <% end %>
+  </div>
+
+  <ol class="onb__progress" aria-label="Progress">
+    <% (1..OnboardingController::STEPS).each do |s| %>
+      <li class="onb__dot" data-onboarding-target="progress"><span class="sr-only">Step <%= s %></span></li>
+    <% end %>
+  </ol>
 </div>

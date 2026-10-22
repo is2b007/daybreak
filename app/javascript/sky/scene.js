@@ -43,13 +43,14 @@ function seeded(seed) {
 }
 
 export class SkyScene {
-  constructor(canvas, { mode = "sunrise", play = true, reducedMotion = false } = {}) {
+  constructor(canvas, { mode = "sunrise", play = true, reducedMotion = false, from, to } = {}) {
     this.canvas = canvas
     this.ctx = canvas.getContext("2d")
     this.mode = mode
     this.reducedMotion = reducedMotion
-    this.from = mode === "sunrise" ? 0 : SUNDOWN_START
-    this.to = mode === "sunrise" ? SUNRISE_REST : 0
+    this.from = from ?? (mode === "sunrise" ? 0 : SUNDOWN_START)
+    this.to = to ?? (mode === "sunrise" ? SUNRISE_REST : 0)
+    this.duration = TRANSITION_MS
     this.startedAt = null
     this.play = play && !reducedMotion
     this.frame = this.frame.bind(this)
@@ -115,7 +116,7 @@ export class SkyScene {
   frame(now) {
     this.startedAt ??= now
     const elapsed = now - this.startedAt
-    const progress = this.play ? clamp01(elapsed / TRANSITION_MS) : 1
+    const progress = this.play ? clamp01(elapsed / this.duration) : 1
     // Once the sky has settled, the ambient loop only needs ~30fps
     if (progress < 1 || now - (this.drawnAt ?? 0) > 32) {
       this.drawnAt = now
@@ -127,6 +128,21 @@ export class SkyScene {
   // Replays the transition from the top (used by previews and the replay control)
   replay() {
     this.play = !this.reducedMotion
+    this.startedAt = null
+    this.resume()
+  }
+
+  // Eases from wherever the sky is now to a new elevation (onboarding raises
+  // the sun a little with each step)
+  glideTo(elevation, duration = TRANSITION_MS) {
+    this.from = this.currentElevation ?? this.to
+    this.to = elevation
+    this.duration = duration
+    if (this.reducedMotion) {
+      this.draw(elevation, this.lastTime ?? 0)
+      return
+    }
+    this.play = true
     this.startedAt = null
     this.resume()
   }
