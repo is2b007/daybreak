@@ -48,21 +48,28 @@ onScroll()
 // with reduced motion) the page shows everything at rest.
 const root = document.documentElement
 const Motion = window.Motion
+// The head script hides [data-reveal] sections and un-hides them after 2.5s
+// unless this block marks itself ready; any failure here shows them at rest.
 if (root.classList.contains("motion") && Motion) {
-  const { animate, inView, scroll, stagger } = Motion
-  const spring = { type: "spring", stiffness: 140, damping: 22 }
+  try {
+    const { animate, inView, scroll, stagger } = Motion
+    const spring = { type: "spring", stiffness: 140, damping: 22 }
 
-  animate(".hero__copy > *", { opacity: [0, 1], y: [18, 0] }, { ...spring, delay: stagger(0.08) })
-  animate(".app", { opacity: [0, 1], y: [48, 0] }, { ...spring, stiffness: 70, delay: 0.45 })
-  animate(".sun", { opacity: [0, 1], y: ["45%", "0%"] }, { duration: 2.2, delay: 0.3, ease: [0.2, 0.7, 0.2, 1] })
+    animate(".hero__copy > *", { opacity: [0, 1], y: [18, 0] }, { ...spring, delay: stagger(0.08) })
+    animate(".app", { opacity: [0, 1], y: [48, 0] }, { ...spring, stiffness: 70, delay: 0.45 })
+    animate(".sun", { opacity: [0, 1], y: ["45%", "0%"] }, { duration: 2.2, delay: 0.3, ease: [0.2, 0.7, 0.2, 1] })
 
-  const hero = document.querySelector(".hero")
-  scroll(animate(".sun", { y: ["0%", "-12%"] }, { ease: "linear" }), { target: hero, offset: ["start start", "end start"] })
-  scroll(animate(".app__window", { scale: [0.97, 1] }, { ease: "linear" }), { target: hero, offset: ["start start", "center start"] })
+    const hero = document.querySelector(".hero")
+    scroll(animate(".sun", { y: ["0%", "-12%"] }, { ease: "linear" }), { target: hero, offset: ["start start", "end start"] })
+    scroll(animate(".app__window", { scale: [0.97, 1] }, { ease: "linear" }), { target: hero, offset: ["start start", "center start"] })
 
-  inView("[data-reveal]", (group) => {
-    animate([...group.children], { opacity: [0, 1], y: [28, 0] }, { ...spring, delay: stagger(0.09) })
-  }, { amount: 0.2, margin: "0px 0px -8% 0px" })
+    inView("[data-reveal]", (group) => {
+      animate([...group.children], { opacity: [0, 1], y: [28, 0] }, { ...spring, delay: stagger(0.09) })
+    }, { amount: 0.2, margin: "0px 0px -8% 0px" })
+    root.setAttribute("data-motion-ready", "")
+  } catch {
+    root.classList.remove("motion")
+  }
 } else {
   root.classList.remove("motion")
 }

@@ -16,6 +16,7 @@ export default class extends Controller {
     this.#applyStoredWidth()
     this.#applyStoredTab()
     this.#syncToggle()
+    this.element.dataset.sheetReady = ""
     this.#expandForSunrisePlan()
 
     // Rotating or resizing into a narrow viewport with the panel open would leave

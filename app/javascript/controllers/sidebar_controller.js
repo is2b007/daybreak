@@ -12,6 +12,7 @@ export default class extends Controller {
     this.narrow = window.matchMedia?.(NARROW)
     this.#applyStoredState()
     this.#syncToggle()
+    this.element.dataset.sheetReady = ""
 
     // Rotating or resizing into a narrow viewport with the sidebar open would
     // leave a drawer sitting on top of the content.

@@ -8877,9 +8877,13 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   .mtab__item.on,
   .mtab__item[aria-expanded="true"] { color: var(--text); }
 
-  /* Rails are gone; closed panels take no space at all. */
+  /* Rails are gone; closed panels take no space at all. Until their
+     controllers connect (and close them), panels are hidden too, so a first
+     load never flashes them as full-screen sheets. */
   .sb.sb--collapsed,
-  .right.right--collapsed { display: none; }
+  .right.right--collapsed,
+  .sb:not([data-sheet-ready]),
+  .right:not([data-sheet-ready]) { display: none; }
 
   /* Open = full-screen sheet above the tab bar. */
   .sb:not(.sb--collapsed),
