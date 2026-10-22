@@ -4,11 +4,7 @@ Static HTML/CSS for [daybreakplanner.com](https://daybreakplanner.com). No build
 
 ## Preview locally
 
-```bash
-open site/index.html
-```
-
-Or serve it on a local port:
+The page loads ES modules, so serve it rather than opening the file:
 
 ```bash
 python3 -m http.server 4000 --directory site
@@ -27,11 +23,17 @@ After that, every push to `main` auto-deploys. PRs get preview deployments.
 
 ## Assets
 
-- `assets/daybreak-logo.svg`: the rounded glass-dome mark used next to the wordmark. Mirror of `app/assets/images/daybreak-logo.svg`; keep them in sync.
+- `assets/site.css`: design tokens mirror `app/assets/stylesheets/application.css` (light and dark).
+- `assets/sky.js`: copy of `app/javascript/sky/scene.js`, the ritual sky. Keep them in sync.
+- `assets/site.js`: gives each sky canvas its time of day, pauses skies that are off screen, runs the Motion entrances and scroll effects, and runs the copy button.
+- `assets/vendor/motion-12.23.12.js`: [Motion](https://motion.dev) (MIT), vendored so the page makes no third-party requests. The version is in the file name, so upgrading means a new name rather than a `?v=` bump.
+- `assets/fonts/`: Newsreader, self-hosted (no Google Fonts, so no third-party requests). Mirror of `app/assets/fonts/`.
+- `assets/tiles/`, `assets/stamps/`: Basecamp/HEY tiles and the stamp masks, mirrored from `app/assets/images/`.
+- `assets/shots/focus.webp`: Focus mode screenshot.
+- `assets/daybreak-logo.svg`: the rounded glass-dome mark used next to the wordmark. Mirror of `app/assets/images/daybreak-logo.svg`.
 - `assets/daybreak-icon.svg`: the square app-icon tile, used as the favicon. Mirror of `public/icon.svg`.
-- `assets/logos/basecamp.svg` + `basecamp-mark.svg`: Basecamp wordmark and icon (used on hero and product mockups).
-- `assets/logos/hey.svg` + `hey-mark.svg`: HEY wordmark and icon.
-- `assets/style.css`: design tokens mirror `app/assets/stylesheets/application.css`.
+
+`/assets/*` is served with a one-year immutable cache (see `vercel.json`). When you change `site.css`, `site.js` or `sky.js`, bump the `?v=` on their references in `index.html` and `site.js`, or visitors keep the old file.
 
 ## Updating the site
 
