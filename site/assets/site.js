@@ -43,6 +43,30 @@ function onScroll() {
 addEventListener("scroll", onScroll, { passive: true })
 onScroll()
 
+// Motion: the hero rises in, the sun climbs from behind the app as you
+// scroll, and each section eases up once it's in view. Without Motion (or
+// with reduced motion) the page shows everything at rest.
+const root = document.documentElement
+const Motion = window.Motion
+if (root.classList.contains("motion") && Motion) {
+  const { animate, inView, scroll, stagger } = Motion
+  const spring = { type: "spring", stiffness: 140, damping: 22 }
+
+  animate(".hero__copy > *", { opacity: [0, 1], y: [18, 0] }, { ...spring, delay: stagger(0.08) })
+  animate(".app", { opacity: [0, 1], y: [48, 0] }, { ...spring, stiffness: 70, delay: 0.45 })
+  animate(".sun", { opacity: [0, 1], y: ["45%", "0%"] }, { duration: 2.2, delay: 0.3, ease: [0.2, 0.7, 0.2, 1] })
+
+  const hero = document.querySelector(".hero")
+  scroll(animate(".sun", { y: ["0%", "-12%"] }, { ease: "linear" }), { target: hero, offset: ["start start", "end start"] })
+  scroll(animate(".app__window", { scale: [0.97, 1] }, { ease: "linear" }), { target: hero, offset: ["start start", "center start"] })
+
+  inView("[data-reveal]", (group) => {
+    animate([...group.children], { opacity: [0, 1], y: [28, 0] }, { ...spring, delay: stagger(0.09) })
+  }, { amount: 0.2, margin: "0px 0px -8% 0px" })
+} else {
+  root.classList.remove("motion")
+}
+
 // Copy buttons
 for (const button of document.querySelectorAll("[data-copy]")) {
   button.addEventListener("click", async () => {

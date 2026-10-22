@@ -11,8 +11,10 @@
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/daybreak-icon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/newsreader-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css?v=4">
-  <script type="module" src="assets/site.js?v=3"></script>
+  <link rel="stylesheet" href="assets/site.css?v=6">
+  <script>matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.add("motion")</script>
+  <script src="assets/vendor/motion-12.23.12.js" defer></script>
+  <script type="module" src="assets/site.js?v=4"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -50,6 +52,7 @@
 
       <!-- The week, drawn in HTML so it stays crisp and follows the theme -->
       <figure class="app" aria-label="The Daybreak week view">
+        <div class="sun" aria-hidden="true"></div>
         <div class="app__window">
           <aside class="app__side" aria-hidden="true">
             <div class="app__brand"><img src="assets/daybreak-logo.svg" alt="" width="20" height="20"> Daybreak</div>
@@ -159,12 +162,12 @@
     <!-- Basecamp and HEY -->
     <section class="band" id="apps" aria-labelledby="apps-title">
       <div class="wrap">
-        <header class="section-head">
+        <header class="section-head" data-reveal>
           <p class="eyebrow">Basecamp and HEY</p>
           <h2 id="apps-title">Built on the apps you already live in.</h2>
           <p class="section-lede">Daybreak isn't one more place to keep work. It reads what's already on your plate, lets you decide when each thing happens, and sends the result back where it belongs.</p>
         </header>
-        <div class="duo">
+        <div class="duo" data-reveal>
           <article class="sheet">
             <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40">Basecamp</h3>
             <div class="flow">
@@ -208,7 +211,7 @@
 
     <!-- The week -->
     <section class="band band--panel" id="week" aria-labelledby="week-title">
-      <div class="wrap split">
+      <div class="wrap split" data-reveal>
         <div class="split__copy">
           <p class="eyebrow">The week</p>
           <h2 id="week-title">The whole week, on one screen.</h2>
@@ -257,12 +260,12 @@
     <!-- Rituals: each card runs its own sky -->
     <section class="band" id="rituals" aria-labelledby="rituals-title">
       <div class="wrap">
-        <header class="section-head section-head--center">
+        <header class="section-head" data-reveal>
           <p class="eyebrow">Rituals</p>
           <h2 id="rituals-title">Open the day. Close the day.</h2>
           <p class="section-lede">Two short rituals bookend your day. A few minutes each, and they're why the rest of it feels lighter.</p>
         </header>
-        <div class="rituals">
+        <div class="rituals" data-reveal>
           <article class="ritual ritual--sunrise">
             <canvas class="sky" data-sky="card-sunrise" aria-hidden="true"></canvas>
             <div class="ritual__body">
@@ -287,7 +290,7 @@
             </div>
           </article>
         </div>
-        <ul class="ritual-notes">
+        <ul class="ritual-notes" data-reveal>
           <li><b>Optional soundtrack.</b> A soft score for each ritual, made live in your browser.</li>
           <li><b>Setup is a sunrise too.</b> You connect <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> while the sky lightens.</li>
         </ul>
@@ -296,7 +299,7 @@
 
     <!-- Focus: a dark stage, like the mode itself -->
     <section class="band" id="focus" aria-labelledby="focus-title">
-      <div class="wrap">
+      <div class="wrap" data-reveal>
         <div class="focus-stage">
           <div class="focus-stage__copy">
             <p class="eyebrow">Focus</p>
@@ -317,11 +320,11 @@
     <!-- How it's built -->
     <section class="band band--panel" aria-labelledby="built-title">
       <div class="wrap">
-        <header class="section-head">
+        <header class="section-head" data-reveal>
           <p class="eyebrow">How it's built</p>
           <h2 id="built-title">Small, quiet, and yours.</h2>
         </header>
-        <ul class="values">
+        <ul class="values" data-reveal>
           <li>
             <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             <b>Just for you</b>
@@ -352,12 +355,12 @@
     <section class="night" id="self-host" aria-labelledby="host-title">
       <canvas class="sky" data-sky="night" aria-hidden="true"></canvas>
       <div class="wrap night__inner">
-        <header class="section-head">
+        <header class="section-head" data-reveal>
           <p class="eyebrow">Self-host</p>
           <h2 id="host-title">Run it on your own server.</h2>
           <p class="section-lede">Daybreak is one Rails app and one SQLite file. A laptop, a $5 server or Railway all work fine.</p>
         </header>
-        <div class="host">
+        <div class="host" data-reveal>
           <article class="host__card host__card--steps">
             <h3>With Docker</h3>
             <ol class="steps">

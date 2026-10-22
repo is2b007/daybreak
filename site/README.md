@@ -25,7 +25,8 @@ After that, every push to `main` auto-deploys. PRs get preview deployments.
 
 - `assets/site.css`: design tokens mirror `app/assets/stylesheets/application.css` (light and dark).
 - `assets/sky.js`: copy of `app/javascript/sky/scene.js`, the ritual sky. Keep them in sync.
-- `assets/site.js`: gives each sky canvas its time of day, pauses skies that are off screen, and runs the copy button.
+- `assets/site.js`: gives each sky canvas its time of day, pauses skies that are off screen, runs the Motion entrances and scroll effects, and runs the copy button.
+- `assets/vendor/motion-12.23.12.js`: [Motion](https://motion.dev) (MIT), vendored so the page makes no third-party requests. The version is in the file name, so upgrading means a new name rather than a `?v=` bump.
 - `assets/fonts/`: Newsreader, self-hosted (no Google Fonts, so no third-party requests). Mirror of `app/assets/fonts/`.
 - `assets/tiles/`, `assets/stamps/`: Basecamp/HEY tiles and the stamp masks, mirrored from `app/assets/images/`.
 - `assets/shots/focus.webp`: Focus mode screenshot.
