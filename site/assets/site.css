@@ -219,12 +219,18 @@ figure { margin: 0; }
 
 /* Hero: morning */
 .hero {
-  position: relative; isolation: isolate;
+  position: relative; isolation: isolate; overflow-x: clip;
   padding-top: calc(64px + env(safe-area-inset-top, 0px));
   /* A bright, high morning; the painted sky sits over it at low strength */
   background: linear-gradient(to bottom, oklch(96% 0.022 225), oklch(98.2% 0.012 215) 34%, oklch(98.4% 0.03 82) 66%, var(--canvas));
 }
 .hero > .sky { opacity: 0.2; }
+/* The sun's light, washed across the whole morning sky */
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(150% 100% at 50% 82%, rgb(255 218 130 / 70%), rgb(255 230 170 / 42%) 38%, rgb(255 238 200 / 16%) 64%, rgb(255 244 220 / 0) 88%);
+}
 /* The sunrise gives way to the page behind the app window */
 .hero::after {
   content: ""; position: absolute; inset: auto 0 0; height: min(52%, 520px); z-index: -1;
@@ -268,24 +274,22 @@ figure { margin: 0; }
   padding-left: var(--gutter-l); padding-right: var(--gutter-r);
   animation: rise 1.2s 0.6s cubic-bezier(.2,.7,.2,1) both;
 }
-/* The sun, glossy like the logo's, rising from behind the product */
+/* The sun: a soft, blurred light behind the product, not a disc */
 .sun {
-  position: absolute; left: 50%; top: 0; z-index: 0;
-  width: min(600px, 86vw); aspect-ratio: 1;
-  translate: -50% -30%;
+  position: absolute; left: 50%; top: 0; z-index: 0; pointer-events: none;
+  width: min(1100px, 150vw); aspect-ratio: 1.6;
+  translate: -50% -52%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 42%, #FFF6D2 0%, #FFDB74 28%, #FFB547 56%, #FF8F3F 72%, #FF7E3A 100%);
-  box-shadow: 0 0 60px 18px rgb(255 196 110 / 45%), 0 0 180px 80px rgb(255 220 160 / 30%);
-  animation: sunrise 2.6s 0.3s cubic-bezier(.2,.7,.2,1) both;
+  background:
+    radial-gradient(closest-side at 50% 62%, rgb(255 250 225) 0%, rgb(255 226 140 / 95%) 18%, rgb(255 198 100 / 62%) 40%, rgb(255 205 130 / 22%) 66%, rgb(255 215 160 / 0) 100%);
+  filter: blur(36px);
+  animation: sunrise 2.6s 0.3s cubic-bezier(.2,.7,.2,1) both, glow 9s 3s ease-in-out infinite alternate;
 }
-.sun::after {
-  content: ""; position: absolute; left: 22%; top: 12%; width: 34%; height: 20%;
-  border-radius: 50%; background: radial-gradient(closest-side, rgb(255 255 255 / 70%), rgb(255 255 255 / 0));
-  rotate: -18deg;
-}
-@keyframes sunrise { from { translate: -50% 10%; opacity: 0.4; } }
+@keyframes sunrise { from { translate: -50% -30%; opacity: 0; } }
+@keyframes glow { to { scale: 1.06 1.03; filter: blur(44px) brightness(1.04); } }
 /* With Motion loaded, it runs the entrances instead of these keyframes */
-.motion .hero__copy > *, .motion .app, .motion .sun { animation: none; }
+.motion .hero__copy > *, .motion .app { animation: none; }
+.motion .sun { animation: glow 9s 3s ease-in-out infinite alternate; }
 .motion [data-reveal] > * { opacity: 0; }
 .app__window {
   position: relative; z-index: 1;
