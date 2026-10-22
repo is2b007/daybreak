@@ -8265,3 +8265,15 @@ select.form-input {
 /* Row dividers in the side panel: --line2 vanished on the light panel tint */
 .r-item,
 .g-goal { border-bottom-color: var(--line); }
+
+/* HEY Journal sync label: app tile + "Journal" */
+.jrnl-hey-tile {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: -2px;
+  flex-shrink: 0;
+}
+
+.daily-log__head-meta:has(.jrnl-hey-tile) { display: flex; align-items: center; gap: 6px; }
+.jrnl-header-meta { gap: 6px; flex-wrap: nowrap; }

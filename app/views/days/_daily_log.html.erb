@@ -8,12 +8,13 @@
     <h2 class="daily-log__date"><%= date.strftime("%B %-d") %> <span class="jrnl-dow"><%= date.strftime("%a") %></span></h2>
     <div class="daily-log__head-meta">
       <% if current_user.hey_connected? %>
+          <%= source_tile "hey", class: "jrnl-hey-tile" %>
         <% if @journal_hey_synced %>
-          <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for this day.">Synced</span>
+          <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for this day.">Journal · Synced</span>
         <% elsif @journal_entry.present? %>
-          <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically.">HEY</span>
+          <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically.">Journal</span>
         <% else %>
-          <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save.">HEY</span>
+          <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save.">Journal</span>
         <% end %>
       <% end %>
       <span class="jrnl-status" data-journal-editor-target="status"></span>
