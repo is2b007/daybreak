@@ -7369,6 +7369,37 @@ body.focus-open { overflow: hidden; }
   .onb__stamp.stamp-option { width: 56px; height: 56px; }
 }
 
+/* Arrival: the first week view after onboarding starts under the same
+   morning sky onboarding ended on, which clears as the panels rise in.
+   It's turbo-temporary, so going back to a cached page doesn't replay it. */
+.arrival {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgb(255 190 130 / 0.38), transparent 70%),
+    linear-gradient(rgb(150 200 240), rgb(214 230 244));
+  animation: arrival-clear 1500ms cubic-bezier(0.4, 0, 0.2, 1) 350ms both;
+}
+
+body:has(> .arrival) .shell > * { animation: arrival-rise 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) 450ms both; }
+body:has(> .arrival) .shell > :nth-child(2) { animation-delay: 600ms; }
+body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
+
+@keyframes arrival-clear {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes arrival-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival { animation-duration: 400ms; animation-delay: 0ms; }
+  body:has(> .arrival) .shell > * { animation: none; }
+}
+
 /* Onboarding restart footer link (in settings) */
 .onboarding-restart-link {
   font-size: 12px;

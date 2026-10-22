@@ -90,6 +90,9 @@
         <%= yield %>
       </main>
     <% end %>
+    <% if flash[:arrival] && logged_in? && current_user.onboarded? %>
+      <div class="arrival" aria-hidden="true" data-turbo-temporary></div>
+    <% end %>
     <%= turbo_frame_tag "modal" %>
     <%= turbo_frame_tag "focus" %>
   </body>

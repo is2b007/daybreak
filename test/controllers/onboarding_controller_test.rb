@@ -47,5 +47,6 @@ class OnboardingControllerTest < ActionController::TestCase
 
     assert_redirected_to root_path
     assert @user.reload.onboarded?
+    assert flash[:arrival], "the week should fade in out of the morning sky"
   end
 end

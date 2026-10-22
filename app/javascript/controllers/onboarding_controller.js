@@ -207,7 +207,7 @@ export default class extends Controller {
     setTimeout(() => {
       this.sound.stop(1)
       form.submit()
-    }, this.reducedMotion ? 0 : 1100)
+    }, this.reducedMotion ? 0 : 1400)
   }
 
   currentStep() {
