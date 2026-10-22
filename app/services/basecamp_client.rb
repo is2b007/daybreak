@@ -181,6 +181,20 @@ class BasecampClient
     post("/card_tables/cards/#{card_id}/moves.json", { column_id: done["id"] })
   end
 
+  # The card's current column plus every column on its table, in board order:
+  # { current_id:, columns: [{ "id", "title", "type" }] }.
+  def card_columns(card_id)
+    card = card(card_id)
+    column = get("/card_tables/columns/#{card.dig("parent", "id")}.json")
+    table = get("/card_tables/#{column.dig("parent", "id")}.json")
+    columns = Array(table["lists"]).map { |list| list.slice("id", "title", "type") }
+    { current_id: card.dig("parent", "id"), columns: columns }
+  end
+
+  def move_card(card_id, column_id)
+    post("/card_tables/cards/#{card_id}/moves.json", { column_id: column_id })
+  end
+
   # Flat routes are canonical (bc3-api). bucket_id is ignored and kept for callers.
   def complete_todo(bucket_id, todo_id = nil)
     id = todo_id.presence || bucket_id

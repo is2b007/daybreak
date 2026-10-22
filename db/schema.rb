@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_000200) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_000100) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -125,6 +125,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_000200) do
   create_table "task_assignments", force: :cascade do |t|
     t.integer "actual_duration_minutes"
     t.string "basecamp_bucket_id"
+    t.string "basecamp_column_id"
+    t.string "basecamp_column_name"
     t.string "basecamp_recording_type"
     t.datetime "completed_at"
     t.datetime "created_at", null: false

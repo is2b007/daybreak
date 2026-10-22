@@ -68,6 +68,7 @@ Rails.application.routes.draw do
       get   :focus
       post  :comment
       patch :move
+      patch :stage
       patch :cycle_size
       patch :complete
       patch :defer

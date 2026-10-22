@@ -155,4 +155,43 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
       position: 0
     )
   end
+
+  test "PATCH stage moves a Basecamp card and remembers the column" do
+    card = @user.task_assignments.create!(title: "Hero art", source: :basecamp, external_id: "77",
+      basecamp_recording_type: TaskAssignment::BASECAMP_CARD_TYPE, week_bucket: "inbox")
+    moves = []
+    fake = Object.new
+    fake.define_singleton_method(:move_card) { |id, column| moves << [ id, column ] }
+    fake.define_singleton_method(:comments) { |*| [] }
+    fake.define_singleton_method(:card_columns) { |_id| { current_id: "42", columns: [ { "id" => 42, "title" => "Review", "type" => "Kanban::Column" } ] } }
+    with_basecamp_client(fake) do
+      patch :stage, params: { id: card.id, column_id: "42", column_title: "Review", column_type: "Kanban::Column" }, format: :turbo_stream
+    end
+
+    assert_equal [ [ "77", "42" ] ], moves
+    assert_equal "Review", card.reload.basecamp_column_name
+    assert_not card.completed?
+  end
+
+  test "PATCH stage into the Done column completes the card" do
+    card = @user.task_assignments.create!(title: "Hero art", source: :basecamp, external_id: "77",
+      basecamp_recording_type: TaskAssignment::BASECAMP_CARD_TYPE, week_bucket: "inbox")
+    fake = Object.new
+    fake.define_singleton_method(:move_card) { |*| nil }
+    fake.define_singleton_method(:card_columns) { |_id| nil }
+    fake.define_singleton_method(:comments) { |*| [] }
+    with_basecamp_client(fake) do
+      patch :stage, params: { id: card.id, column_id: "9", column_title: "Done", column_type: BasecampClient::DONE_COLUMN_TYPE }, format: :turbo_stream
+    end
+
+    assert card.reload.completed?
+  end
+
+  def with_basecamp_client(fake)
+    original = BasecampClient.method(:new)
+    BasecampClient.define_singleton_method(:new) { |*_args| fake }
+    yield
+  ensure
+    BasecampClient.define_singleton_method(:new, original)
+  end
 end

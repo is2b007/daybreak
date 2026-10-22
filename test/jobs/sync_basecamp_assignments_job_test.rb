@@ -105,6 +105,7 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
       define_method(:my_assignments) do
         [ { "id" => 77, "type" => "Kanban::Card", "content" => "Design review",
             "bucket" => { "id" => 5, "name" => "Launch" },
+            "parent" => { "id" => 41, "title" => "In progress", "type" => "Kanban::Column" },
             "children" => [ { "id" => 78, "type" => "Kanban::Step", "content" => "Gather notes" } ] } ]
       end
     end
@@ -115,6 +116,8 @@ class SyncBasecampAssignmentsJobTest < ActiveJob::TestCase
     assert task.basecamp_card?
     assert_equal "Design review", task.title
     assert_match %r{/buckets/5/card_tables/cards/77\z}, task.basecamp_web_url
+    assert_equal "41", task.basecamp_column_id
+    assert_equal "In progress", task.basecamp_column_name
     refute user.task_assignments.exists?(external_id: "78")
   end
 end

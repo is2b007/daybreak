@@ -41,6 +41,14 @@ class SyncBasecampAssignmentsJob < ApplicationJob
     assignment["type"].to_s == TaskAssignment::BASECAMP_CARD_TYPE
   end
 
+  # A card's parent is the column it sits in ("In progress", "Done"…).
+  def card_column_attributes(assignment)
+    parent = assignment["parent"]
+    return {} unless parent.is_a?(Hash) && parent["id"].present?
+
+    { basecamp_column_id: parent["id"].to_s, basecamp_column_name: parent["title"].presence }
+  end
+
   def upsert_basecamp_assignment(user, assignment)
     return unless importable?(assignment)
 
@@ -56,6 +64,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
       project_name = assignment.dig("bucket", "name")
       updates[:project_name] = project_name if project_name.present? && existing.project_name.blank?
       updates[:basecamp_recording_type] = assignment["type"] if card?(assignment) && !existing.basecamp_card?
+      updates.merge!(card_column_attributes(assignment)) if card?(assignment)
       existing.update!(updates) if updates.any?
     else
       user.task_assignments.create!(
@@ -66,6 +75,7 @@ class SyncBasecampAssignmentsJob < ApplicationJob
         project_name: assignment.dig("bucket", "name"),
         basecamp_bucket_id: assignment.dig("bucket", "id")&.to_s,
         basecamp_recording_type: (assignment["type"] if card?(assignment)),
+        **(card?(assignment) ? card_column_attributes(assignment) : {}),
         week_bucket: "inbox",
         size: :medium,
         status: assignment["completed"] ? :completed : :pending

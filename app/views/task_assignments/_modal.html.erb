@@ -1,4 +1,4 @@
-<%# locals: (task:, bc_comments: [], bc_comments_error: nil) %>
+<%# locals: (task:, bc_comments: [], bc_comments_error: nil, card_columns: nil) %>
 <% hey_from_email = task.hey_app_url.present? %>
 <div class="modal-overlay"
      data-controller="modal"
@@ -89,18 +89,26 @@
 
       <%# Title row with squarish checkbox icon %>
       <div class="modal__title-row">
-        <div class="modal__check-icon <%= 'modal__check-icon--done' if task.completed? %>" aria-hidden="true">
-          <% if task.completed? %>
+        <% if task.basecamp_card? %>
+          <div class="modal__check-icon modal__check-icon--card" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="18" height="18" rx="4.5" fill="#16A34A"/>
-              <polyline points="5.5,10.5 8.5,13.5 14.5,7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <rect x="2" y="3" width="4.5" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="8.5" y="3" width="4.5" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="15" y="3" width="3" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
             </svg>
-          <% else %>
+          </div>
+        <% else %>
+          <div class="modal__check-icon <%= 'modal__check-icon--done' if task.completed? %>" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="18" height="18" rx="4.5" stroke="currentColor" stroke-width="1.5"/>
+              <% if task.completed? %>
+                <circle cx="10" cy="10" r="9" fill="#16A34A"/>
+                <polyline points="6,10.5 8.8,13.2 14,7.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <% else %>
+                <circle cx="10" cy="10" r="8.25" stroke="currentColor" stroke-width="1.5"/>
+              <% end %>
             </svg>
-          <% end %>
-        </div>
+          </div>
+        <% end %>
         <%= f.text_area :title,
               class: "modal__title-input #{'modal__title-input--done' if task.completed?}",
               required: true,
@@ -118,16 +126,60 @@
             <textarea class="form-input modal__description" rows="4" readonly><%= @hey_email_body %></textarea>
           </div>
         <% end %>
-        <div class="modal__section">
-          <div class="modal__section-label">Description</div>
-          <%= f.text_area :description,
-                class: "form-input modal__description",
-                rows: 3,
-                placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Add notes, links, or anything people should know…" : "Add a description…"),
-                data: { action: "blur->auto-save#save" } %>
-        </div>
+        <% if task.basecamp_card? %>
+          <div class="modal__section">
+            <div class="modal__section-label" id="stage-label-<%= task.id %>">Stage</div>
+            <% if card_columns.present? %>
+              <div class="stage-picker" role="group" aria-labelledby="stage-label-<%= task.id %>">
+                <%# Buttons point at forms rendered after the edit form: forms can't nest %>
+                <% card_columns[:columns].each do |column| %>
+                  <% current = column["id"].to_s == card_columns[:current_id].to_s %>
+                  <% done = column["type"] == BasecampClient::DONE_COLUMN_TYPE %>
+                  <button type="submit" form="stage-<%= task.id %>-<%= column["id"] %>"
+                          class="stage-picker__step <%= 'stage-picker__step--current' if current %> <%= 'stage-picker__step--done' if done %>"
+                          <%= "disabled aria-current=step" if current %>>
+                    <% if done %><svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 6.3l2.2 2.2 4.8-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><% end %>
+                    <%= column["title"] %>
+                  </button>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="stage-picker__fallback">
+                <span class="stage-picker__step stage-picker__step--current"><%= task.basecamp_column_name.presence || "Unknown stage" %></span>
+                <span class="text-muted">Couldn’t load this card’s columns from Basecamp.</span>
+              </p>
+            <% end %>
+          </div>
+        <% end %>
+
+        <% if task.basecamp? && task.description.to_s.include?("<") %>
+          <div class="modal__section">
+            <div class="modal__section-label">Description</div>
+            <div class="modal__richtext"><%= basecamp_rich_text(task.description) %></div>
+          </div>
+        <% else %>
+          <div class="modal__section">
+            <div class="modal__section-label">Description</div>
+            <%= f.text_area :description,
+                  class: "form-input modal__description",
+                  rows: 3,
+                  placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Add notes, links, or anything people should know…" : "Add a description…"),
+                  data: { action: "blur->auto-save#save" } %>
+          </div>
+        <% end %>
 
       </div>
+    <% end %>
+
+    <% if task.basecamp_card? && card_columns.present? %>
+      <% card_columns[:columns].each do |column| %>
+        <%= form_with url: stage_task_assignment_path(task), method: :patch, id: "stage-#{task.id}-#{column["id"]}",
+              class: "stage-picker__form", data: { turbo_stream: true } do |sf| %>
+          <%= hidden_field_tag :column_id, column["id"], id: nil %>
+          <%= hidden_field_tag :column_title, column["title"], id: nil %>
+          <%= hidden_field_tag :column_type, column["type"], id: nil %>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%# Comments section — Basecamp tasks only %>
