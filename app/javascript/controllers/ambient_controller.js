@@ -55,7 +55,7 @@ export default class extends Controller {
     const pal = this.#isDark() ? DARK : LIGHT
     const [top, horizon, glow] = [0, 1, 2].map(n => this.#mix(pal[a][n], pal[b][n], ease))
     // Ever so faint: a hint of where the sun is, never a shape that competes with the cards.
-    const sun = this.#mix(pal[a][3], pal[b][3], ease, 0.28)
+    const sun = this.#mix(pal[a][3], pal[b][3], ease, 0.22)
     const halo = this.#mix(pal[a][3], pal[b][3], ease, 0.1)
 
     const s = this.element.style
@@ -76,7 +76,7 @@ export default class extends Controller {
     // The moon keeps to the quieter right-hand side, clear of today's column.
     s.setProperty("--amb-sun-x", isNight ? `${62 + 30 * p}%` : `${10 + 80 * p}%`)
     s.setProperty("--amb-sun-y", isNight ? `${70 - 45 * elevation}%` : `${104 - 78 * elevation}%`)
-    s.setProperty("--amb-sun-r", `${Math.round((isNight ? 34 : 64) - (isNight ? 6 : 22) * elevation)}px`)
+    s.setProperty("--amb-sun-r", `${Math.round((isNight ? 60 : 120) - (isNight ? 10 : 35) * elevation)}px`)
     s.setProperty("--amb-stars", isNight ? "1" : "0")
     this.element.dataset.ambientPhase = a
   }

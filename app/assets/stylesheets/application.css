@@ -8753,7 +8753,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   --amb-sun-r: 48px;
   /* Back to front: sky, wide glow, halo, then the soft sun (or moon) disc. */
   background:
-    radial-gradient(circle calc(var(--amb-sun-r) * 1.6) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-sun) 0%, transparent 100%),
+    radial-gradient(circle calc(var(--amb-sun-r) * 3.5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-sun) 0%, transparent 100%),
     radial-gradient(circle calc(var(--amb-sun-r) * 5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-halo), transparent 70%),
     radial-gradient(ellipse 75% 60% at var(--amb-sun-x) var(--amb-sun-y), var(--amb-glow), transparent 72%),
     linear-gradient(180deg, var(--amb-top) 0%, var(--amb-horizon) 100%);
@@ -8806,3 +8806,15 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   background: var(--surface);
   box-shadow: var(--shadow-card-hover, var(--shadow-card));
 }
+
+/* Done cards recede: the card goes half see-through with no lift, the title
+   drops to muted ink. The text stays at AA contrast and the stamp stays crisp. */
+.task-card.task-card--completed {
+  background: color-mix(in oklch, var(--surface) 45%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in oklch, var(--line) 60%, transparent);
+}
+
+.task-card--completed .task-card__title { color: var(--muted); }
+.task-card--completed .task-card__check { opacity: 0.7; }
+.task-card--completed .task-card__stamp { opacity: 1; }
