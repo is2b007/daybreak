@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Daybreak · A calm planner for Basecamp and HEY</title>
-  <meta name="description" content="Daybreak is a calm, self-hosted planner where work meets the rest of your life: your Basecamp to-dos and HEY calendar on one week, with a short ritual to open the day and another to close it.">
+  <title>Daybreak · Plan your week and your day with Basecamp and HEY</title>
+  <meta name="description" content="Daybreak is a simple, self-hosted planner: your Basecamp to-dos and HEY calendar on one week, with a quick check-in to start the day and another to wrap it up.">
   <meta name="theme-color" content="#9cc8f2">
   <meta property="og:title" content="Daybreak">
-  <meta property="og:description" content="A calm, self-hosted planner for Basecamp and HEY.">
+  <meta property="og:description" content="Plan your week and your day with Basecamp and HEY.">
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/daybreak-icon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/newsreader-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css?v=10">
+  <link rel="stylesheet" href="assets/site.css?v=11">
   <script>matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.add("motion")</script>
   <script src="assets/vendor/motion-12.23.12.js" defer></script>
   <script type="module" src="assets/site.js?v=4"></script>
@@ -40,9 +40,9 @@
     <section class="hero" aria-labelledby="hero-title">
       <canvas class="sky" data-sky="sunrise" aria-hidden="true"></canvas>
       <div class="hero__copy">
-        <p class="eyebrow-chip">Open source · Self-hosted · Made for one</p>
-        <h1 id="hero-title">Know what today is for.</h1>
-        <p class="lede">Daybreak is a calm planner for where work meets the rest of your life. Your <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> to-dos and your <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> calendar share one week, so the launch review and the dentist finally sit side by side. Each morning you choose what the day is for, and each evening you close it.</p>
+        <p class="eyebrow-chip">Open source · Runs on your server</p>
+        <h1 id="hero-title">Plan your week. Then your day.</h1>
+        <p class="lede">Daybreak is a simple planner for people who use <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>. Your work to-dos and your personal calendar show up on one week. Drag things onto days, pick what matters today, and check it off. That's it.</p>
         <div class="actions">
           <a class="pill pill--ink" href="#self-host">Run your own</a>
           <a class="pill pill--glass" href="https://github.com/is2b007/daybreak"><svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>View on GitHub</a>
@@ -163,21 +163,21 @@
     <section class="band" id="apps" aria-labelledby="apps-title">
       <div class="wrap">
         <header class="section-head" data-reveal>
-          <p class="eyebrow">Work, meet life</p>
-          <h2 id="apps-title">Where work and life meet.</h2>
-          <p class="section-lede">I live in HEY and Basecamp. Some days are mostly work, some are mostly life, and most are a bit of both. I wanted one place where the two meet in the middle, so I could plan the day I actually have. That's Daybreak.</p>
+          <p class="eyebrow">Basecamp + HEY</p>
+          <h2 id="apps-title">Work stuff and life stuff, on one week.</h2>
+          <p class="section-lede">I use Basecamp for work and HEY for everything else, and I wanted one place to plan both. Some days are mostly work, some are mostly personal, most are a mix. Daybreak puts it all on the same week, so I can plan the day I actually have.</p>
           <p class="section-sign">Kosta, who made it</p>
         </header>
         <div class="duo" data-reveal>
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40"><span>Basecamp<small>Your work</small></span></h3>
+            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40"><span>Basecamp<small>Your work stuff</small></span></h3>
             <div class="flow">
               <p class="flow__label">Comes in</p>
               <ul class="flow__list">
                 <li>To-dos assigned to you</li>
                 <li>Schedule entries</li>
-                <li>Card table cards, with their stage</li>
-                <li>Descriptions and comments, right on the card</li>
+                <li>Cards from your card tables</li>
+                <li>Notes and comments, so you don't have to go digging</li>
               </ul>
             </div>
             <div class="flow">
@@ -189,19 +189,19 @@
             </div>
           </article>
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40"><span>HEY<small>Everything else</small></span> <span class="optional">Optional</span></h3>
+            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40"><span>HEY<small>Your personal stuff</small></span> <span class="optional">Optional</span></h3>
             <div class="flow">
               <p class="flow__label">Comes in</p>
               <ul class="flow__list">
-                <li>Your HEY Calendar, beside your to-dos</li>
+                <li>Your HEY Calendar, next to your to-dos</li>
                 <li>Imbox, Reply Later and Set Aside</li>
-                <li>Any email, as a to-do</li>
+                <li>Turn any email into a to-do</li>
               </ul>
             </div>
             <div class="flow">
               <p class="flow__label flow__label--out">Goes back</p>
               <ul class="flow__list">
-                <li>Timeboxes become calendar events, reminders and all</li>
+                <li>Block time for a to-do and it shows up on your calendar</li>
                 <li>Your evening note goes to your HEY Journal</li>
               </ul>
             </div>
@@ -215,8 +215,8 @@
       <div class="wrap split" data-reveal>
         <div class="split__copy">
           <p class="eyebrow">The week</p>
-          <h2 id="week-title">The whole week, on one screen.</h2>
-          <p>Every day fits at any width, so nothing hides off to the right. Drag a to-do from Tuesday to Thursday, or into <em>Sometime this week</em> when it doesn't need a day yet.</p>
+          <h2 id="week-title">See your whole week at once.</h2>
+          <p>Every day fits on the screen. Drag a to-do from Tuesday to Thursday. Not sure when? Drop it in <em>Sometime this week</em> and decide later.</p>
           <ul class="facts">
             <li>
               <span class="fact__mark fact__mark--stamps">
@@ -224,15 +224,15 @@
                 <span class="stamp stamp--green"></span>
                 <span class="stamp stamp--navy"></span>
               </span>
-              <span><b>Finish with a stamp.</b> Pick the one you like. Done should feel done.</span>
+              <span><b>Stamp it done.</b> Finishing something should feel good. Pick the stamp you like.</span>
             </li>
             <li>
               <span class="fact__mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>
-              <span><b>Goals and a daily log.</b> Three goals for the week, and a running note for each day.</span>
+              <span><b>Set goals, keep a log.</b> Three goals for the week and a quick note for each day.</span>
             </li>
             <li>
               <span class="fact__mark"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 18h4"/></svg></span>
-              <span><b>In your pocket, too.</b> One day at a time, with Week, Today, Inbox and Log under your thumb.</span>
+              <span><b>Works on your phone.</b> One day at a time, with everything a thumb away.</span>
             </li>
           </ul>
         </div>
@@ -263,8 +263,8 @@
       <div class="wrap">
         <header class="section-head" data-reveal>
           <p class="eyebrow">Rituals</p>
-          <h2 id="rituals-title">Open the day. Close the day.</h2>
-          <p class="section-lede">Two short rituals bookend your day. A few minutes each, and they're why the rest of it feels lighter.</p>
+          <h2 id="rituals-title">Start the day. Wrap it up.</h2>
+          <p class="section-lede">Two quick check-ins. A few minutes in the morning to pick what matters, and a few at night to close things out.</p>
         </header>
         <div class="rituals" data-reveal>
           <article class="ritual ritual--sunrise">
@@ -272,7 +272,7 @@
             <div class="ritual__body">
               <p class="ritual__kicker">Sunrise · Morning</p>
               <h3 class="serif">Good morning, Kosta.</h3>
-              <p>Look back at yesterday, bring along what didn't get done, and choose what today is for.</p>
+              <p>See what's left from yesterday, pull it forward, and pick what today is about.</p>
               <ol class="ritual__steps">
                 <li>Look back</li><li>Choose today</li><li>Timebox it</li>
               </ol>
@@ -292,8 +292,8 @@
           </article>
         </div>
         <ul class="ritual-notes" data-reveal>
-          <li><b>Optional soundtrack.</b> A soft score for each ritual, made live in your browser.</li>
-          <li><b>Setup is a sunrise too.</b> You connect <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> while the sky lightens.</li>
+          <li><b>Music if you want it.</b> A soft soundtrack for each check-in. Off by default.</li>
+          <li><b>Quick to set up.</b> Connect <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>, and you're planning in a couple of minutes.</li>
         </ul>
       </div>
     </section>
@@ -304,12 +304,12 @@
         <div class="focus-stage">
           <div class="focus-stage__copy">
             <p class="eyebrow">Focus</p>
-            <h2 id="focus-title">One to-do. Nothing else on screen.</h2>
-            <p>Open any to-do in Focus and the week steps aside. A timer, your private notes, and the <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> description and comments for when you need them.</p>
+            <h2 id="focus-title">Work on one thing at a time.</h2>
+            <p>Open a to-do in Focus and everything else gets out of the way. You get a timer, your notes, and the <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> details if you need them.</p>
             <div class="sounds" role="list" aria-label="Focus sounds">
               <span role="listitem" class="is-on">Silence</span><span role="listitem">Rain</span><span role="listitem">Waves</span><span role="listitem">Drift</span>
             </div>
-            <p class="small">Four calm sounds, generated as you listen.</p>
+            <p class="small">Four background sounds, if you like working to rain.</p>
           </div>
           <figure class="focus-stage__shot">
             <img src="assets/shots/focus.webp" alt="Focus mode: a to-do title, a large timer with a Start button, and sound choices Silence, Rain, Waves and Drift" width="1200" height="820" loading="lazy">
@@ -323,13 +323,13 @@
       <div class="wrap">
         <header class="section-head" data-reveal>
           <p class="eyebrow">How it's built</p>
-          <h2 id="built-title">Small, quiet, and yours.</h2>
+          <h2 id="built-title">Simple, private, and yours.</h2>
         </header>
         <ul class="values" data-reveal>
           <li>
             <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
             <b>Just for you</b>
-            <p>One install for one person. Your team keeps working in <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span>, and Daybreak never asks them for anything.</p>
+            <p>One install, one person. Your team keeps using <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> like always. Daybreak never bugs them.</p>
           </li>
           <li>
             <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -339,12 +339,12 @@
           <li>
             <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
             <b>Private</b>
-            <p>Your week lives in one SQLite file on your server. No analytics in the app, or on this page.</p>
+            <p>Everything lives in one file on your server. No tracking in the app or on this site.</p>
           </li>
           <li>
             <svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
             <b>Open source</b>
-            <p>MIT licensed. Read every line, change what you like, and run it for as long as you want.</p>
+            <p>Free and MIT licensed. Change whatever you want, and keep it forever.</p>
           </li>
         </ul>
       </div>
@@ -358,8 +358,8 @@
       <div class="wrap night__inner">
         <header class="section-head" data-reveal>
           <p class="eyebrow">Self-host</p>
-          <h2 id="host-title">Run it on your own server.</h2>
-          <p class="section-lede">Daybreak is one Rails app and one SQLite file. A laptop, a $5 server or Railway all work fine.</p>
+          <h2 id="host-title">Run it yourself.</h2>
+          <p class="section-lede">It's one Rails app and one SQLite file. A laptop, a $5 server, or Railway all work fine.</p>
         </header>
         <div class="host" data-reveal>
           <article class="host__card host__card--steps">

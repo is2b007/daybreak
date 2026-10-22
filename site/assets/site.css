@@ -259,7 +259,7 @@ figure { margin: 0; }
 }
 .hero h1 {
   font-weight: 800;
-  font-size: clamp(40px, 7vw, 88px); line-height: 1; letter-spacing: -0.045em;
+  font-size: clamp(40px, 6vw, 80px); line-height: 1; letter-spacing: -0.045em;
   color: var(--sky-ink);
 }
 @media (min-width: 760px) { .hero h1 { white-space: nowrap; } }
