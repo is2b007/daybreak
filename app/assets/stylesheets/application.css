@@ -5,7 +5,7 @@
    Light and dark themes; see THEMES below.
    ========================================================================== */
 
-/* Newsreader (SIL OFL 1.1) — the one serif, for rituals, journal and focus titles. */
+/* Newsreader (SIL OFL 1.1) — the one serif, for a single display line per screen (see SERIF, SPARINGLY). */
 @font-face {
   font-family: "Newsreader";
   src: url("newsreader-opsz-normal.woff2") format("woff2");
@@ -9013,3 +9013,182 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 }
 
 @media (hover: none) { .focus__hint { display: none; } }
+
+/* ============================================================
+   AMBIENT SKY — the main canvas follows the time of day
+   Only the middle column. Rails, side panel, cards and modals keep
+   plain light/dark surfaces, so contrast never depends on the hour.
+   Colours come from ambient_controller.js (once a minute).
+   ============================================================ */
+.mid--ambient {
+  --amb-top: var(--canvas);
+  --amb-horizon: var(--canvas);
+  --amb-glow: transparent;
+  --amb-sun-x: 50%;
+  --amb-sun-y: 30%;
+  --amb-stars: 0;
+  position: relative;
+  isolation: isolate;
+  --amb-sun: transparent;
+  --amb-halo: transparent;
+  --amb-sun-r: 48px;
+  /* Back to front: sky, wide glow, halo, then the soft sun (or moon) disc. */
+  background:
+    radial-gradient(circle calc(var(--amb-sun-r) * 3.5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-sun) 0%, transparent 100%),
+    radial-gradient(circle calc(var(--amb-sun-r) * 5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-halo), transparent 70%),
+    radial-gradient(ellipse 75% 60% at var(--amb-sun-x) var(--amb-sun-y), var(--amb-glow), transparent 72%),
+    linear-gradient(180deg, var(--amb-top) 0%, var(--amb-horizon) 100%);
+  /* Everything inside that painted the flat canvas now lets the sky through. */
+  --bg: transparent;
+}
+
+.mid--ambient .kanban,
+.mid--ambient .kanban__column,
+.mid--ambient .day-view__tasks,
+.mid--ambient .day-view__timeline-column { background: transparent; --col-bg: transparent; }
+
+/* Night, dark mode: a sparse, still star field. */
+.mid--ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, oklch(95% 0.02 250 / 0.7), transparent),
+    radial-gradient(1px 1px at 34% 8%, oklch(95% 0.02 250 / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 58% 22%, oklch(95% 0.02 250 / 0.6), transparent),
+    radial-gradient(1px 1px at 76% 12%, oklch(95% 0.02 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 88% 30%, oklch(95% 0.02 250 / 0.4), transparent),
+    radial-gradient(1px 1px at 22% 40%, oklch(95% 0.02 250 / 0.35), transparent),
+    radial-gradient(1.5px 1.5px at 66% 46%, oklch(95% 0.02 250 / 0.3), transparent);
+  background-size: 640px 480px;
+  transition: opacity 4s ease;
+}
+
+[data-theme="dark"] .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
+}
+
+/* Sometime chips read as small cards: filled surface, the card's own shadow
+   for an edge, no grey outline. */
+.sometime-row__tasks .task-card {
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-card);
+  padding: 7px 12px 7px 8px;
+}
+
+.sometime-row__tasks .task-card:hover {
+  background: var(--surface);
+  box-shadow: var(--shadow-card-hover, var(--shadow-card));
+}
+
+/* Done cards recede: the card goes half see-through with no lift, the title
+   drops to muted ink. The text stays at AA contrast and the stamp stays crisp. */
+.task-card.task-card--completed {
+  background: color-mix(in oklch, var(--surface) 45%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in oklch, var(--line) 60%, transparent);
+}
+
+.task-card--completed .task-card__title { color: var(--muted); }
+.task-card--completed .task-card__check { opacity: 0.7; }
+.task-card--completed .task-card__stamp { opacity: 1; }
+
+/* ============================================================
+   SERIF, SPARINGLY
+   Newsreader is kept for one display line per screen: the ritual
+   headline ("Good morning, Kosta."), the Focus task title and the
+   onboarding title. Everything else, including datelines, prose,
+   inputs, timers and hints, uses the UI sans in an upright style.
+   ============================================================ */
+.topbar__title--serif,
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-display,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input,
+.focus__source-body,
+.focus__comment-content,
+.focus__hint,
+.ritual-doc__dateline,
+.ritual-doc__prose,
+.ritual-doc__prose--muted,
+.ritual-doc__prompt,
+.ritual-doc__list-item,
+.ritual-doc__meter,
+.ritual-doc__link,
+.ritual-doc__reflection-input,
+.ritual-doc__card-title,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input,
+.ritual-doc__goal-check-title,
+.ritual-doc__wrap-title,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__prose,
+.onboarding-doc__text-input,
+.onboarding-doc__feature-list,
+.onboarding-doc__closer-preview {
+  font-family: var(--font-sans);
+}
+
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input::placeholder,
+.focus__hint,
+.focus__panel-hint,
+.focus__panel-empty,
+.ritual-doc__dateline,
+.ritual-doc__prose--muted,
+.ritual-doc__list-meta,
+.ritual-doc__link,
+.ritual-doc__reflection-input::placeholder,
+.ritual-doc__reflection-hint,
+.ritual-doc__card-meta,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input::placeholder,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__closer-preview-sub {
+  font-style: normal;
+}
+
+/* Sans needs a touch less size than the serif it replaces to sit at the same weight. */
+.ritual-doc__prose { font-size: 17px; line-height: 1.6; }
+.focus__timer-display { font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.focus__eyebrow,
+.ritual-doc__dateline { font-size: 13px; letter-spacing: 0.02em; }
+
+/* --------------------------------------------------------------------------
+   RITUALS SHARE THE AMBIENT SKY; FLAT UI CHROME
+   One sky per screen: ritual pages sit on the time-of-day canvas instead of
+   painting their own wash. Chrome (avatar, dividers, meter) stays flat.
+   -------------------------------------------------------------------------- */
+.mid--ambient .ritual--morning,
+.mid--ambient .ritual--evening,
+.mid--ambient .ritual--checkin,
+.mid--ambient .ritual--evening-wrap,
+.mid--ambient .ritual-doc--sunrise,
+.mid--ambient .ritual-doc--sunset,
+.mid--ambient .ritual-doc--weekly { background: transparent; }
+.mid--ambient .ritual-doc::before { display: none; }
+
+.sb-avatar { background: var(--amber-pill); }
+.ritual-doc__divider { background: oklch(var(--lch-ink-dark) / 0.12); }
+.ritual-doc__meter-bar { margin-top: 0; width: 100%; align-self: stretch; background: oklch(var(--lch-ink-dark) / 0.1); }
+.ritual-doc__meter-fill { background: var(--brick); }
+.task-card--completed::after { display: none; }
+
+/* "The day is closed." is the wrap screen's one display line */
+.ritual-doc__wrap-title { font-family: var(--font-serif); }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %>>
+<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %><%= %( data-theme-mode="sun").html_safe if follows_the_sun? %>>
   <head>
     <title><%= content_for(:title) || "Daybreak" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -35,11 +35,11 @@
         </template>
       <% end %>
 
-      <% hide_inbox_panel = controller_name == "rituals" && action_name == "evening" %>
+      <% hide_inbox_panel = controller_name == "rituals" && %w[evening evening_complete].include?(action_name) %>
       <div class="shell<%= " shell--no-right" if hide_inbox_panel %>">
         <%= render "layouts/sidebar" %>
 
-        <main class="mid">
+        <main class="mid mid--ambient" data-controller="ambient" data-ambient-timezone-value="<%= current_user.timezone %>" data-ambient-sundown-value="<%= current_user.sundown_time %>">
           <div class="topbar">
             <%= yield(:topbar) %>
           </div>

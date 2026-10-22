@@ -228,7 +228,8 @@ class RitualsController < ApplicationController
       hash[label] += mins
     end
 
-    colors = %w[#7c3aed #a855f7 #c084fc #9333ea #6b21a8 #5b21b6]
+    # Dawn palette: brick, amber, sky, then softer tints of each
+    colors = %w[#C2553A #D89B5E #5B8DB8 #E0A58C #E9C48F #9DBBD6]
     hash.sort_by { |_k, v| -v }.map.with_index do |(label, minutes), i|
       { label: label, minutes: minutes, color: colors[i % colors.size] }
     end

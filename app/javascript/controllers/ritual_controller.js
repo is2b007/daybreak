@@ -20,25 +20,19 @@ export default class extends Controller {
       })
     }
 
-    if (this.sunsetPlayValue) {
-      this.#playSunset()
+    // The sky controller draws and scores sunrise/sundown; this only hands the
+    // wrap screen back to the week. It always does, even when the sunset already
+    // played today (a second close used to strand you on the wrap). Track the
+    // timer so navigating away mid-animation can't yank the user back.
+    if (this.redirectUrlValue) {
+      const delay = this.reducedMotion ? 600 : (this.sunsetPlayValue ? 9000 : 1800)
+      this.redirectTimer = setTimeout(() => {
+        window.location.href = this.redirectUrlValue
+      }, delay)
     }
   }
 
   disconnect() {
     clearTimeout(this.redirectTimer)
-  }
-
-  // The sky controller draws and scores sunrise/sundown; this only keeps the
-  // wrap screen's hand-off back to the week once the sun has set.
-  #playSunset() {
-    const redirectUrl = this.redirectUrlValue
-    if (redirectUrl) {
-      // Track the timer so navigating away mid-animation can't yank the user
-      // back to the wrap screen from wherever they went next.
-      this.redirectTimer = setTimeout(() => {
-        window.location.href = redirectUrl
-      }, this.reducedMotion ? 600 : 9000)
-    }
   }
 }
