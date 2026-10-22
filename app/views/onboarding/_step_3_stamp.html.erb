@@ -19,9 +19,20 @@
       <% end %>
     </div>
 
-    <div class="onb__card" aria-hidden="true" data-reveal>
+    <div class="onb__card" aria-hidden="true" data-reveal data-onboarding-target="card">
       <span class="onb__card-title">Water the plants</span>
-      <span class="onb__card-stamp" data-stamp-picker-target="stampPreview"><%= render "stamps/#{current_user.stamp_choice}" %></span>
+      <span class="onb__card-mark">
+        <span class="onb__card-stamp" data-stamp-picker-target="stampPreview"><%= render "stamps/#{current_user.stamp_choice}" %></span>
+        <%# The rubber stamp itself: drops in, presses, lifts away (onboarding#stamp) %>
+        <svg class="onb__stamper" data-onboarding-target="stamper" viewBox="0 0 64 96">
+          <ellipse cx="32" cy="14" rx="15" ry="12" class="onb__stamper-wood"/>
+          <ellipse cx="27" cy="10" rx="5" ry="3.5" fill="#fff" opacity="0.28"/>
+          <path d="M26 24h12l3 30H23z" class="onb__stamper-wood"/>
+          <rect x="8" y="52" width="48" height="22" rx="4" class="onb__stamper-block"/>
+          <rect x="8" y="52" width="48" height="5" rx="2.5" fill="#fff" opacity="0.18"/>
+          <rect x="11" y="74" width="42" height="8" rx="2" class="onb__stamper-rubber"/>
+        </svg>
+      </span>
     </div>
 
     <div class="onb__actions" data-reveal>

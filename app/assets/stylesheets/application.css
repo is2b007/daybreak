@@ -7290,9 +7290,54 @@ body.focus-open { overflow: hidden; }
   box-shadow: 0 10px 30px oklch(30% 0.05 250 / 0.12);
 }
 
-.onb__card-title { font-size: 16px; }
-.onb__card-stamp { display: grid; place-items: center; width: 56px; height: 40px; }
-.onb__card-stamp .stamp { animation: onb-stamp 420ms var(--onb-ease); }
+.onb__card-title { font-size: 16px; transition: color 400ms ease; }
+.onb__card-mark { position: relative; display: grid; place-items: center; width: 56px; height: 40px; }
+.onb__card-stamp { display: grid; place-items: center; }
+
+/* Picking a stamp: the rubber stamp drops onto the card, presses, lifts away,
+   and leaves the ink behind (timed by onboarding#stamp) */
+.onb__stamper {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 76px;
+  height: 114px;
+  margin-left: -38px;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 10px 14px oklch(25% 0.04 60 / 0.3));
+  --stamper-ink: oklch(40% 0.1 25);
+}
+
+.onb__stamper-wood { fill: oklch(58% 0.09 60); }
+.onb__stamper-block { fill: oklch(48% 0.08 55); }
+.onb__stamper-rubber { fill: var(--stamper-ink); }
+
+.onb__card.is-stamping .onb__stamper { animation: onb-stamper 1000ms both; }
+.onb__card.is-stamping .onb__card-stamp .stamp { opacity: 0; }
+.onb__card.is-inked .onb__card-stamp .stamp { opacity: 1; animation: onb-ink 700ms var(--onb-ease) both; }
+.onb__card.is-inked { animation: onb-card-press 360ms var(--onb-ease); }
+.onb__card.is-inked .onb__card-title { color: oklch(48% 0.02 255); }
+
+@keyframes onb-stamper {
+  0% { opacity: 0; transform: translate(14px, -70px) rotate(10deg); animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0); }
+  12% { opacity: 1; }
+  38% { transform: translate(0, 0) rotate(-4deg) scaleY(1); animation-timing-function: ease-out; }
+  46% { transform: translate(0, 2px) rotate(-4deg) scaleY(0.9); }
+  58% { transform: translate(0, 0) rotate(-4deg) scaleY(1); opacity: 1; animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1); }
+  100% { opacity: 0; transform: translate(-6px, -80px) rotate(-12deg); }
+}
+
+@keyframes onb-ink {
+  0% { opacity: 0.2; transform: scale(1.12) rotate(-4deg); filter: blur(1px); }
+  35% { opacity: 1; filter: none; }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+@keyframes onb-card-press {
+  40% { transform: translateY(2px) scale(0.99); box-shadow: 0 4px 14px oklch(30% 0.05 250 / 0.1); }
+}
 
 .onb__progress {
   position: relative;
@@ -7366,7 +7411,10 @@ body.focus-open { overflow: hidden; }
 }
 
 .onb--still .onb__stamp .stamp,
-.onb--still .onb__card-stamp .stamp { animation: none; }
+.onb--still .onb__card-stamp .stamp,
+.onb--still .onb__card.is-inked,
+.onb--still .onb__card.is-inked .onb__card-stamp .stamp { animation: none; }
+.onb--still .onb__stamper { display: none; }
 
 @keyframes onb-fade { from { opacity: 0; } to { opacity: 1; } }
 

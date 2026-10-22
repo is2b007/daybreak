@@ -11,7 +11,7 @@ import { OnboardingSound } from "sky/onboarding_sound"
 // Each step's root element says how high the sun should be:
 //   <section data-onboarding-step="3" data-elevation="0.6" data-moment="sunrise">
 export default class extends Controller {
-  static targets = ["canvas", "frame", "progress", "soundToggle"]
+  static targets = ["canvas", "frame", "progress", "soundToggle", "card", "stamper"]
 
   connect() {
     this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
@@ -90,8 +90,26 @@ export default class extends Controller {
     if (event.key?.length === 1 || event.key === "Backspace") this.sound.tick()
   }
 
+  // Runs after stamp-picker has swapped the new stamp into the sample card:
+  // the rubber stamp drops in, and the ink and thud land on impact
   stamp() {
-    this.sound.stamp()
+    if (!this.hasCardTarget || this.reducedMotion) {
+      this.sound.stamp()
+      return
+    }
+    const card = this.cardTarget
+    const ink = card.querySelector(".onb__card-stamp .stamp")
+    if (ink && this.hasStamperTarget) {
+      this.stamperTarget.style.setProperty("--stamper-ink", getComputedStyle(ink).color)
+    }
+    clearTimeout(this.inkTimer)
+    card.classList.remove("is-stamping", "is-inked")
+    void card.offsetWidth // restart the animations on a quick second pick
+    card.classList.add("is-stamping")
+    this.inkTimer = setTimeout(() => {
+      card.classList.add("is-inked")
+      this.sound.stamp()
+    }, 400)
   }
 
   // Steps ----------------------------------------------------------------
