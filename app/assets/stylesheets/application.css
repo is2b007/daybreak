@@ -24,7 +24,13 @@
 /* --------------------------------------------------------------------------
    TOKENS
    -------------------------------------------------------------------------- */
-:root {
+/* Ritual pages carry their own sky, so they pin their own theme whatever
+   the app's: Sunrise sits on a day sky (light tokens), Sundown on a starry
+   night (dark tokens, below). Listing them here re-derives every token on
+   that element, not just the primitives. */
+:root,
+.ritual-doc--sunrise:has(> .sky),
+.ritual-doc--sunset:has(> .sky) {
   color-scheme: light;
 
   /* Primitives (OKLCH). Only these change between themes; everything else
@@ -275,7 +281,8 @@
     --stamp-red: #E0705F;
   }
 }
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+.ritual-doc--sunset:has(> .sky) {
   color-scheme: dark;
   --lch-canvas: 20% 0.0195 232.58;
   --lch-panel: 17.5% 0.018 232;
@@ -5987,9 +5994,7 @@ body.inbox-dragging .kanban__drop-hint { display: block; }
 }
 
 /* --------------------------------------------------------------------------
-   FOCUS MODE — full-screen ritual-flavored overlay with a time-of-day sun.
-   Each phase (dawn/morning/midday/golden/dusk/night) retints --focus-sky,
-   --focus-ground, --focus-sun, --focus-ink via the focus-overlay--<phase> class.
+   FOCUS MODE — full-screen overlay on the plain canvas.
    -------------------------------------------------------------------------- */
 body.focus-open { overflow: hidden; }
 
@@ -6003,9 +6008,7 @@ body.focus-open { overflow: hidden; }
   padding: 48px 24px;
   overflow-y: auto;
   color: var(--focus-ink);
-  background:
-    radial-gradient(ellipse 120% 60% at 50% -10%, var(--focus-sun-glow) 0%, transparent 55%),
-    linear-gradient(180deg, var(--focus-sky) 0%, var(--focus-ground) 100%);
+  background: var(--focus-sky);
   animation: focus-fade-in 0.35s ease-out;
 }
 
@@ -6014,107 +6017,17 @@ body.focus-open { overflow: hidden; }
   to   { opacity: 1; }
 }
 
-/* The soft sun/moon disc. Big, heavily blurred, very low-contrast against
-   the sky so it reads as a glow rather than a saturated ball of color. */
-.focus-sun {
-  position: absolute;
-  top: -420px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1100px;
-  height: 1100px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 60%,
-    var(--focus-sun) 0%,
-    var(--focus-sun-soft) 35%,
-    transparent 72%);
-  filter: blur(18px);
-  opacity: 0.55;
-  pointer-events: none;
-  animation: focus-sun-drift 24s ease-in-out infinite alternate;
+/* Plain, theme-following palette: the sky belongs to Sunrise and Sundown. */
+.focus-overlay {
+  --focus-sky:       var(--canvas);
+  --focus-ground:    var(--canvas);
+  --focus-ink:       var(--text);
+  --focus-ink-muted: var(--muted);
+  --focus-card:      var(--surface);
+  --focus-line:      var(--line);
 }
 
-.focus-overlay--night .focus-sun {
-  opacity: 0.45;
-}
-
-@keyframes focus-sun-drift {
-  from { transform: translate(calc(-50% - 12px), 0); opacity: 0.50; }
-  to   { transform: translate(calc(-50% + 12px), 10px); opacity: 0.60; }
-}
-
-/* Time-of-day palettes. Values are intentionally warm and low-contrast —
-   the goal is "quiet room at <hour>", not a saturated wallpaper. */
-/* Sun colors are deliberately close to sky colors — just a few shades
-   warmer/brighter — so the sun reads as a soft luminosity, not a disc. */
-.focus-overlay--dawn {
-  --focus-sky:       #FBE5D2;
-  --focus-ground:    #FFF4E8;
-  --focus-sun:       #FFEED9;
-  --focus-sun-soft:  rgba(255, 238, 217, 0.50);
-  --focus-sun-glow:  rgba(255, 230, 205, 0.35);
-  --focus-ink:       #3A2418;
-  --focus-ink-muted: #8B6B55;
-  --focus-card:      rgba(255, 255, 255, 0.55);
-  --focus-line:      rgba(139, 107, 85, 0.22);
-}
-.focus-overlay--morning {
-  --focus-sky:       #FCEFD6;
-  --focus-ground:    #FFF9EC;
-  --focus-sun:       #FFF3D8;
-  --focus-sun-soft:  rgba(255, 243, 216, 0.50);
-  --focus-sun-glow:  rgba(255, 236, 205, 0.35);
-  --focus-ink:       #3A2A18;
-  --focus-ink-muted: var(--warm-line-hover);
-  --focus-card:      rgba(255, 255, 255, 0.58);
-  --focus-line:      oklch(var(--lch-ink-dark) / 0.22);
-}
-.focus-overlay--midday {
-  --focus-sky:       #FCF4E0;
-  --focus-ground:    #FFFBF0;
-  --focus-sun:       #FFF8E3;
-  --focus-sun-soft:  rgba(255, 248, 227, 0.45);
-  --focus-sun-glow:  rgba(255, 244, 220, 0.30);
-  --focus-ink:       #2D2418;
-  --focus-ink-muted: #8B7E6A;
-  --focus-card:      rgba(255, 255, 255, 0.62);
-  --focus-line:      rgba(139, 126, 106, 0.20);
-}
-.focus-overlay--golden {
-  --focus-sky:       #FADABC;
-  --focus-ground:    #FCEED5;
-  --focus-sun:       #FFE5C4;
-  --focus-sun-soft:  rgba(255, 229, 196, 0.55);
-  --focus-sun-glow:  rgba(255, 220, 185, 0.38);
-  --focus-ink:       #3D2414;
-  --focus-ink-muted: #8F6A4D;
-  --focus-card:      rgba(255, 255, 255, 0.52);
-  --focus-line:      rgba(143, 106, 77, 0.24);
-}
-.focus-overlay--dusk {
-  --focus-sky:       #F3B59C;
-  --focus-ground:    #E79B8A;
-  --focus-sun:       #F7C3AE;
-  --focus-sun-soft:  rgba(247, 195, 174, 0.55);
-  --focus-sun-glow:  rgba(243, 180, 160, 0.40);
-  --focus-ink:       #3A1A10;
-  --focus-ink-muted: #7E3E2E;
-  --focus-card:      rgba(255, 248, 242, 0.58);
-  --focus-line:      rgba(126, 62, 46, 0.28);
-}
-.focus-overlay--night {
-  --focus-sky:       #2A2B40;
-  --focus-ground:    #3A2E4A;
-  --focus-sun:       #4C4A68;         /* cool moon, barely brighter than sky */
-  --focus-sun-soft:  rgba(76, 74, 104, 0.55);
-  --focus-sun-glow:  rgba(80, 78, 110, 0.32);
-  --focus-ink:       #F0EAF5;
-  --focus-ink-muted: #B0A8C0;
-  --focus-card:      rgba(20, 18, 32, 0.45);
-  --focus-line:      rgba(240, 234, 245, 0.18);
-}
-
-/* Close button — floats in the top-right, on the ambient background. */
+/* Close button — floats in the top-right, on the canvas. */
 /* Top-right cluster: optional external-link icon + close. */
 .focus-overlay .focus__corner {
   position: absolute;
@@ -6283,9 +6196,6 @@ body.focus-open { overflow: hidden; }
   background: rgba(255, 255, 255, 0.72);
 }
 
-.focus-overlay--night .focus__notes-input:focus {
-  background: rgba(20, 18, 32, 0.65);
-}
 
 .focus__hint {
   font-family: var(--font-serif);
@@ -6336,9 +6246,6 @@ body.focus-open { overflow: hidden; }
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.focus-overlay--night .focus__tab--active {
-  background: rgba(255, 255, 255, 0.08);
-}
 
 .focus__tab-count {
   display: inline-flex;
@@ -6491,7 +6398,6 @@ body.focus-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .focus-overlay,
   .focus,
-  .focus-sun { animation: none; }
 }
 
 /* Task card focus hint */
@@ -8735,22 +8641,16 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 /* --------------------------------------------------------------------------
    SKY — animated sunrise/sundown scene (sky_controller.js, sky/scene.js)
    -------------------------------------------------------------------------- */
-.ritual-doc--with-sky { padding-top: 0; }
-.ritual-doc--with-sky::before { display: none; }
+.ritual-doc--with-sky,
+.ritual-doc--wrap {
+  min-height: 100%;
+  overflow: hidden;
+}
 
 .sky {
   position: relative;
   overflow: hidden;
   pointer-events: none;
-}
-
-.sky--banner {
-  align-self: stretch;
-  flex: 0 0 auto;
-  height: clamp(180px, 32svh, 320px);
-  margin: 0 -24px clamp(28px, 4svh, 52px);
-  /* Melt the bottom edge into the page instead of a hard band */
-  mask-image: linear-gradient(to bottom, #000 72%, transparent);
 }
 
 .sky--immersive {
@@ -8803,8 +8703,8 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .sky__button--off .sky__sound-waves { display: none; }
 .sky__button--off .sky__sound-mute { display: inline; }
 
-/* Wrap screen: the night sky fills the page, so the words turn to starlight */
-.ritual-doc--wrap:has(.sky--immersive) {
+/* Sundown: the night sky fills the page, so the words turn to starlight */
+.ritual-doc--sunset:has(.sky--immersive) {
   --warm-ink: oklch(97% 0.012 80);
   --warm-ink-soft: oklch(88% 0.02 80);
   --warm-line-hover: oklch(84% 0.03 80);
@@ -8814,8 +8714,6 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   --brick: oklch(97% 0.012 80);
   --brick-hover: oklch(100% 0 0);
   --brick-ink: oklch(22% 0.02 260);
-  min-height: 100%;
-  overflow: hidden;
 }
 
 /* ============================================================
@@ -9018,65 +8916,6 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 
 @media (hover: none) { .focus__hint { display: none; } }
 
-/* ============================================================
-   AMBIENT SKY — the main canvas follows the time of day
-   Only the middle column. Rails, side panel, cards and modals keep
-   plain light/dark surfaces, so contrast never depends on the hour.
-   Colours come from ambient_controller.js (once a minute).
-   ============================================================ */
-.mid--ambient {
-  --amb-top: var(--canvas);
-  --amb-horizon: var(--canvas);
-  --amb-glow: transparent;
-  --amb-sun-x: 50%;
-  --amb-sun-y: 30%;
-  --amb-stars: 0;
-  position: relative;
-  isolation: isolate;
-  --amb-sun: transparent;
-  --amb-halo: transparent;
-  --amb-sun-r: 48px;
-  /* Back to front: sky, wide glow, halo, then the soft sun (or moon) disc. */
-  background:
-    radial-gradient(circle calc(var(--amb-sun-r) * 3.5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-sun) 0%, transparent 100%),
-    radial-gradient(circle calc(var(--amb-sun-r) * 5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-halo), transparent 70%),
-    radial-gradient(ellipse 75% 60% at var(--amb-sun-x) var(--amb-sun-y), var(--amb-glow), transparent 72%),
-    linear-gradient(180deg, var(--amb-top) 0%, var(--amb-horizon) 100%);
-  /* Everything inside that painted the flat canvas now lets the sky through. */
-  --bg: transparent;
-}
-
-.mid--ambient .kanban,
-.mid--ambient .kanban__column,
-.mid--ambient .day-view__tasks,
-.mid--ambient .day-view__timeline-column { background: transparent; --col-bg: transparent; }
-
-/* Night, dark mode: a sparse, still star field. */
-.mid--ambient::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0;
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, oklch(95% 0.02 250 / 0.7), transparent),
-    radial-gradient(1px 1px at 34% 8%, oklch(95% 0.02 250 / 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 58% 22%, oklch(95% 0.02 250 / 0.6), transparent),
-    radial-gradient(1px 1px at 76% 12%, oklch(95% 0.02 250 / 0.5), transparent),
-    radial-gradient(1px 1px at 88% 30%, oklch(95% 0.02 250 / 0.4), transparent),
-    radial-gradient(1px 1px at 22% 40%, oklch(95% 0.02 250 / 0.35), transparent),
-    radial-gradient(1.5px 1.5px at 66% 46%, oklch(95% 0.02 250 / 0.3), transparent);
-  background-size: 640px 480px;
-  transition: opacity 4s ease;
-}
-
-[data-theme="dark"] .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
-}
-
 /* Sometime chips read as small cards: filled surface, the card's own shadow
    for an edge, no grey outline. */
 .sometime-row__tasks .task-card {
@@ -9175,18 +9014,18 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .ritual-doc__dateline { font-size: 13px; letter-spacing: 0.02em; }
 
 /* --------------------------------------------------------------------------
-   RITUALS SHARE THE AMBIENT SKY; FLAT UI CHROME
-   One sky per screen: ritual pages sit on the time-of-day canvas instead of
-   painting their own wash. Chrome (avatar, dividers, meter) stays flat.
+   FLAT RITUAL PAGES AND UI CHROME
+   The only sky is the Sunrise/Sundown canvas; pages don't paint their own
+   wash. Chrome (avatar, dividers, meter) stays flat.
    -------------------------------------------------------------------------- */
-.mid--ambient .ritual--morning,
-.mid--ambient .ritual--evening,
-.mid--ambient .ritual--checkin,
-.mid--ambient .ritual--evening-wrap,
-.mid--ambient .ritual-doc--sunrise,
-.mid--ambient .ritual-doc--sunset,
-.mid--ambient .ritual-doc--weekly { background: transparent; }
-.mid--ambient .ritual-doc::before { display: none; }
+.ritual--morning,
+.ritual--evening,
+.ritual--checkin,
+.ritual--evening-wrap,
+.ritual-doc--sunrise,
+.ritual-doc--sunset,
+.ritual-doc--weekly { background: transparent; }
+.ritual-doc::before { display: none; }
 
 .sb-avatar { background: var(--amber-pill); }
 .ritual-doc__divider { background: oklch(var(--lch-ink-dark) / 0.12); }

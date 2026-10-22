@@ -65,7 +65,7 @@ class User < ApplicationRecord
   end
 
   # "Follow the sun": light from 6am until an hour after Sundown, dark otherwise.
-  # Kept in step with ambient_controller.js, which flips it live in the browser.
+  # Kept in step with sun_theme_controller.js, which flips it live in the browser.
   def sun_theme_now(at = Time.current)
     local = at.in_time_zone(timezone)
     hour = local.hour + local.min / 60.0

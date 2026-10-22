@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %><%= %( data-theme-mode="sun").html_safe if follows_the_sun? %>>
+<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %>>
   <head>
     <title><%= content_for(:title) || "Daybreak" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -39,7 +39,11 @@
       <div class="shell<%= " shell--no-right" if hide_inbox_panel %>">
         <%= render "layouts/sidebar" %>
 
-        <main class="mid mid--ambient" data-controller="ambient" data-ambient-timezone-value="<%= current_user.timezone %>" data-ambient-sundown-value="<%= current_user.sundown_time %>">
+        <% if follows_the_sun? %>
+        <main class="mid" data-controller="sun-theme" data-sun-theme-timezone-value="<%= current_user.timezone %>" data-sun-theme-sundown-value="<%= current_user.sundown_time %>">
+        <% else %>
+        <main class="mid">
+        <% end %>
           <div class="topbar">
             <%= yield(:topbar) %>
           </div>

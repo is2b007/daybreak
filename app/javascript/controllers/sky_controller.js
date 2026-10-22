@@ -21,6 +21,10 @@ export default class extends Controller {
     this.scene = new SkyScene(this.canvasTarget, {
       mode: this.modeValue,
       play: this.playValue,
+      // The sky sits behind the text, so the animation stays on the side of
+      // the day the words are written for: sunrise brightens from a light
+      // dawn, sundown deepens from dusk into the starry night.
+      from: this.modeValue === "sunrise" ? 0.55 : 0.3,
       reducedMotion: this.reducedMotion
     })
     this.scene.start()

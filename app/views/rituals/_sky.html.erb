@@ -1,6 +1,5 @@
-<%# Animated sky for sunrise/sundown. immersive: fills the screen behind the content (wrap screen). %>
-<% immersive = local_assigns.fetch(:immersive, false) %>
-<div class="sky <%= immersive ? 'sky--immersive' : 'sky--banner' %> sky--<%= mode %>"
+<%# Animated sky for sunrise/sundown, filling the page behind the content. %>
+<div class="sky sky--immersive sky--<%= mode %>"
      data-controller="sky"
      data-sky-mode-value="<%= mode %>"
      data-sky-play-value="<%= play ? 'true' : 'false' %>">

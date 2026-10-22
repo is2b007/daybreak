@@ -1,6 +1,5 @@
 <%# locals: (task:, active_timer: nil, any_running_timer: nil,
     bc_todo: nil, bc_comments: [], bc_comments_error: nil, hey_email_body: nil) %>
-<% phase = focus_time_phase %>
 <% bc_web_url = task.basecamp_web_url %>
 <% hey_url = task.safe_hey_app_url %>
 <% is_basecamp = task.basecamp? %>
@@ -8,11 +7,9 @@
 <% has_details_tab = (is_basecamp && bc_todo.present?) || (is_hey && hey_email_body.present?) %>
 <% has_comments_tab = is_basecamp %>
 <% has_tabs = has_details_tab || has_comments_tab %>
-<div class="focus-overlay focus-overlay--<%= phase %>"
+<div class="focus-overlay"
      data-controller="focus"
      data-action="keydown@document->focus#keydown">
-  <div class="focus-sun" aria-hidden="true"></div>
-
   <div class="focus__corner">
     <% if bc_web_url.present? %>
       <%= link_to bc_web_url, target: "_blank", rel: "noopener noreferrer",
@@ -40,7 +37,7 @@
 
   <div class="focus">
     <p class="focus__eyebrow">
-      Focus &middot; <%= phase.capitalize %>
+      Focus
       <% if is_basecamp && task.project_name.present? %>
         &middot; <%= task.project_name %>
       <% elsif is_hey %>
