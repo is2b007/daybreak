@@ -8888,3 +8888,26 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .focus__timer-display { font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .focus__eyebrow,
 .ritual-doc__dateline { font-size: 13px; letter-spacing: 0.02em; }
+
+/* --------------------------------------------------------------------------
+   RITUALS SHARE THE AMBIENT SKY; FLAT UI CHROME
+   One sky per screen: ritual pages sit on the time-of-day canvas instead of
+   painting their own wash. Chrome (avatar, dividers, meter) stays flat.
+   -------------------------------------------------------------------------- */
+.mid--ambient .ritual--morning,
+.mid--ambient .ritual--evening,
+.mid--ambient .ritual--checkin,
+.mid--ambient .ritual--evening-wrap,
+.mid--ambient .ritual-doc--sunrise,
+.mid--ambient .ritual-doc--sunset,
+.mid--ambient .ritual-doc--weekly { background: transparent; }
+.mid--ambient .ritual-doc::before { display: none; }
+
+.sb-avatar { background: var(--amber-pill); }
+.ritual-doc__divider { background: oklch(var(--lch-ink-dark) / 0.12); }
+.ritual-doc__meter-bar { margin-top: 0; width: 100%; align-self: stretch; background: oklch(var(--lch-ink-dark) / 0.1); }
+.ritual-doc__meter-fill { background: var(--brick); }
+.task-card--completed::after { display: none; }
+
+/* "The day is closed." is the wrap screen's one display line */
+.ritual-doc__wrap-title { font-family: var(--font-serif); }

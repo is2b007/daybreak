@@ -35,7 +35,7 @@
         </template>
       <% end %>
 
-      <% hide_inbox_panel = controller_name == "rituals" && action_name == "evening" %>
+      <% hide_inbox_panel = controller_name == "rituals" && %w[evening evening_complete].include?(action_name) %>
       <div class="shell<%= " shell--no-right" if hide_inbox_panel %>">
         <%= render "layouts/sidebar" %>
 

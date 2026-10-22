@@ -28,6 +28,16 @@ export default class extends Controller {
     if (this.sunsetPlayValue) {
       this.#playSunset()
     }
+
+    // Closing the day always lands back on the week, even when the sunset
+    // already played today (a second close used to strand you on the wrap).
+    // Track the timer so navigating away mid-animation can't yank the user back.
+    if (this.redirectUrlValue) {
+      const delay = this.sunsetPlayValue && !this.reducedMotion ? 4800 : 1800
+      this.redirectTimer = setTimeout(() => {
+        window.location.href = this.redirectUrlValue
+      }, delay)
+    }
   }
 
   disconnect() {
@@ -47,15 +57,6 @@ export default class extends Controller {
   #playSunset() {
     this.#playAudioFaded("/sounds/sunset.mp3")
     if (!this.reducedMotion) this.element.classList.add("ritual--sunset-animate")
-
-    const redirectUrl = this.redirectUrlValue
-    if (redirectUrl) {
-      // Track the timer so navigating away mid-animation can't yank the user
-      // back to the wrap screen from wherever they went next.
-      this.redirectTimer = setTimeout(() => {
-        window.location.href = redirectUrl
-      }, this.reducedMotion ? 600 : 4800)
-    }
   }
 
   #playAudioFaded(src) {
