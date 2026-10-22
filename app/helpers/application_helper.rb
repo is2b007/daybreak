@@ -86,7 +86,7 @@ module ApplicationHelper
 
     doc.css("span.bc-mention").each do |pill|
       src = pill.delete("data-avatar")&.value.to_s
-      next unless src.match?(%r{\Ahttps://[^/]+/.*people/.+/avatar}) 
+      next unless src.match?(%r{\Ahttps://[^/]+/.*people/.+/avatar})
 
       img = Nokogiri::XML::Node.new("img", doc.document)
       img["src"] = basecamp_person_avatar_path(u: src)
