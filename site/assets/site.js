@@ -1,4 +1,4 @@
-import { SkyScene } from "./sky.js"
+import { SkyScene } from "./sky.js?v=2"
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
 const root = document.documentElement

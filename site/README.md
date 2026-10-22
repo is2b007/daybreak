@@ -32,7 +32,7 @@ After that, every push to `main` auto-deploys. PRs get preview deployments.
 - `assets/daybreak-logo.svg`: the rounded glass-dome mark used next to the wordmark. Mirror of `app/assets/images/daybreak-logo.svg`.
 - `assets/daybreak-icon.svg`: the square app-icon tile, used as the favicon. Mirror of `public/icon.svg`.
 
-`/assets/*` is served with a one-year immutable cache (see `vercel.json`), so give a changed asset a new filename.
+`/assets/*` is served with a one-year immutable cache (see `vercel.json`). When you change `site.css`, `site.js` or `sky.js`, bump the `?v=` on their references in `index.html` and `site.js`, or visitors keep the old file.
 
 ## Updating the site
 
