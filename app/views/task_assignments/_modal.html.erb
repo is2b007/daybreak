@@ -175,10 +175,20 @@
           </div>
         <% end %>
 
-        <% if task.basecamp? && task.description.to_s.include?("<") %>
+        <% if task.basecamp? %>
+          <% if task.description.present? %>
+            <div class="modal__section">
+              <div class="modal__section-label">Description</div>
+              <div class="modal__richtext rich-text"><%= basecamp_rich_text(task.description) %></div>
+            </div>
+          <% end %>
           <div class="modal__section">
-            <div class="modal__section-label">Description</div>
-            <div class="modal__richtext rich-text"><%= basecamp_rich_text(task.description) %></div>
+            <div class="modal__section-label">Your notes</div>
+            <%= f.text_area :notes,
+                  class: "form-input modal__description",
+                  rows: 3,
+                  placeholder: "Private to you, not synced to Basecamp",
+                  data: { action: "blur->auto-save#save" } %>
           </div>
         <% else %>
           <div class="modal__section">
@@ -186,7 +196,7 @@
             <%= f.text_area :description,
                   class: "form-input modal__description",
                   rows: 3,
-                  placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : (task.basecamp? ? "Add notes, links, or anything people should know…" : "Add a description…"),
+                  placeholder: hey_from_email ? "Your notes (saved here only, not synced to HEY)" : "Add a description…",
                   data: { action: "blur->auto-save#save" } %>
           </div>
         <% end %>

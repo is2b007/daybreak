@@ -71,6 +71,7 @@
             <%= render "layouts/right_panel" %>
           </div>
         <% end %>
+        <%= render "layouts/mobile_tabbar", hide_inbox_panel: hide_inbox_panel %>
       </div>
     <% else %>
       <% if logged_in? %>
