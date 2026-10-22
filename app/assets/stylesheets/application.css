@@ -977,19 +977,18 @@ img.sb-avatar--photo {
   height: 100%;
   overflow: hidden;
   border-right: 1px solid var(--line);
-  min-width: 0;
+  /* Always laid out at its open width: opening and closing only reveal or
+     clip it as the panel's width animates, so the text never reflows. */
+  width: var(--right-panel-content-width);
+  min-width: var(--right-panel-content-width);
   max-width: var(--right-panel-content-width);
-  transition: opacity 0.15s ease;
 }
 
 .right.right--collapsed .r-content {
-  min-width: 0;
-  max-width: 0;
-  width: 0;
-  opacity: 0;
   pointer-events: none;
-  border-right: none;
-  overflow: hidden;
+  /* Hidden from keyboard and screen readers once the close has finished */
+  visibility: hidden;
+  transition: visibility 0s linear 0.2s;
 }
 
 /* Icon rail — same outer width as collapsed .sb; horizontal padding matches .sb.sb--collapsed .sb-nav */
@@ -997,6 +996,9 @@ img.sb-avatar--photo {
   grid-column: 3;
   grid-row: 1 / -1;
   align-self: stretch;
+  /* Above .r-content, which keeps its full width and slides under the rail */
+  position: relative;
+  z-index: 2;
   background: var(--bg);
   display: flex;
   flex-direction: column;
@@ -8801,7 +8803,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   }
 
   .right:not(.right--collapsed) { min-width: 0 !important; max-width: none !important; }
-  .right:not(.right--collapsed) .r-content { flex: 1; min-height: 0; width: 100%; max-width: none; border-right: 0; }
+  .right:not(.right--collapsed) .r-content { flex: 1; min-height: 0; width: 100%; min-width: 0; max-width: none; border-right: 0; }
 
   /* The rail becomes a source switcher across the top of the sheet. */
   .right:not(.right--collapsed) .r-rail {
@@ -9035,3 +9037,19 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 
 /* "The day is closed." is the wrap screen's one display line */
 .ritual-doc__wrap-title { font-family: var(--font-serif); }
+
+/* HEY read/unread, from HEY's own `seen` flag: unread threads get a dot and
+   full weight; read ones step back. */
+.hey-r-item .hey-r-item__sender { font-weight: 500; }
+.hey-r-item .r-item-name { font-weight: 400; color: var(--muted); }
+.hey-r-item--unread .hey-r-item__sender { font-weight: 700; }
+.hey-r-item--unread .r-item-name { font-weight: 600; color: var(--text); }
+.hey-r-item__unread {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--hey, oklch(var(--lch-hey)));
+  vertical-align: 1px;
+}

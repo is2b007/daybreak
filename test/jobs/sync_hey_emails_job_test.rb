@@ -68,6 +68,22 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     assert_equal "https://app.hey.com/topics/101", @user.hey_emails.find_by(external_id: "101").hey_url
   end
 
+  test "stores HEY's seen flag, and leaves it unknown when HEY omits it" do
+    stub = StubHeyClient.new(imbox: [
+      posting(401, subject: "Unread", folder_extra: { "seen" => false }),
+      posting(402, subject: "Read", folder_extra: { "seen" => true }),
+      posting(403, subject: "No flag")
+    ])
+
+    with_hey_client(stub) do
+      SyncHeyEmailsJob.perform_now(@user.id)
+    end
+
+    assert_equal false, @user.hey_emails.find_by(external_id: "401").seen
+    assert_equal true, @user.hey_emails.find_by(external_id: "402").seen
+    assert_nil @user.hey_emails.find_by(external_id: "403").seen
+  end
+
   test "is idempotent: second run does not duplicate or churn updated_at on unchanged rows" do
     stub = StubHeyClient.new(imbox: [ posting(101, subject: "Hello") ])
 

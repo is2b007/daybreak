@@ -67,7 +67,8 @@ class SyncHeyEmailsJob < ApplicationJob
         subject: posting["name"].presence || "(no subject)",
         snippet: posting["summary"],
         hey_url: posting["app_url"],
-        label: posting["label"] || posting.dig("creator", "label")
+        label: posting["label"] || posting.dig("creator", "label"),
+        seen: posting.key?("seen") ? ActiveModel::Type::Boolean.new.cast(posting["seen"]) : row.seen
       }
 
       # parse_time handles bad/missing timestamps gracefully, preserving existing received_at if needed.
