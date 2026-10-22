@@ -8261,3 +8261,7 @@ select.form-input {
   justify-content: flex-start;
   padding: 2px 0;
 }
+
+/* Row dividers in the side panel: --line2 vanished on the light panel tint */
+.r-item,
+.g-goal { border-bottom-color: var(--line); }
