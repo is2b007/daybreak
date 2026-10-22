@@ -8038,3 +8038,226 @@ select.form-input {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ============================================================
+   HEY ROWS — read like an inbox: who, when, what
+   ============================================================ */
+.contact-avatar {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: oklch(52% 0.13 var(--contact-hue));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.hey-r-item {
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 14px;
+}
+
+.hey-r-item__top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hey-r-item__sender {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hey-r-item__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hey-r-item .r-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 1px 0 0;
+  -webkit-line-clamp: 1;
+}
+
+.hey-r-item__snippet {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Grip would sit on top of the timestamp; the whole row is the drag handle */
+.hey-r-item .r-item-drag-hint { display: none; }
+
+/* ============================================================
+   WEEKLY GOALS — goals you can tick off, week progress on top
+   ============================================================ */
+.g-week {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+
+.g-week__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.g-week__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.g-week__frac {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.g-week .g-progress {
+  height: 6px;
+  border-radius: 3px;
+  margin: 0;
+}
+
+.g-week .g-progress-fill { border-radius: 3px; }
+
+.g-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 4px;
+}
+
+.g-head__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.g-head__count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.g-goals {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.g-goal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line2);
+}
+
+.g-goal:last-child { border-bottom: none; }
+
+.g-goal__form { display: contents; }
+
+.g-goal__check {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -2px 0 0 -3px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.g-goal__check:hover { color: var(--text); background: color-mix(in oklch, var(--text) 7%, transparent); }
+.g-goal__check:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+.g-goal__title {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.g-goal--done .g-goal__title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklch, var(--muted) 60%, transparent);
+}
+
+.g-edit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.g-edit:hover { color: var(--text); text-decoration: underline; }
+
+/* ============================================================
+   JOURNAL — a page you can obviously write on
+   ============================================================ */
+.r-tab-content[data-tab="log"] .jrnl-body {
+  flex: 1;
+  margin: 12px 12px 8px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: text;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.r-tab-content[data-tab="log"] .jrnl-body:hover { border-color: color-mix(in oklch, var(--text) 25%, transparent); }
+
+.r-tab-content[data-tab="log"] .jrnl-body:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--amber) 22%, transparent);
+}
+
+.jrnl-body:empty::before { color: var(--muted); }
+
+/* Toolbar sits under the page instead of floating over the text */
+.r-tab-content[data-tab="log"] .jrnl-toolbar {
+  position: static;
+  margin: 0 12px 12px;
+  max-width: none;
+  width: auto;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  justify-content: flex-start;
+  padding: 2px 0;
+}

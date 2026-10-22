@@ -100,6 +100,7 @@ Rails.application.routes.draw do
 
   # Weekly check-in
   resource :weekly_checkin, only: [ :show, :update ], controller: "weekly_checkins"
+  resources :weekly_goals, only: :update
 
   # Settings
   resource :settings, only: [ :show, :update ], controller: "settings"

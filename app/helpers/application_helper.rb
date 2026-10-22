@@ -95,4 +95,28 @@ module ApplicationHelper
     else             "night"
     end
   end
+  CONTACT_HUES = [ 25, 60, 145, 190, 230, 265, 300, 340 ].freeze
+
+  # Initials circle for an email sender: same name, same colour, every time.
+  def contact_avatar(name, email = nil)
+    label = name.presence || email.to_s.split("@").first.to_s
+    words = label.scan(/[[:alnum:]]+/)
+    initials = (words.size > 1 ? words.first(2).map { |w| w[0] } : [ words.first.to_s[0, 2] ]).join.upcase.presence || "?"
+    hue = CONTACT_HUES[Zlib.crc32((email.presence || label).downcase) % CONTACT_HUES.size]
+    tag.span(initials, class: "contact-avatar", style: "--contact-hue: #{hue}", aria: { hidden: true })
+  end
+
+  # "2:00am" for today, "Oct 21" for this year, "Oct 21, 2025" before that — as an inbox shows it.
+  def inbox_time(time)
+    return "" if time.blank?
+
+    local = time.in_time_zone
+    if local.to_date == Time.zone.today
+      local.strftime("%-l:%M%P")
+    elsif local.year == Time.zone.today.year
+      local.strftime("%b %-d")
+    else
+      local.strftime("%b %-d, %Y")
+    end
+  end
 end

@@ -1,4 +1,5 @@
 <%# locals: (email:) %>
+<% sender = email.sender_name.presence || email.sender_email.presence || "Unknown sender" %>
 <div class="r-item hey-r-item"
      id="hey_email_<%= email.id %>"
      draggable="true"
@@ -8,9 +9,16 @@
      data-label="<%= h(email.label.to_s) %>"
      data-action="click->hey-inbox-panel#openEmail dragstart->hey-inbox-panel#dragstart dragend->hey-inbox-panel#dragend"
      title="Click to preview · Drag to plan">
+  <%= contact_avatar(email.sender_name, email.sender_email) %>
   <div class="r-item-body">
+    <div class="hey-r-item__top">
+      <span class="hey-r-item__sender"><%= sender %></span>
+      <time class="hey-r-item__time" datetime="<%= email.received_at&.iso8601 %>"><%= inbox_time(email.received_at) %></time>
+    </div>
     <div class="r-item-name"><%= truncate(email.subject, length: 72) %></div>
-    <div class="r-item-project"><%= email.sender_name.presence || email.sender_email || "Unknown sender" %></div>
+    <% if email.snippet.present? %>
+      <div class="hey-r-item__snippet"><%= email.snippet %></div>
+    <% end %>
     <div class="r-item-drag-hint">
       <svg width="12" height="10" viewBox="0 0 12 10" fill="currentColor" aria-hidden="true">
         <rect y="0" width="12" height="1.5" rx="0.75"/>

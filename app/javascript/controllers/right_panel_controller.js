@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 const COLLAPSED_KEY = "daybreak:rightPanelCollapsed"
 const WIDTH_KEY = "daybreak:rightPanelContentWidthPx"
+const TAB_KEY = "daybreak:rightPanelTab"
 // Keep in sync with the responsive breakpoint in application.css, where the side
 // columns stop taking grid space and open over the content instead.
 const NARROW = "(max-width: 1100px)"
@@ -13,6 +14,7 @@ export default class extends Controller {
     this.narrow = window.matchMedia?.(NARROW)
     this.#applyStoredState()
     this.#applyStoredWidth()
+    this.#applyStoredTab()
     this.#syncToggle()
     this.#expandForSunrisePlan()
 
@@ -63,6 +65,14 @@ export default class extends Controller {
     const alreadyOn = event.currentTarget.classList.contains("on")
     if (collapsed || alreadyOn) this.toggle()
     this.#activateTab(tab)
+    try { localStorage.setItem(TAB_KEY, tab) } catch (_) { /* private mode */ }
+  }
+
+  /** Reopen on the tab you last chose, so ticking a goal doesn't bounce you back to Basecamp. */
+  #applyStoredTab() {
+    let tab = null
+    try { tab = localStorage.getItem(TAB_KEY) } catch (_) { /* private mode */ }
+    if (tab && this.tabTargets.some(t => t.dataset.tab === tab)) this.#activateTab(tab)
   }
 
   /** After Sunrise “Plan today”, open the panel and focus Basecamp inbox for dragging. */
