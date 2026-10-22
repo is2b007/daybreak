@@ -109,4 +109,5 @@ Rails.application.routes.draw do
 
   # Proxies Basecamp profile photo (API requires Bearer token; <img> cannot send it).
   get "profile/basecamp_avatar", to: "basecamp_avatars#show", as: :basecamp_avatar
+  get "basecamp/avatar", to: "basecamp_avatars#person", as: :basecamp_person_avatar
 end

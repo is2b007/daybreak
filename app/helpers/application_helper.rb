@@ -22,7 +22,8 @@ module ApplicationHelper
   # Basecamp comments and descriptions are rich-text HTML: keep the formatting and
   # entities, drop anything that isn't plain markup.
   def basecamp_rich_text(html)
-    sanitize(flatten_bc_attachments(html.to_s), tags: BASECAMP_RICH_TEXT_TAGS, attributes: %w[href target rel class])
+    clean = sanitize(flatten_bc_attachments(html.to_s), tags: BASECAMP_RICH_TEXT_TAGS, attributes: %w[href target rel class data-avatar])
+    finish_rich_text(clean)
   end
 
   EMAIL_TAGS = (BASECAMP_RICH_TEXT_TAGS + %w[u h5 h6 hr table thead tbody tfoot tr td th caption small sub sup]).freeze
@@ -32,15 +33,11 @@ module ApplicationHelper
   def email_html(html)
     doc = Nokogiri::HTML5.fragment(html.to_s)
     doc.css("style, script, head, title, img").each(&:remove)
-    doc.css("a[href]").each do |a|
-      a["target"] = "_blank"
-      a["rel"] = "noopener noreferrer"
-    end
-    sanitize(doc.to_html, tags: EMAIL_TAGS, attributes: %w[href target rel])
+    finish_rich_text(sanitize(doc.to_html, tags: EMAIL_TAGS, attributes: %w[href]))
   end
 
-  # Basecamp embeds mentions and files as <bc-attachment>. Sanitising alone keeps
-  # only stray caption text, so turn them into "@Name" and a file chip first.
+  # Basecamp embeds mentions and files as <bc-attachment>. Mentions become a
+  # pill (photo filled in after sanitising, see finish_rich_text); files a chip.
   def flatten_bc_attachments(html)
     return html unless html.include?("bc-attachment")
 
@@ -49,16 +46,57 @@ module ApplicationHelper
       type = node["content-type"].to_s
       if type.include?("mention")
         name = node.at_css("figcaption")&.text.presence || node.text.strip
-        node.replace(Nokogiri::XML::Text.new("@#{name.strip}", doc.document))
+        pill = Nokogiri::XML::Node.new("span", doc.document)
+        pill["class"] = "bc-mention"
+        pill["data-avatar"] = node.at_css("img")&.[]("src").to_s
+        pill.content = name.strip.split(/\s+/).first.to_s
+        node.replace(pill)
       else
         label = node["filename"].presence || node.at_css("figcaption")&.text.presence || node["caption"].presence || "Attachment"
-        chip = Nokogiri::XML::Node.new("span", doc.document)
+        chip = Nokogiri::XML::Node.new(node["href"].to_s.start_with?("https://") ? "a" : "span", doc.document)
         chip["class"] = "bc-file"
+        chip["href"] = node["href"] if chip.name == "a"
         chip.content = "📎 #{label.strip}"
         node.replace(chip)
       end
     end
     doc.to_html
+  end
+
+  AUTOLINK = %r{\bhttps?://[^\s<>"']+[^\s<>"'.,;:!?)\]]}
+
+  # Runs on already-sanitised HTML: links open in a new tab, bare URLs become
+  # links, and mention pills get their photo through our avatar proxy.
+  def finish_rich_text(html)
+    doc = Nokogiri::HTML5.fragment(html.to_s)
+
+    doc.xpath(".//text()[not(ancestor::a) and not(ancestor::pre) and not(ancestor::code)]").each do |text|
+      next unless text.content.match?(AUTOLINK)
+
+      fragment = text.content.split(/(#{AUTOLINK})/o).map do |part|
+        part.match?(/\A#{AUTOLINK}\z/o) ? %(<a href="#{ERB::Util.h(part)}">#{ERB::Util.h(part)}</a>) : ERB::Util.h(part)
+      end.join
+      text.replace(Nokogiri::HTML5.fragment(fragment))
+    end
+
+    doc.css("a[href]").each do |a|
+      a["target"] = "_blank"
+      a["rel"] = "noopener noreferrer"
+    end
+
+    doc.css("span.bc-mention").each do |pill|
+      src = pill.delete("data-avatar")&.value.to_s
+      next unless src.match?(%r{\Ahttps://[^/]+/.*people/.+/avatar}) 
+
+      img = Nokogiri::XML::Node.new("img", doc.document)
+      img["src"] = basecamp_person_avatar_path(u: src)
+      img["alt"] = ""
+      img["class"] = "bc-mention__avatar"
+      img["loading"] = "lazy"
+      pill.prepend_child(img)
+    end
+
+    doc.to_html.html_safe
   end
 
   def format_sunset_hm(minutes)

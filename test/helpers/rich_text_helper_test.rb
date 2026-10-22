@@ -17,14 +17,30 @@ class RichTextHelperTest < ActionView::TestCase
     refute_match(/style|script|img|onclick|color: red|alert/, html)
   end
 
-  test "basecamp_rich_text turns mentions and files into readable text" do
+  test "basecamp_rich_text turns mentions into photo pills and files into chips" do
+    avatar = "https://3.basecamp.com/1/people/abc/avatar"
     html = basecamp_rich_text(<<~HTML)
-      <div>Ask <bc-attachment content-type="application/vnd.basecamp.mention"><figure><img src="a.png"><figcaption>Jason Fried</figcaption></figure></bc-attachment>
+      <div>Ask <bc-attachment content-type="application/vnd.basecamp.mention"><figure><img src="#{avatar}"><figcaption>Jason Fried</figcaption></figure></bc-attachment>
       about <bc-attachment content-type="image/png" filename="hero.png"><figure><img src="b.png"></figure></bc-attachment></div>
     HTML
 
-    assert_includes html, "@Jason Fried"
+    assert_includes html, %(<span class="bc-mention"><img src="#{basecamp_person_avatar_path(u: avatar)}" alt="" class="bc-mention__avatar" loading="lazy">Jason</span>)
     assert_includes html, %(<span class="bc-file">📎 hero.png</span>)
-    refute_includes html, "<img"
+    refute_includes html, "b.png"
+  end
+
+  test "mention photos only come from Basecamp avatar URLs" do
+    html = basecamp_rich_text(%(<bc-attachment content-type="application/vnd.basecamp.mention"><figure><img src="https://evil.example/x.png"><figcaption>Eve</figcaption></figure></bc-attachment>))
+
+    assert_includes html, %(<span class="bc-mention">Eve</span>)
+    refute_includes html, "evil.example"
+  end
+
+  test "bare URLs become links, but not inside code or existing links" do
+    html = basecamp_rich_text(%(<div>See https://example.com/a?b=1. <a href="https://x.example">https://x.example</a> <code>https://code.example</code></div>))
+
+    assert_includes html, %(<a href="https://example.com/a?b=1" target="_blank" rel="noopener noreferrer">https://example.com/a?b=1</a>.)
+    assert_equal 1, html.scan("https://x.example</a>").size
+    assert_includes html, "<code>https://code.example</code>"
   end
 end

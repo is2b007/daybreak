@@ -216,16 +216,23 @@
         <% elsif bc_comments.any? %>
           <div class="modal__comments-list">
             <% bc_comments.each do |c| %>
-              <div class="modal__comment-item">
-                <div class="modal__comment-item-author">
-                  <%= c.dig("creator", "name") %>
-                </div>
-                <div class="modal__comment-item-content rich-text"><%= basecamp_rich_text(c["content"]) %></div>
-                <% if c["created_at"].present? %>
-                  <div class="modal__comment-item-time">
-                    <%= time_ago_in_words(Time.parse(c["created_at"])) %> ago
-                  </div>
+              <% author = c.dig("creator", "name").to_s %>
+              <% avatar = c.dig("creator", "avatar_url").to_s %>
+              <div class="bc-comment">
+                <% if avatar.match?(%r{\Ahttps://[^/]+/.*people/.+/avatar}) %>
+                  <%= image_tag basecamp_person_avatar_path(u: avatar), alt: "", class: "bc-comment__avatar", loading: "lazy" %>
+                <% else %>
+                  <%= contact_avatar(author) %>
                 <% end %>
+                <div class="bc-comment__main">
+                  <div class="bc-comment__meta">
+                    <span class="bc-comment__author"><%= author %></span>
+                    <% if c["created_at"].present? %>
+                      <time class="bc-comment__time" datetime="<%= c["created_at"] %>"><%= time_ago_in_words(Time.parse(c["created_at"])) %> ago</time>
+                    <% end %>
+                  </div>
+                  <div class="bc-comment__content rich-text"><%= basecamp_rich_text(c["content"]) %></div>
+                </div>
               </div>
             <% end %>
           </div>
