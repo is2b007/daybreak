@@ -5,7 +5,7 @@
    Light and dark themes; see THEMES below.
    ========================================================================== */
 
-/* Newsreader (SIL OFL 1.1) — the one serif, for rituals, journal and focus titles. */
+/* Newsreader (SIL OFL 1.1) — the one serif, for a single display line per screen (see SERIF, SPARINGLY). */
 @font-face {
   font-family: "Newsreader";
   src: url("newsreader-opsz-normal.woff2") format("woff2");
@@ -8818,3 +8818,73 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .task-card--completed .task-card__title { color: var(--muted); }
 .task-card--completed .task-card__check { opacity: 0.7; }
 .task-card--completed .task-card__stamp { opacity: 1; }
+
+/* ============================================================
+   SERIF, SPARINGLY
+   Newsreader is kept for one display line per screen: the ritual
+   headline ("Good morning, Kosta."), the Focus task title and the
+   onboarding title. Everything else, including datelines, prose,
+   inputs, timers and hints, uses the UI sans in an upright style.
+   ============================================================ */
+.topbar__title--serif,
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-display,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input,
+.focus__source-body,
+.focus__comment-content,
+.focus__hint,
+.ritual-doc__dateline,
+.ritual-doc__prose,
+.ritual-doc__prose--muted,
+.ritual-doc__prompt,
+.ritual-doc__list-item,
+.ritual-doc__meter,
+.ritual-doc__link,
+.ritual-doc__reflection-input,
+.ritual-doc__card-title,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input,
+.ritual-doc__goal-check-title,
+.ritual-doc__wrap-title,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__prose,
+.onboarding-doc__text-input,
+.onboarding-doc__feature-list,
+.onboarding-doc__closer-preview {
+  font-family: var(--font-sans);
+}
+
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input::placeholder,
+.focus__hint,
+.focus__panel-hint,
+.focus__panel-empty,
+.ritual-doc__dateline,
+.ritual-doc__prose--muted,
+.ritual-doc__list-meta,
+.ritual-doc__link,
+.ritual-doc__reflection-input::placeholder,
+.ritual-doc__reflection-hint,
+.ritual-doc__card-meta,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input::placeholder,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__closer-preview-sub {
+  font-style: normal;
+}
+
+/* Sans needs a touch less size than the serif it replaces to sit at the same weight. */
+.ritual-doc__prose { font-size: 17px; line-height: 1.6; }
+.focus__timer-display { font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.focus__eyebrow,
+.ritual-doc__dateline { font-size: 13px; letter-spacing: 0.02em; }
