@@ -13,8 +13,10 @@ export default class extends Controller {
     // Update visual selection
     this.element.querySelectorAll(".stamp-option").forEach(opt => {
       opt.classList.remove("stamp-option--selected")
+      opt.setAttribute("aria-pressed", "false")
     })
     button.classList.add("stamp-option--selected")
+    button.setAttribute("aria-pressed", "true")
 
     // Update preview stamp via turbo or clone
     if (this.hasStampPreviewTarget) {

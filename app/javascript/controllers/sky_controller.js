@@ -13,6 +13,9 @@ export default class extends Controller {
   }
 
   connect() {
+    // Turbo restores cached snapshots on Back and shows them as previews;
+    // neither should replay the sunrise.
+    if (document.documentElement.hasAttribute("data-turbo-preview")) this.playValue = false
     this.reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
     this.sound = new RitualSound()
     this.scene = new SkyScene(this.canvasTarget, {
@@ -23,11 +26,13 @@ export default class extends Controller {
     this.scene.start()
     this.renderSoundToggle()
     if (this.playValue && soundEnabled()) this.sound.play(this.modeValue)
+    // Played once: the snapshot Turbo caches for Back now rests instead
+    this.playValue = false
   }
 
   disconnect() {
     this.scene?.destroy()
-    this.sound?.stop()
+    this.sound?.close()
   }
 
   replay() {

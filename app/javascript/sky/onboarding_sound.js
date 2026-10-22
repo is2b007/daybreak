@@ -82,6 +82,14 @@ export class OnboardingSound {
     this.airLfo = null
   }
 
+  // Releases the AudioContext; browsers cap how many can be open at once
+  close(fade = 0.6) {
+    this.stop(fade)
+    const ctx = this.ctx
+    this.ctx = null
+    if (ctx) setTimeout(() => ctx.close().catch(() => {}), fade * 1000 + 300)
+  }
+
   // Crossfades the pad to the chord for this step
   setStep(step, { fade = 3.5 } = {}) {
     if (!this.master) return

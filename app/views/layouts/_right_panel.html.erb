@@ -239,20 +239,20 @@
   <button type="button" class="rri rri--panel-toggle" data-right-panel-target="toggleBtn" data-action="click->right-panel#toggle" aria-expanded="true" aria-label="Collapse side panel" title="Collapse side panel">
     <%= icon "panel-right", class: "rri--panel-toggle-icon" %>
   </button>
-  <button class="rri on" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
+  <button type="button" class="rri on" aria-label="Basecamp" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
     <%= source_tile "basecamp", class: "rri-tile" %>
     <span class="rri-tip">Basecamp</span>
   </button>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="hey" data-right-panel-target="railBtn">
+  <button type="button" class="rri" aria-label="HEY" data-action="click->right-panel#switchTab" data-tab="hey" data-right-panel-target="railBtn">
     <%= source_tile "hey", class: "rri-tile" %>
     <span class="rri-tip">HEY</span>
   </button>
   <div class="r-rail-div" aria-hidden="true"></div>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="goals" data-right-panel-target="railBtn">
+  <button type="button" class="rri" aria-label="Goals" data-action="click->right-panel#switchTab" data-tab="goals" data-right-panel-target="railBtn">
     <%= icon "bookmark", class: "nav-icon" %>
     <span class="rri-tip">Goals</span>
   </button>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="log" data-right-panel-target="railBtn">
+  <button type="button" class="rri" aria-label="Daily log" data-action="click->right-panel#switchTab" data-tab="log" data-right-panel-target="railBtn">
     <%= render "icons/nav/daily_log" %>
     <span class="rri-tip">Daily log</span>
   </button>

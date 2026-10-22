@@ -40,8 +40,8 @@ export default class extends Controller {
 
     // Browsers only allow sound after a gesture: start on the first one
     this.unlock = this.unlock.bind(this)
-    document.addEventListener("pointerdown", this.unlock, true)
-    document.addEventListener("keydown", this.unlock, true)
+    // (a touch pointerdown is not an activation gesture, so listen for click/touchend)
+    for (const type of ["click", "touchend", "keydown"]) document.addEventListener(type, this.unlock, true)
     this.renderSoundToggle()
   }
 
@@ -50,21 +50,23 @@ export default class extends Controller {
     this.frameTarget.removeEventListener("turbo:frame-render", this.afterRender)
     this.removeUnlock()
     this.scene?.destroy()
-    this.sound?.stop()
+    this.sound?.close()
   }
 
   // Sound ----------------------------------------------------------------
 
   async unlock() {
-    this.removeUnlock()
-    if (!soundEnabled()) return
+    if (!soundEnabled()) return this.removeUnlock()
     const step = this.currentStep()
-    if (await this.sound.start(step?.number ?? 1)) this.renderSoundToggle()
+    if (!(await this.sound.start(step?.number ?? 1))) return // try again on the next gesture
+    this.removeUnlock()
+    // Muted while start() was waiting for the context to resume
+    if (!soundEnabled()) this.sound.stop()
+    this.renderSoundToggle()
   }
 
   removeUnlock() {
-    document.removeEventListener("pointerdown", this.unlock, true)
-    document.removeEventListener("keydown", this.unlock, true)
+    for (const type of ["click", "touchend", "keydown"]) document.removeEventListener(type, this.unlock, true)
   }
 
   async toggleSound() {

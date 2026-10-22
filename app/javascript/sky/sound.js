@@ -47,6 +47,7 @@ export class RitualSound {
   constructor() {
     this.ctx = null
     this.master = null
+    this.token = 0
   }
 
   async play(name, { volume = 0.32 } = {}) {
@@ -54,9 +55,12 @@ export class RitualSound {
     if (!cue) return false
     try {
       this.stop()
+      // resume() waits until a gesture when autoplay is blocked; a later play()
+      // or stop() supersedes this one so two cues never overlap.
+      const token = this.token
       const ctx = (this.ctx ??= new (window.AudioContext || window.webkitAudioContext)())
       if (ctx.state === "suspended") await ctx.resume()
-      if (ctx.state !== "running") return false
+      if (token !== this.token || ctx.state !== "running") return false
 
       const now = ctx.currentTime + 0.05
       const master = (this.master = ctx.createGain())
@@ -81,6 +85,7 @@ export class RitualSound {
   }
 
   stop() {
+    this.token++
     if (!this.master || !this.ctx) return
     const g = this.master.gain
     const t = this.ctx.currentTime
@@ -90,6 +95,14 @@ export class RitualSound {
     const old = this.master
     setTimeout(() => old.disconnect(), 600)
     this.master = null
+  }
+
+  // Releases the AudioContext; browsers cap how many can be open at once
+  close() {
+    this.stop()
+    const ctx = this.ctx
+    this.ctx = null
+    if (ctx) setTimeout(() => ctx.close().catch(() => {}), 700)
   }
 
   pad(ctx, cue, now, out, reverb) {

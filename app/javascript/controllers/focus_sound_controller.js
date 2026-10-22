@@ -20,6 +20,10 @@ export default class extends Controller {
 
   disconnect() {
     this.#stop(0.4)
+    // Browsers cap open AudioContexts; each Focus visit makes a new controller
+    const ctx = this.ctx
+    this.ctx = null
+    if (ctx) setTimeout(() => ctx.close().catch(() => {}), 700)
   }
 
   pick(event) {
