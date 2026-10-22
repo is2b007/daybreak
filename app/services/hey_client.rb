@@ -508,12 +508,26 @@ class HeyClient
     fetch_box("/imbox.json")
   end
 
+  # The identity's active mailboxes (a personal account plus any work domains), as
+  # [{ "id", "name", "purpose", "domain" }]. Boxes mix them; postings carry account_id.
+  # nil when the identity can't be fetched.
+  def accounts
+    data = get("/identity.json")
+    return nil unless data.is_a?(Hash)
+
+    Array(data["accounts"])
+      .select { |a| a.is_a?(Hash) && a["id"].present? && a["status"].in?([ nil, "active" ]) }
+      .map { |a| a.slice("id", "name", "purpose", "domain") }
+  end
+
+  # Box kinds are laterbox/asidebox/trailbox, but their paths are not: per hey-sdk
+  # openapi.json (and each box's url in /boxes.json), /laterbox.json etc. 404.
   def reply_later
-    fetch_box("/laterbox.json")
+    fetch_box("/reply_later.json")
   end
 
   def set_aside
-    fetch_box("/asidebox.json")
+    fetch_box("/set_aside.json")
   end
 
   def feed
@@ -521,14 +535,14 @@ class HeyClient
   end
 
   def paper_trail
-    fetch_box("/trailbox.json")
+    fetch_box("/paper_trail.json")
   end
 
   private
 
   # Returns postings from a BoxShowResponse, following next_history_url or a
   # same-origin Link: rel=next header (geared_pagination) until +max_postings+.
-  # Canonical paths per hey-sdk: /laterbox.json, /asidebox.json, /trailbox.json.
+  # Canonical paths per hey-sdk: /reply_later.json, /set_aside.json, /paper_trail.json.
   # nil on first-request failure; [] if the box is empty.
   def fetch_box(initial_path, max_postings: 200)
     all = []

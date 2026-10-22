@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
-  static targets = ["item", "folderSelect", "labelSelect", "count", "empty", "filteredEmpty", "sentinel", "list", "loader"]
+  static targets = ["item", "folderSelect", "accountSelect", "labelSelect", "count", "empty", "filteredEmpty", "sentinel", "list", "loader"]
   static values = { nextOffset: Number }
 
   connect() {
@@ -12,8 +12,9 @@ export default class extends Controller {
     this._awaitingFirstPage = false
     this._loadingMore = false
     this._hasMorePages = true
-    this.apply()
+    const restored = this._restoreAccount()
     this._maybeObserveSentinel()
+    restored ? this.reloadForFilters() : this.apply()
     this.element.addEventListener("panel:activated", this._onPanelActivated = () => this.refresh())
   }
 
@@ -64,7 +65,8 @@ export default class extends Controller {
     const token = document.querySelector("meta[name='csrf-token']")?.content
     const folder = this.folderSelectTarget.value
     const label = this.hasLabelSelectTarget ? this.labelSelectTarget.value : ""
-    const params = new URLSearchParams({ offset: String(offset), folder, label })
+    const account = this._account()
+    const params = new URLSearchParams({ offset: String(offset), folder, label, account })
     fetch(`/hey_emails/more?${params.toString()}`, {
       headers: { Accept: "application/json", "X-CSRF-Token": token || "" }
     })
@@ -94,12 +96,14 @@ export default class extends Controller {
     if (!this.hasFolderSelectTarget) return
     const folder = this.folderSelectTarget.value
     const label = this.hasLabelSelectTarget ? this.labelSelectTarget.value : ""
+    const account = this._account()
 
     let visible = 0
     this.itemTargets.forEach((el) => {
       const folderMatch = el.dataset.folder === folder
       const labelMatch = label === "" || el.dataset.label === label
-      const show = folderMatch && labelMatch
+      const accountMatch = account === "" || el.dataset.account === account
+      const show = folderMatch && labelMatch && accountMatch
       el.hidden = !show
       if (show) visible++
     })
@@ -123,6 +127,25 @@ export default class extends Controller {
 
   onLabelChange() {
     this.reloadForFilters()
+  }
+
+  onAccountChange() {
+    try { localStorage.setItem("daybreak:hey-mailbox", this._account()) } catch {}
+    this.reloadForFilters()
+  }
+
+  _account() {
+    return this.hasAccountSelectTarget ? this.accountSelectTarget.value : ""
+  }
+
+  // Reopens the mailbox picked last time, if it's still on the account. True when one was restored.
+  _restoreAccount() {
+    if (!this.hasAccountSelectTarget) return false
+    let saved = ""
+    try { saved = localStorage.getItem("daybreak:hey-mailbox") || "" } catch {}
+    if (!saved || ![...this.accountSelectTarget.options].some((o) => o.value === saved)) return false
+    this.accountSelectTarget.value = saved
+    return true
   }
 
   onScroll() {

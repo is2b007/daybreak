@@ -27,9 +27,11 @@ class HeyEmailsController < ApplicationController
     limit  = 25
     folder = params[:folder].to_s
     label  = params[:label].to_s
+    account = params[:account].to_s
     base_scope = current_user.hey_emails.active.ordered
     base_scope = base_scope.where(folder: folder) if folder.present? && HeyEmail.folders.key?(folder)
     base_scope = base_scope.where(label: label) if label.present?
+    base_scope = base_scope.where(hey_account_id: account.to_i) if account.match?(/\A\d+\z/)
 
     if !Rails.env.test? && current_user.hey_connected? && offset.zero?
       cache_key = "hey_sync_enqueued:#{current_user.id}:#{folder.presence || 'all'}"

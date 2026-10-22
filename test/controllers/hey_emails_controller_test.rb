@@ -163,6 +163,17 @@ class HeyEmailsControllerTest < ActionController::TestCase
     assert_includes body.keys, "has_more"
   end
 
+  test "GET more filters by mailbox" do
+    @email.update!(hey_account_id: 1)
+    @user.hey_emails.create!(external_id: "102", folder: :imbox, subject: "Work thread", received_at: 2.hours.ago, hey_account_id: 2)
+
+    get :more, params: { offset: 0, folder: "imbox", account: "2" }, format: :json
+
+    html = JSON.parse(@response.body)["html"]
+    assert_includes html, "Work thread"
+    assert_not_includes html, "Ship the thing"
+  end
+
   test "POST plan cannot act on another user's email" do
     other       = users(:two)
     other_email = other.hey_emails.create!(
