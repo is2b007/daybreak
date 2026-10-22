@@ -152,6 +152,7 @@ figure { margin: 0; }
 }
 
 /* Pills */
+.pill .gh { width: 1.1em; height: 1.1em; fill: currentColor; flex: none; }
 .pill {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 48px; padding: 0 24px;
