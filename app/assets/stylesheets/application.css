@@ -6745,48 +6745,57 @@ body.focus-open { overflow: hidden; }
   transition: width 0.6s ease-out;
 }
 
-/* Hyperlink-style submit buttons */
+/* Ritual actions: the primary pill sits left, under the text it follows;
+   a quiet back link trails after it. */
 .ritual-doc__actions {
   display: flex;
-  /* Default: right-align the primary action. The `:has` rule below detects
-     the back-link pattern (back arrow + primary button) and switches to
-     space-between. This is more reliable than `:only-child`, which breaks
-     when the actions container is a <form> with a hidden input sibling
-     (as in sunrise). */
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
-  gap: 16px;
+  gap: 12px 20px;
   margin-top: 8px;
 }
-
-/* Back link present → put back on the left, primary on the right. */
-.ritual-doc__actions:has(> .ritual-doc__link--back) {
-  justify-content: space-between;
+.ritual-doc__actions > .ritual-doc__link--back { order: 2; }
+/* The wrap screen is centred; a lone back link there becomes an outlined pill */
+.ritual-doc--wrap .ritual-doc__actions { justify-content: center; }
+.ritual-doc__actions > .ritual-doc__link--back:only-child {
+  color: var(--ink);
+  border-color: oklch(from var(--ink) l c h / 50%);
+  padding-inline: 1.25em;
 }
 .ritual-doc__link {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-style: italic;
-  color: var(--brick);
-  background: none;
-  border: 0;
-  padding: 6px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font: 500 15px/1 var(--font-sans);
+  color: var(--brick-ink);
+  background: var(--brick);
+  border: 1px solid var(--brick);
+  border-radius: 3rem;
+  padding: 0.7em 1.25em;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(168, 55, 44, 0.4);
-  transition: color 120ms ease, text-decoration-color 120ms ease;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 .ritual-doc__link:hover {
-  color: var(--brick-hover);
-  text-decoration-color: var(--brick-hover);
+  background: var(--brick-hover);
+  border-color: var(--brick-hover);
+  color: var(--brick-ink);
+  text-decoration: none;
 }
 .ritual-doc__link--back {
-  color: var(--warm-line-hover);
-  text-decoration-color: oklch(var(--lch-ink-dark) / 0.35);
+  color: var(--ink-dark);
+  background: transparent;
+  border-color: transparent;
+  padding-inline: 0.25em;
 }
-.ritual-doc__link--back:hover { color: var(--warm-ink-soft); text-decoration-color: var(--warm-ink-soft); }
+.ritual-doc__link--back:hover {
+  color: var(--ink);
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 
 /* Stepper dots at the bottom */
 .ritual-doc__stepper {
@@ -6804,11 +6813,10 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__stepper-dot--active { background: var(--brick); }
 
 /* Variants per ritual (seasonal warmth) */
-.ritual-doc--sunrise {
-  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--dawn-wash) 55%, var(--bg) 100%);
-}
+.ritual-doc--sunrise,
 .ritual-doc--sunset {
-  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 100%);
+  /* The sky banner carries the colour; the page under it stays plain */
+  background: var(--bg);
 }
 .ritual-doc--weekly {
   background: linear-gradient(180deg, var(--sky-wash) 0%, var(--bg) 100%);
@@ -7011,8 +7019,8 @@ body.focus-open { overflow: hidden; }
   pointer-events: none;
   opacity: 0.6;
 }
-.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, oklch(var(--lch-dawn-wash-2)) 0%, transparent 70%); }
-.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, var(--sky-wash) 0%, transparent 70%); }
+.ritual-doc--sunrise::before,
+.ritual-doc--sunset::before  { display: none; }
 .ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, var(--bg2) 0%, transparent 70%); }
 
 /* Softer sunrise/sunset fade-in */
@@ -8536,3 +8544,89 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .bc-comment__author { font-size: 14px; font-weight: 700; color: var(--text); }
 .bc-comment__time { font-size: 12px; color: var(--muted); }
 .bc-comment__content { font-size: 15px; line-height: 1.55; color: var(--text); }
+
+/* --------------------------------------------------------------------------
+   SKY — animated sunrise/sundown scene (sky_controller.js, sky/scene.js)
+   -------------------------------------------------------------------------- */
+.ritual-doc--with-sky { padding-top: 0; }
+.ritual-doc--with-sky::before { display: none; }
+
+.sky {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky--banner {
+  align-self: stretch;
+  flex: 0 0 auto;
+  height: clamp(180px, 32svh, 320px);
+  margin: 0 -24px clamp(28px, 4svh, 52px);
+  /* Melt the bottom edge into the page instead of a hard band */
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}
+
+.sky--immersive {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sky__controls {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+  pointer-events: auto;
+  opacity: 0.75;
+  transition: opacity var(--transition-base);
+}
+
+.sky:hover .sky__controls,
+.sky__controls:focus-within { opacity: 1; }
+
+.sky__button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  color: oklch(98% 0.01 80);
+  background: oklch(20% 0.02 260 / 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.sky__button:hover { background: oklch(20% 0.02 260 / 0.42); }
+.sky__button:focus-visible { outline: 2px solid oklch(98% 0.01 80); outline-offset: 2px; }
+.sky__button .icon { --icon-size: 14px; }
+.sky__sound-icon { width: 16px; height: 16px; }
+.sky__sound-mute { display: none; }
+.sky__button--off .sky__sound-waves { display: none; }
+.sky__button--off .sky__sound-mute { display: inline; }
+
+/* Wrap screen: the night sky fills the page, so the words turn to starlight */
+.ritual-doc--wrap:has(.sky--immersive) {
+  --warm-ink: oklch(97% 0.012 80);
+  --warm-ink-soft: oklch(88% 0.02 80);
+  --warm-line-hover: oklch(84% 0.03 80);
+  --ink-medium: oklch(80% 0.02 80);
+  --ink-dark: oklch(86% 0.015 80);
+  --ink: oklch(97% 0.012 80);
+  --brick: oklch(97% 0.012 80);
+  --brick-hover: oklch(100% 0 0);
+  --brick-ink: oklch(22% 0.02 260);
+  min-height: 100%;
+  overflow: hidden;
+}

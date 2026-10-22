@@ -2,7 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static values = {
-    sunrisePlay: { type: Boolean, default: false },
     sunsetPlay:  { type: Boolean, default: false },
     redirectUrl: { type: String, default: "" }
   }
@@ -21,10 +20,6 @@ export default class extends Controller {
       })
     }
 
-    if (this.sunrisePlayValue) {
-      this.#playSunrise()
-    }
-
     if (this.sunsetPlayValue) {
       this.#playSunset()
     }
@@ -34,50 +29,16 @@ export default class extends Controller {
     clearTimeout(this.redirectTimer)
   }
 
-  #playSunrise() {
-    this.#playAudioFaded("/sounds/sunrise.mp3")
-    if (this.reducedMotion) return
-
-    this.element.classList.add("ritual--sunrise-animate")
-    this.element.addEventListener("animationend", () => {
-      this.element.classList.remove("ritual--sunrise-animate")
-    }, { once: true })
-  }
-
+  // The sky controller draws and scores sunrise/sundown; this only keeps the
+  // wrap screen's hand-off back to the week once the sun has set.
   #playSunset() {
-    this.#playAudioFaded("/sounds/sunset.mp3")
-    if (!this.reducedMotion) this.element.classList.add("ritual--sunset-animate")
-
     const redirectUrl = this.redirectUrlValue
     if (redirectUrl) {
       // Track the timer so navigating away mid-animation can't yank the user
       // back to the wrap screen from wherever they went next.
       this.redirectTimer = setTimeout(() => {
         window.location.href = redirectUrl
-      }, this.reducedMotion ? 600 : 4800)
-    }
-  }
-
-  #playAudioFaded(src) {
-    try {
-      const audio = new Audio(src)
-      audio.volume = 0
-      const target = 0.6
-      const fadeMs = 1200
-      const steps = 24
-      const stepMs = fadeMs / steps
-      let step = 0
-      audio.play().then(() => {
-        const fade = setInterval(() => {
-          step += 1
-          audio.volume = Math.min(target, (target * step) / steps)
-          if (step >= steps) clearInterval(fade)
-        }, stepMs)
-      }).catch(() => {
-        // Autoplay may be blocked — silently fail
-      })
-    } catch (_e) {
-      // Audio not supported
+      }, this.reducedMotion ? 600 : 9000)
     }
   }
 }

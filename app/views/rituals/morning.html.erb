@@ -11,9 +11,8 @@
 <% end %>
 
 <% if @step == 1 %>
-  <div class="ritual-doc ritual-doc--sunrise"
-       data-controller="ritual"
-       data-ritual-sunrise-play-value="<%= @play_sunrise ? 'true' : 'false' %>">
+  <div class="ritual-doc ritual-doc--sunrise ritual-doc--with-sky" data-controller="ritual">
+    <%= render "rituals/sky", mode: "sunrise", play: @play_sunrise %>
     <%= render "morning_yesterday_review",
         wins: @yesterday_wins,
         tracked_min: @yesterday_tracked_min,

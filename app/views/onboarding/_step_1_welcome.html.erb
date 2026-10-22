@@ -13,5 +13,5 @@
 
 <%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" }, html: { class: "ritual-doc__actions" } do |f| %>
   <%= f.hidden_field :step, value: 1 %>
-  <button type="submit" class="ritual-doc__link">begin <span aria-hidden="true">&rarr;</span></button>
+  <button type="submit" class="ritual-doc__link">Begin <span aria-hidden="true">&rarr;</span></button>
 <% end %>
