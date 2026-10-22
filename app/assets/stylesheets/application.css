@@ -8268,11 +8268,11 @@ select.form-input {
 
 /* HEY Journal sync label: app tile + "Journal" */
 .jrnl-hey-tile {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 14px;
+  height: 14px;
   margin-right: -2px;
   flex-shrink: 0;
+  color: var(--muted);
 }
 
 .daily-log__head-meta:has(.jrnl-hey-tile) { display: flex; align-items: center; gap: 6px; }

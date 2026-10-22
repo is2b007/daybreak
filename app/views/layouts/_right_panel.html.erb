@@ -137,7 +137,7 @@
       <span class="jrnl-date"><%= Date.current.strftime("%B %-d") %> <span class="jrnl-dow"><%= Date.current.strftime("%a") %></span></span>
       <div class="jrnl-header-meta">
         <% if current_user.hey_connected? %>
-          <%= source_tile "hey", class: "jrnl-hey-tile" %>
+          <%= icon "hey", class: "jrnl-hey-tile" %>
           <% if @rp_journal_hey_synced %>
             <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for today.">Journal · Synced</span>
           <% elsif @rp_journal.present? %>
