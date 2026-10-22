@@ -64,10 +64,12 @@ class ApplicationController < ActionController::Base
     hey_scope = current_user.hey_emails.active
     @rp_hey_emails = hey_scope.for_folder(:imbox).ordered.limit(25)
     @rp_hey_labels = hey_scope.filter_map(&:label).uniq.compact.sort
+    @rp_hey_mailboxes = current_user.hey_mailboxes
   rescue => e
     Rails.logger.warn "Right panel (HEY) load failed: #{e.class}: #{e.message}"
     @rp_hey_emails = []
     @rp_hey_labels = []
+    @rp_hey_mailboxes = []
     @right_panel_errors << "HEY inbox didn't load"
   end
 

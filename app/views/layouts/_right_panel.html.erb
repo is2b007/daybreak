@@ -90,7 +90,15 @@
     </div>
     <% if current_user.hey_connected? %>
       <div class="r-filter">
-        <select class="r-select" data-hey-inbox-panel-target="folderSelect" data-action="change->hey-inbox-panel#onFolderChange" aria-label="Switch mailbox">
+        <% if @rp_hey_mailboxes&.many? %>
+          <select class="r-select" data-hey-inbox-panel-target="accountSelect" data-action="change->hey-inbox-panel#onAccountChange" aria-label="Switch mailbox">
+            <option value="">All mailboxes</option>
+            <% @rp_hey_mailboxes.each do |mailbox| %>
+              <option value="<%= mailbox["id"] %>"><%= mailbox["name"].presence || mailbox["domain"].presence || "Mailbox" %></option>
+            <% end %>
+          </select>
+        <% end %>
+        <select class="r-select" data-hey-inbox-panel-target="folderSelect" data-action="change->hey-inbox-panel#onFolderChange" aria-label="Switch box">
           <option value="imbox">Imbox</option>
           <option value="reply_later">Reply later</option>
           <option value="set_aside">Set aside</option>

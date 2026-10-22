@@ -487,7 +487,7 @@ class HeyClientTest < ActiveSupport::TestCase
     assert captured[:body].dig("calendar_time_track", :ends_at).present?
   end
 
-  test "email box methods use canonical laterbox asidebox trailbox paths" do
+  test "email box methods use canonical reply_later set_aside paper_trail paths" do
     client = HeyClient.new(@user)
     paths = []
     client.define_singleton_method(:get) do |path, allow: []|
@@ -499,7 +499,20 @@ class HeyClientTest < ActiveSupport::TestCase
     client.set_aside
     client.paper_trail
 
-    assert_equal %w[/laterbox.json /asidebox.json /trailbox.json], paths
+    assert_equal %w[/reply_later.json /set_aside.json /paper_trail.json], paths
+  end
+
+  test "accounts lists the identity's active mailboxes" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:get) do |path, allow: []|
+      next nil unless path == "/identity.json"
+      { "accounts" => [
+        { "id" => 1, "name" => "Personal", "status" => "active", "purpose" => "home", "domain" => nil, "trial" => false },
+        { "id" => 2, "name" => "Old Co", "status" => "cancelled", "purpose" => "work", "domain" => "old.test" }
+      ] }
+    end
+
+    assert_equal [ { "id" => 1, "name" => "Personal", "purpose" => "home", "domain" => nil } ], client.accounts
   end
 
   test "fetch_box follows Link rel=next when next_history_url is absent" do
@@ -507,8 +520,8 @@ class HeyClientTest < ActiveSupport::TestCase
     paths = []
     client.define_singleton_method(:get) do |path, allow: []|
       paths << path
-      if path == "/laterbox.json"
-        client.instance_variable_set(:@last_link_header, '<https://app.hey.com/laterbox.json?page=abc>; rel="next"')
+      if path == "/reply_later.json"
+        client.instance_variable_set(:@last_link_header, '<https://app.hey.com/reply_later.json?page=abc>; rel="next"')
         { "postings" => [ { "id" => 1, "kind" => "topic" } ] }
       else
         client.instance_variable_set(:@last_link_header, nil)
@@ -518,8 +531,8 @@ class HeyClientTest < ActiveSupport::TestCase
 
     rows = client.reply_later
     assert_equal 2, rows.size
-    assert_includes paths, "/laterbox.json"
-    assert_includes paths, "/laterbox.json?page=abc"
+    assert_includes paths, "/reply_later.json"
+    assert_includes paths, "/reply_later.json?page=abc"
   end
 
   test "flatten_calendar_period expands occurrence_id into composite external id" do

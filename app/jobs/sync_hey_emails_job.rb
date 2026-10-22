@@ -18,6 +18,7 @@ class SyncHeyEmailsJob < ApplicationJob
     return unless user&.hey_connected?
 
     client = HeyClient.new(user)
+    sync_accounts(user, client) if folder.blank?
     fetchers = folder_fetchers_for(folder)
 
     fetchers.each do |box_folder, method|
@@ -36,6 +37,17 @@ class SyncHeyEmailsJob < ApplicationJob
   end
 
   private
+
+  # Keeps the user's list of HEY mailboxes current so the panel can switch between them.
+  # A failed fetch leaves the stored list alone.
+  def sync_accounts(user, client)
+    accounts = client.accounts
+    user.update!(hey_accounts: accounts) if accounts && accounts != user.hey_accounts
+  rescue HeyClient::AuthError
+    raise
+  rescue StandardError => e
+    Rails.logger.warn("HEY account list sync failed for user #{user.id}: #{e.message}")
+  end
 
   # Returns the subset of FOLDER_FETCHERS to run.
   # When +folder+ names a known folder, returns just that one pair.
@@ -67,6 +79,7 @@ class SyncHeyEmailsJob < ApplicationJob
         subject: posting["name"].presence || "(no subject)",
         snippet: posting["summary"],
         hey_url: posting["app_url"],
+        hey_account_id: posting["account_id"],
         label: posting["label"] || posting.dig("creator", "label"),
         seen: posting.key?("seen") ? ActiveModel::Type::Boolean.new.cast(posting["seen"]) : row.seen
       }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_000400) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_000500) do
   create_table "calendar_events", force: :cascade do |t|
     t.boolean "all_day", default: false, null: false
     t.string "basecamp_bucket_id"
@@ -64,6 +64,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000400) do
     t.datetime "dismissed_at"
     t.string "external_id", null: false
     t.integer "folder", null: false
+    t.bigint "hey_account_id"
     t.string "hey_url"
     t.string "label"
     t.datetime "received_at", null: false
@@ -77,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000400) do
     t.integer "user_id", null: false
     t.index ["user_id", "external_id"], name: "index_hey_emails_on_user_id_and_external_id", unique: true
     t.index ["user_id", "folder"], name: "index_hey_emails_on_user_id_and_folder"
+    t.index ["user_id", "hey_account_id"], name: "index_hey_emails_on_user_id_and_hey_account_id"
     t.index ["user_id", "received_at"], name: "idx_hey_emails_for_triage", order: { received_at: :desc }, where: "dismissed_at IS NULL AND triaged_at IS NULL"
     t.index ["user_id", "received_at"], name: "index_hey_emails_on_user_id_and_received_at"
     t.index ["user_id"], name: "index_hey_emails_on_user_id"
@@ -170,6 +172,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_000400) do
     t.datetime "created_at", null: false
     t.string "email"
     t.string "hey_access_token"
+    t.json "hey_accounts"
     t.string "hey_default_calendar_id"
     t.string "hey_install_id"
     t.datetime "hey_reconnect_needed_at"

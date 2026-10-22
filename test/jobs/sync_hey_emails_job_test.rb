@@ -4,7 +4,7 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
   # Plain stub — the project doesn't use a mocking library, and minitest 6
   # dropped Object#stub. We swap HeyClient.new via define_singleton_method.
   class StubHeyClient
-    attr_accessor :imbox_data, :later_data, :aside_data
+    attr_accessor :imbox_data, :later_data, :aside_data, :accounts_data
 
     def initialize(imbox: [], later: [], aside: [])
       @imbox_data = imbox
@@ -17,6 +17,7 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     def set_aside = @aside_data
     def feed = []
     def paper_trail = []
+    def accounts = @accounts_data
   end
 
   setup do
@@ -82,6 +83,35 @@ class SyncHeyEmailsJobTest < ActiveJob::TestCase
     assert_equal false, @user.hey_emails.find_by(external_id: "401").seen
     assert_equal true, @user.hey_emails.find_by(external_id: "402").seen
     assert_nil @user.hey_emails.find_by(external_id: "403").seen
+  end
+
+  test "stores each email's mailbox and the identity's mailbox list on a full sync" do
+    stub = StubHeyClient.new(
+      imbox: [ posting(101, subject: "Home", folder_extra: { "account_id" => 1 }) ],
+      later: [ posting(201, subject: "Work", folder_extra: { "account_id" => 2 }) ]
+    )
+    stub.accounts_data = [
+      { "id" => 1, "name" => "Personal", "purpose" => "home", "domain" => nil },
+      { "id" => 2, "name" => "Acme", "purpose" => "work", "domain" => "acme.test" }
+    ]
+
+    with_hey_client(stub) do
+      SyncHeyEmailsJob.perform_now(@user.id)
+    end
+
+    assert_equal 1, @user.hey_emails.find_by(external_id: "101").hey_account_id
+    assert_equal 2, @user.hey_emails.find_by(external_id: "201").hey_account_id
+    assert_equal %w[Personal Acme], @user.reload.hey_mailboxes.map { |m| m["name"] }
+  end
+
+  test "keeps the stored mailbox list when the identity fetch fails" do
+    @user.update!(hey_accounts: [ { "id" => 1, "name" => "Personal" } ])
+
+    with_hey_client(StubHeyClient.new) do
+      SyncHeyEmailsJob.perform_now(@user.id)
+    end
+
+    assert_equal [ "Personal" ], @user.reload.hey_mailboxes.map { |m| m["name"] }
   end
 
   test "is idempotent: second run does not duplicate or churn updated_at on unchanged rows" do
