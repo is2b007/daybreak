@@ -502,6 +502,19 @@ class HeyClientTest < ActiveSupport::TestCase
     assert_equal %w[/reply_later.json /set_aside.json /paper_trail.json], paths
   end
 
+  test "accounts lists the identity's active mailboxes" do
+    client = HeyClient.new(@user)
+    client.define_singleton_method(:get) do |path, allow: []|
+      next nil unless path == "/identity.json"
+      { "accounts" => [
+        { "id" => 1, "name" => "Personal", "status" => "active", "purpose" => "home", "domain" => nil, "trial" => false },
+        { "id" => 2, "name" => "Old Co", "status" => "cancelled", "purpose" => "work", "domain" => "old.test" }
+      ] }
+    end
+
+    assert_equal [ { "id" => 1, "name" => "Personal", "purpose" => "home", "domain" => nil } ], client.accounts
+  end
+
   test "fetch_box follows Link rel=next when next_history_url is absent" do
     client = HeyClient.new(@user)
     paths = []

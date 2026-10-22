@@ -508,6 +508,18 @@ class HeyClient
     fetch_box("/imbox.json")
   end
 
+  # The identity's active mailboxes (a personal account plus any work domains), as
+  # [{ "id", "name", "purpose", "domain" }]. Boxes mix them; postings carry account_id.
+  # nil when the identity can't be fetched.
+  def accounts
+    data = get("/identity.json")
+    return nil unless data.is_a?(Hash)
+
+    Array(data["accounts"])
+      .select { |a| a.is_a?(Hash) && a["id"].present? && a["status"].in?([ nil, "active" ]) }
+      .map { |a| a.slice("id", "name", "purpose", "domain") }
+  end
+
   # Box kinds are laterbox/asidebox/trailbox, but their paths are not: per hey-sdk
   # openapi.json (and each box's url in /boxes.json), /laterbox.json etc. 404.
   def reply_later
