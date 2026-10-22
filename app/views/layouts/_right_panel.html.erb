@@ -7,7 +7,7 @@
     </div>
   <% end %>
   <%# Basecamp tab %>
-  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel"
+  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel"<%= %( data-bc-inbox-panel-arriving-value="true").html_safe if flash[:arrival] && @rp_bc_tasks.blank? %>
        data-bc-inbox-panel-next-offset-value="<%= @rp_bc_tasks&.size || 0 %>">
     <div class="r-head">
       <div class="r-dot r-dot--bc"></div>
@@ -50,10 +50,14 @@
       <% if @rp_bc_tasks&.any? %>
         <%= render "layouts/bc_inbox_items", tasks: @rp_bc_tasks %>
       <% else %>
-        <div class="r-empty" data-bc-inbox-panel-target="empty">
+        <% settled_title = "Nothing assigned to you" %>
+        <% settled_sub = "To-dos assigned to you in Basecamp show up here, ready to drag onto a day." %>
+        <%# Straight after onboarding the first sync is still running, so say so and watch for it %>
+        <div class="r-empty" data-bc-inbox-panel-target="empty"
+             data-settled-title="<%= settled_title %>" data-settled-sub="<%= settled_sub %>">
           <%= source_tile "basecamp", class: "r-empty__tile" %>
-          <p class="r-empty__title">Nothing assigned to you</p>
-          <p class="r-empty__sub">To-dos assigned to you in Basecamp show up here, ready to drag onto a day.</p>
+          <p class="r-empty__title" data-bc-inbox-panel-target="emptyTitle"><%= flash[:arrival] ? "Bringing in your to-dos" : settled_title %></p>
+          <p class="r-empty__sub" data-bc-inbox-panel-target="emptySub"><%= flash[:arrival] ? "Your Basecamp assignments land here as they sync, ready to drag onto a day." : settled_sub %></p>
         </div>
       <% end %>
       <div class="r-list__loader" data-bc-inbox-panel-target="loader"><div class="r-list__spinner"></div></div>

@@ -48,7 +48,7 @@ class OnboardingController < ApplicationController
   def complete
     current_user.update!(onboarded: true)
     # arrival: the week fades in out of onboarding's morning sky instead of snapping in
-    redirect_to root_path, notice: "Glad you're here, #{current_user.greeting_name}.", flash: { arrival: true }
+    redirect_to root_path, flash: { arrival: true }
   end
 
   def restart

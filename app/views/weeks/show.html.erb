@@ -18,20 +18,7 @@
   </div>
 <% end %>
 
-<% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
-
 <div class="week-view" data-controller="sortable week-board">
-  <% if first_run %>
-    <div class="first-run">
-      <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
-      <p class="first-run__body">
-        This is your week. The columns below are days &mdash; your Basecamp to-dos are syncing in
-        quietly as we speak, and they&rsquo;ll show up in the inbox on the right. When you&rsquo;re ready,
-        <%= link_to "open sunrise", ritual_morning_path %> to shape today.
-      </p>
-    </div>
-  <% end %>
-
   <div class="kanban" data-week-board-target="board">
     <% @window_dates.each_with_index do |date, i| %>
       <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [], first: i.zero? %>

@@ -4,17 +4,19 @@ import { Turbo } from "@hotwired/turbo-rails"
 const EMPTY_PROJECT = "__empty__"
 
 export default class extends Controller {
-  static targets = [ "list", "projectSelect", "sortSelect", "count", "item", "filteredEmpty", "loader", "empty" ]
-  static values = { nextOffset: { type: Number, default: 20 } }
+  static targets = [ "list", "projectSelect", "sortSelect", "count", "item", "filteredEmpty", "loader", "empty", "emptyTitle", "emptySub" ]
+  static values = { nextOffset: { type: Number, default: 20 }, arriving: Boolean }
 
   connect() {
     this._loadingMore = false
     this._hasMorePages = true
     this.apply()
     this.element.addEventListener("panel:activated", this._onPanelActivated = () => this.refresh())
+    if (this.arrivingValue) this.#awaitFirstSync()
   }
 
   disconnect() {
+    clearTimeout(this._arrivalTimer)
     if (this._onPanelActivated) {
       this.element.removeEventListener("panel:activated", this._onPanelActivated)
     }
@@ -28,6 +30,29 @@ export default class extends Controller {
     items.forEach(el => el.remove())
     if (this.hasEmptyTarget) this.emptyTarget.hidden = true
     this.loadMore()
+  }
+
+  // Just after onboarding the first Basecamp sync is still running: check
+  // back quietly a few times and fill the list once to-dos exist
+  #awaitFirstSync(attempt = 0) {
+    const delays = [ 3000, 6000, 10000, 15000, 25000 ]
+    if (attempt >= delays.length) return this.#settleEmpty()
+    this._arrivalTimer = setTimeout(async () => {
+      if (this.itemTargets.length) return
+      try {
+        const r = await fetch("/sync/basecamp/more?offset=0", { headers: { Accept: "application/json" } })
+        const data = r.ok ? await r.json() : {}
+        if (data.html?.trim()) return this.refresh()
+      } catch {}
+      this.#awaitFirstSync(attempt + 1)
+    }, delays[attempt])
+  }
+
+  #settleEmpty() {
+    if (!this.hasEmptyTarget) return
+    const { settledTitle, settledSub } = this.emptyTarget.dataset
+    if (this.hasEmptyTitleTarget && settledTitle) this.emptyTitleTarget.textContent = settledTitle
+    if (this.hasEmptySubTarget && settledSub) this.emptySubTarget.textContent = settledSub
   }
 
   apply() {
