@@ -654,7 +654,7 @@ class TaskAssignmentsController < ApplicationController
   end
 
   def task_params
-    params.require(:task_assignment).permit(:title, :description, :size, :planned_duration_minutes, :status)
+    params.require(:task_assignment).permit(:title, :description, :notes, :size, :planned_duration_minutes, :status)
   end
 
   # Fresh description (and card steps) from Basecamp: the sync only stores the

@@ -23,6 +23,10 @@ class SettingsController < ApplicationController
       @hey_calendars = data if data.is_a?(Array)
     rescue HeyClient::AuthError
       @hey_calendars = []
+    rescue StandardError => e
+      # Settings must still open when HEY is unreachable.
+      Rails.logger.warn("HEY calendars fetch failed: #{e.class}: #{e.message}")
+      @hey_calendars = []
     end
   end
 

@@ -1,0 +1,23 @@
+<%# Phone-width navigation. The side rails are hidden below 700px; this bar
+    replaces them, and opens the inbox panel and the sidebar as full sheets. %>
+<nav class="mtab" data-controller="mobile-nav" aria-label="Main">
+  <%= link_to root_path, class: "mtab__item #{'on' if controller_name == 'weeks'}" do %>
+    <%= render "icons/nav/week" %><span>Week</span>
+  <% end %>
+  <%= link_to day_path(Date.current), class: "mtab__item #{'on' if controller_name == 'days' && @tab != 'log'}" do %>
+    <%= render "icons/nav/today" %><span>Today</span>
+  <% end %>
+  <% unless hide_inbox_panel %>
+    <button type="button" class="mtab__item" data-mobile-nav-target="inbox" data-action="mobile-nav#inbox">
+      <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      <span>Inbox</span>
+    </button>
+  <% end %>
+  <%= link_to day_path(Date.current, tab: "log"), class: "mtab__item #{'on' if controller_name == 'daily_logs' || (controller_name == 'days' && @tab == 'log')}" do %>
+    <%= render "icons/nav/daily_log" %><span>Log</span>
+  <% end %>
+  <button type="button" class="mtab__item" data-mobile-nav-target="more" data-action="mobile-nav#more">
+    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+    <span>More</span>
+  </button>
+</nav>

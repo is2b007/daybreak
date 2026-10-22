@@ -41,6 +41,13 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { task.reload }
   end
 
+  test "PATCH update saves private notes without touching the synced description" do
+    @task.update!(description: "<div>From Basecamp</div>")
+    patch :update, params: { id: @task.id, task_assignment: { notes: "Call Jason first" } }, format: :turbo_stream
+    assert_equal "Call Jason first", @task.reload.notes
+    assert_equal "<div>From Basecamp</div>", @task.description
+  end
+
   test "PATCH move renders turbo stream (regression for missing template)" do
     patch :move,
       params: { id: @task.id, target_date: "2026-04-09", position: 0, source_date: "2026-04-07" },

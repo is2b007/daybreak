@@ -58,6 +58,15 @@ export default class extends Controller {
     this.#syncToggle()
   }
 
+  /** Phone tab bar: open on the inbox last used (Basecamp or HEY), or close if open. */
+  openSheet() {
+    if (!this.element.classList.contains("right--collapsed")) return this.toggle()
+    let tab = null
+    try { tab = localStorage.getItem(TAB_KEY) } catch (_) { /* private mode */ }
+    this.#activateTab(tab === "hey" ? "hey" : "bc")
+    this.toggle()
+  }
+
   /** Rail icons open the panel on their tab; clicking the open tab's icon closes it. */
   switchTab(event) {
     const tab = event.currentTarget.dataset.tab

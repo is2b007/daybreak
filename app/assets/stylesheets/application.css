@@ -8732,3 +8732,199 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   min-height: 100%;
   overflow: hidden;
 }
+
+/* ============================================================
+   PHONE LAYOUT — bottom tab bar, sheets, full-screen detail
+   Below 700px the two icon rails cost a quarter of the screen.
+   They go away; a bottom tab bar takes over, and the sidebar and
+   inbox panel open as full-screen sheets above it.
+   ============================================================ */
+.mtab,
+.sheet-close { display: none; }
+
+@media (max-width: 700px) {
+  :root { --mtab-height: calc(56px + env(safe-area-inset-bottom)); }
+
+  .shell,
+  .shell:has(.sb.sb--collapsed),
+  .shell.shell--no-right,
+  .shell.shell--no-right:has(.sb.sb--collapsed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mid { padding-bottom: var(--mtab-height); }
+
+  .mtab {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--mtab-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: color-mix(in oklch, var(--bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    z-index: 960;
+  }
+
+  .mtab__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mtab__item .nav-icon,
+  .mtab__item svg { width: 22px; height: 22px; --icon-size: 22px; }
+  .mtab__item.on,
+  .mtab__item[aria-expanded="true"] { color: var(--text); }
+
+  /* Rails are gone; closed panels take no space at all. */
+  .sb.sb--collapsed,
+  .right.right--collapsed { display: none; }
+
+  /* Open = full-screen sheet above the tab bar. */
+  .sb:not(.sb--collapsed),
+  .right:not(.right--collapsed) {
+    position: fixed;
+    inset: 0 0 var(--mtab-height) 0;
+    width: auto !important;
+    z-index: 955;
+    box-shadow: none;
+    animation: sheetUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .right:not(.right--collapsed) {
+    display: flex;
+    flex-direction: column;
+    --right-panel-content-width: 100% !important;
+  }
+
+  .right:not(.right--collapsed) { min-width: 0 !important; max-width: none !important; }
+  .right:not(.right--collapsed) .r-content { flex: 1; min-height: 0; width: 100%; max-width: none; border-right: 0; }
+
+  /* The rail becomes a source switcher across the top of the sheet. */
+  .right:not(.right--collapsed) .r-rail {
+    order: -1;
+    flex-direction: row;
+    height: auto;
+    padding: 8px 12px;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    width: 100%;
+    overflow: visible;
+  }
+
+  .right:not(.right--collapsed) .r-rail-div { width: 1px; height: 20px; margin: 0 4px; }
+  .right .rri--panel-toggle,
+  .sb .sb-toggle { display: none; }
+
+  .sheet-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bg2);
+    color: var(--text);
+  }
+
+  .sheet-close .icon { --icon-size: 16px; }
+  .right .rri-tip { display: none; }
+
+  /* Sidebar sheet: the "More" menu. Collapse button reads as a close. */
+  .sb:not(.sb--collapsed) .sb-nav .sbi { min-height: 44px; }
+
+  /* Detail views (to-do, card, email) go full screen with the close X up top. */
+  .modal-overlay { align-items: stretch; z-index: 970; }
+  .modal,
+  .modal--task {
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: 100dvh;
+    border-radius: 0;
+    border: 0;
+    animation: sheetUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .modal__topbar { padding-top: max(10px, env(safe-area-inset-top)); }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb, .right, .modal { animation: none !important; }
+}
+
+/* ============================================================
+   FOCUS — calmer timer, background sound picker
+   ============================================================ */
+.focus__timer-display {
+  font-family: var(--font-serif, "Newsreader", Georgia, serif);
+  font-weight: 300;
+  font-size: clamp(56px, 9vw, 84px);
+  letter-spacing: 0;
+}
+
+.focus__sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: -12px auto 0;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--focus-ink) 6%, transparent);
+  color: color-mix(in oklch, var(--focus-ink) 60%, transparent);
+  align-self: center;
+}
+
+.focus__sound-icon { margin-right: 4px; flex-shrink: 0; }
+
+.focus__sound-opt {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  position: relative;
+}
+
+.focus__sound-opt:hover { color: var(--focus-ink); }
+.focus__sound-opt.on { background: color-mix(in oklch, var(--focus-ink) 14%, transparent); color: var(--focus-ink); }
+
+/* Last mood used: a quiet dot, since sound never starts on its own. */
+.focus__sound-opt.last:not(.on)::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (hover: none) { .focus__hint { display: none; } }
