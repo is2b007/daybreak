@@ -45,13 +45,8 @@
       <% end %>
     </ul>
 
-    <div class="ritual-doc__meter" aria-label="Time tracked yesterday">
-      <span>you tracked</span>
-      <strong><%= tracked_label %></strong>
-      <span>of <%= target_h == target_h.to_i ? target_h.to_i : target_h %> hr</span>
-      <span class="ritual-doc__meter-bar" role="presentation">
-        <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
-      </span>
+    <div class="ritual-doc__meter-bar" role="img" aria-label="Tracked <%= tracked_label %> of <%= target_h == target_h.to_i ? target_h.to_i : target_h %> hours yesterday">
+      <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
     </div>
   <% end %>
 

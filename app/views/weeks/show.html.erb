@@ -1,46 +1,28 @@
 <% content_for(:topbar) do %>
   <div class="week-nav">
     <div class="week-nav__arrows">
-      <%= link_to week_path(@window_start - 7.days), class: "topbar__nav-arrow", title: "Previous week" do %>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <%= link_to week_path(@window_start - 7.days), class: "topbar__nav-arrow", title: "Previous week", aria: { label: "Previous week" } do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
       <% end %>
     </div>
     <span class="topbar__title"><%= @window_start.strftime("%b %-d") %> &ndash; <%= @display_end.strftime("%b %-d") %></span>
     <div class="week-nav__arrows">
-      <%= link_to week_path(@window_start + 7.days), class: "topbar__nav-arrow", title: "Next week" do %>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <%= link_to week_path(@window_start + 7.days), class: "topbar__nav-arrow", title: "Next week", aria: { label: "Next week" } do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
       <% end %>
     </div>
     <span class="topbar__sub"><%= @window_start.strftime("%Y") %></span>
     <% unless @window_dates.include?(Date.current) %>
-      <%= link_to "Today", root_path, class: "btn btn--pill btn--small week-nav__today" %>
+      <%= link_to "This week", root_path, class: "btn btn--pill btn--small week-nav__today" %>
     <% end %>
   </div>
 <% end %>
 
-<% first_run = @task_assignments.empty? && @weekly_goals.empty? && current_user.day_plans.where.not(morning_ritual_done: false).none? %>
-
-<div class="week-view" data-controller="sortable infinite-week" data-infinite-week-url-value="<%= week_days_path %>">
-  <% if first_run %>
-    <div class="first-run">
-      <h2 class="first-run__heading">Welcome, <%= current_user.greeting_name %>.</h2>
-      <p class="first-run__body">
-        This is your week. The columns below are days &mdash; your Basecamp to-dos are syncing in
-        quietly as we speak, and they&rsquo;ll show up in the inbox on the right. When you&rsquo;re ready,
-        <%= link_to "open sunrise", ritual_morning_path %> to shape today.
-      </p>
-    </div>
-  <% end %>
-
-  <div class="kanban">
-    <% @window_dates.each do |date| %>
-      <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [] %>
+<div class="week-view" data-controller="sortable week-board">
+  <div class="kanban" data-week-board-target="board">
+    <% @window_dates.each_with_index do |date, i| %>
+      <%= render "day_column", date: date, tasks: @tasks_by_day[date] || [], events: @calendar_events[date] || [], first: i.zero? %>
     <% end %>
-    <div id="kanban_sentinel"
-         class="kanban__sentinel"
-         data-infinite-week-target="sentinel"
-         data-infinite-week-from-value="<%= (@window_dates.last + 1.day).iso8601 %>">
-    </div>
   </div>
 
   <%= render "sometime_row", tasks: @sometime_tasks %>

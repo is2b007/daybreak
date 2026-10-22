@@ -1,10 +1,12 @@
 class WeeksController < ApplicationController
-  INITIAL_DAYS = 14
-  BATCH_DAYS   = 7
+  # The board is one calendar week, Monday to Sunday: what's left of this week
+  # is the whole picture, and next week only shows when you step to it.
+  WEEK_DAYS  = 7
+  BATCH_DAYS = 7
 
   def show
     @window_start    = parse_window_start
-    data             = fetch_window_data(@window_start, INITIAL_DAYS)
+    data             = fetch_window_data(@window_start, WEEK_DAYS)
     @window_dates    = data[:dates]
     @window_end      = @window_dates.last
     @tasks_by_day    = data[:tasks_by_day]
@@ -46,13 +48,10 @@ class WeeksController < ApplicationController
   private
 
   def parse_window_start
-    if params[:date].present?
-      Date.parse(params[:date])
-    else
-      Date.current
-    end
+    date = params[:date].present? ? Date.parse(params[:date]) : Date.current
+    date.beginning_of_week(:monday)
   rescue Date::Error
-    Date.current
+    Date.current.beginning_of_week(:monday)
   end
 
   def parse_from_param

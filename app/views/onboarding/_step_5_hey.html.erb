@@ -1,31 +1,25 @@
-<p class="ritual-doc__dateline">Step 5 of 7</p>
-<h1 class="ritual-doc__title">Use HEY?</h1>
-<p class="ritual-doc__prose">
-  If you do, Daybreak can pull in your calendar, personal to-dos,
-  email triage, and journal. If you don&rsquo;t &mdash; that&rsquo;s fine, skip this step.
-</p>
-
-<ul class="onboarding-doc__feature-list">
-  <li>Calendar events next to your Basecamp schedule</li>
-  <li>Personal to-dos slot into your day</li>
-  <li>Imbox &middot; Reply Later &middot; Set Aside, triaged from here</li>
-  <li>Reflections write back to your HEY Journal</li>
-</ul>
-
-<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
-  <%= f.hidden_field :step, value: 5 %>
-
+<%= render layout: "step", locals: { step: 5, elevation: 0.72 } do %>
+  <%= image_tag "tiles/hey.png", class: "onb__app-icon", alt: "", data: { reveal: "" } %>
+  <h1 class="onb__title" id="onb-title-5" tabindex="-1" data-reveal="words">Do you use HEY?</h1>
   <% if current_user.hey_connected? %>
-    <p class="ritual-doc__prose ritual-doc__prose--muted">HEY is connected.</p>
-    <div class="ritual-doc__actions">
-      <%= link_to "back", onboarding_path(step: 4), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
-      <button type="submit" name="connect_hey" value="false" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
-    </div>
+    <p class="onb__prose" data-reveal>HEY is connected. Your calendar, to-dos, email and journal are on their way in.</p>
   <% else %>
-    <div class="ritual-doc__actions">
-      <%= link_to "back", onboarding_path(step: 4), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
-      <%= link_to "connect HEY →", auth_hey_path, class: "ritual-doc__link" %>
-      <button type="submit" name="connect_hey" value="false" class="ritual-doc__link ritual-doc__link--back">skip for now</button>
-    </div>
+    <p class="onb__prose" data-reveal>If you do, Daybreak can bring in your calendar, to-dos, email and journal. If not, skip this one.</p>
+    <ul class="onb__list">
+      <li data-reveal>Calendar events next to your Basecamp schedule</li>
+      <li data-reveal>Imbox, Reply Later and Set Aside, triaged from here</li>
+      <li data-reveal>Evening reflections saved to your HEY Journal</li>
+    </ul>
+  <% end %>
+
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
+    <%= f.hidden_field :step, value: 5 %>
+    <%= link_to "Back", onboarding_path(step: 4), class: "onb__button onb__button--quiet" %>
+    <% if current_user.hey_connected? %>
+      <button type="submit" name="connect_hey" value="false" class="onb__button onb__button--primary">Continue</button>
+    <% else %>
+      <button type="submit" name="connect_hey" value="false" class="onb__button">Skip for now</button>
+      <%= link_to "Connect HEY", auth_hey_path, class: "onb__button onb__button--primary", data: { turbo_frame: "_top" } %>
+    <% end %>
   <% end %>
 <% end %>

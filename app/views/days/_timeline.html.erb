@@ -34,6 +34,7 @@
     <% block_classes = "timeline__block timeline__block--#{event[:source] || 'calendar'}" %>
     <% block_classes += " timeline__block--completed" if event[:completed] %>
     <% block_classes += " timeline__block--colored" if event[:color].present? %>
+    <% block_classes += " timeline__block--short" if event[:height_hours].to_f < 0.5 %>
     <div class="<%= block_classes %>"
          style="top: calc(var(--timeline-hour) * <%= event[:top_offset_hours] %>); height: max(calc(var(--timeline-hour) * <%= event[:height_hours] %>), calc(var(--timeline-hour) * 0.25));<%= " --event-color: #{event[:color]};" if event[:color].present? %>"
          <% if hey_timeline %>
@@ -79,7 +80,7 @@
     <% bottom_dec = [ bottom_dec, top_dec + 0.25 ].max %>
     <% top_offset_hours = (top_dec - h0).round(4) %>
     <% height_hours = [ (bottom_dec - top_dec).round(4), 0.25 ].max %>
-    <div class="timeline__block timeline__block--task <%= 'timeline__block--completed' if task.completed? %>"
+    <div class="timeline__block timeline__block--task <%= 'timeline__block--completed' if task.completed? %> <%= 'timeline__block--short' if height_hours < 0.5 %>"
          style="top: calc(var(--timeline-hour) * <%= top_offset_hours %>); height: max(calc(var(--timeline-hour) * <%= height_hours %>), calc(var(--timeline-hour) * 0.25));"
          data-controller="task-timeline-block"
          data-task-timeline-block-assignment-id-value="<%= task.id %>"

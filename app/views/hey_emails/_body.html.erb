@@ -1,0 +1,11 @@
+<%# locals: (email:, body:) %>
+<%= turbo_frame_tag dom_id(email, :body) do %>
+  <% if body.present? && body[:content].present? %>
+    <% if body[:entry_count].to_i > 1 %>
+      <p class="email-modal__thread">Latest of <%= body[:entry_count] %> messages in this thread</p>
+    <% end %>
+    <div class="email-modal__body rich-text"><%= email_html(body[:content]) %></div>
+  <% elsif email.snippet.present? %>
+    <p class="email-modal__snippet"><%= email.snippet %></p>
+  <% end %>
+<% end %>

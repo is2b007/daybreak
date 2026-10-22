@@ -2,7 +2,8 @@ class OnboardingController < ApplicationController
   skip_before_action :require_onboarding!
   before_action :redirect_if_onboarded, except: [ :restart ]
 
-  STEPS = 7
+  STEP_NAMES = %w[welcome name stamp basecamp hey timezone first_week].freeze
+  STEPS = STEP_NAMES.size
 
   def show
     @step = (params[:step] || 1).to_i.clamp(1, STEPS)
@@ -46,7 +47,8 @@ class OnboardingController < ApplicationController
 
   def complete
     current_user.update!(onboarded: true)
-    redirect_to root_path, notice: "Glad you're here, #{current_user.greeting_name}."
+    # arrival: the week fades in out of onboarding's morning sky instead of snapping in
+    redirect_to root_path, flash: { arrival: true }
   end
 
   def restart

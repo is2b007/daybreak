@@ -1,0 +1,16 @@
+<%# Animated sky for sunrise/sundown. immersive: fills the screen behind the content (wrap screen). %>
+<% immersive = local_assigns.fetch(:immersive, false) %>
+<div class="sky <%= immersive ? 'sky--immersive' : 'sky--banner' %> sky--<%= mode %>"
+     data-controller="sky"
+     data-sky-mode-value="<%= mode %>"
+     data-sky-play-value="<%= play ? 'true' : 'false' %>">
+  <canvas class="sky__canvas" data-sky-target="canvas" aria-hidden="true"></canvas>
+  <div class="sky__controls">
+    <button type="button" class="sky__button" data-action="sky#replay" title="Play again" aria-label="Play the <%= mode %> again">
+      <%= icon "refresh" %>
+    </button>
+    <button type="button" class="sky__button" data-sky-target="soundToggle" data-action="sky#toggleSound" aria-label="Sound" aria-pressed="true">
+      <svg class="sky__sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor"/><path class="sky__sound-waves" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sky__sound-mute" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</div>

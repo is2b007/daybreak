@@ -20,13 +20,8 @@
     <% end %>
   </p>
 
-  <div class="ritual-doc__meter" aria-label="Time tracked today">
-    <span>tracked</span>
-    <strong><%= format_sunset_hours_badge(actual_minutes) %></strong>
-    <span>of <%= format_sunset_hours_badge(planned_minutes) %></span>
-    <span class="ritual-doc__meter-bar" role="presentation">
-      <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
-    </span>
+  <div class="ritual-doc__meter-bar" role="img" aria-label="Tracked <%= format_sunset_hm(actual_minutes) %> of <%= format_sunset_hm(planned_minutes) %> planned">
+    <span class="ritual-doc__meter-fill" style="width: <%= pct %>%;"></span>
   </div>
 
   <% if donut_style.present? %>

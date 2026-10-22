@@ -1,55 +1,119 @@
 /* ==========================================================================
-   DAYBREAK v5 — Design System
-   Warm, light, no shadows, Inter font, 3-column shell layout
+   DAYBREAK v6 — Design System
+   Basecamp's bones, Daybreak's dawn: a 37signals-style OKLCH ink ramp on a
+   white canvas, system type, accents taken from the logo (dawn amber, sky).
+   Light and dark themes; see THEMES below.
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Newsreader (SIL OFL 1.1) — the one serif, for a single display line per screen (see SERIF, SPARINGLY). */
+@font-face {
+  font-family: "Newsreader";
+  src: url("newsreader-opsz-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("newsreader-opsz-italic.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
 
 /* --------------------------------------------------------------------------
    TOKENS
    -------------------------------------------------------------------------- */
 :root {
+  color-scheme: light;
+
+  /* Primitives (OKLCH). Only these change between themes; everything else
+     below is derived from them. Ink ramp follows 37signals' Fizzy. */
+  /* BC5's warm tint behind white cards; side panels one step deeper */
+  --lch-canvas: 98.6% 0.008 60;
+  --lch-panel: 96.6% 0.011 60;
+  --lch-surface: 100% 0 0;
+  --lch-ink-darkest: 32.09% 0.0204 233.83;   /* Basecamp ink-4 */
+  --lch-ink-darker: 42% 0.018 234;
+  --lch-ink-dark: 53% 0.015 234;            /* Basecamp ink-5 */
+  --lch-ink-medium: 66% 0.01 234;
+  --lch-ink-light: 84% 0.006 234;
+  --lch-ink-lighter: 92% 0.004 234;
+  --lch-ink-lightest: 96% 0.003 234;
+  --lch-dawn: 73.27% 0.1818 50.86;  /* Basecamp orange — fills */
+  --lch-dawn-strong: 64% 0.18 50.86; /* amber that reads as text on canvas */
+  --lch-dawn-text: 54% 0.16 50.86;  /* amber body text (BC orange-deep is 58.2%, just under AA) */
+  --lch-dawn-wash: 97.5% 0.022 75;
+  --lch-dawn-wash-2: 93% 0.06 72;
+  --lch-sky: 80% 0.08 235;          /* logo sky — focus and evening */
+  --lch-sky-wash: 96% 0.02 235;
+  --lch-bc: 90.34% 0.1292 91.09;    /* Basecamp yellow */
+  --lch-bc-ink: 20% 0.02 240;
+  --lch-bc-wash: 97% 0.05 98;
+  --lch-bc-text: 45% 0.09 85;
+  --lch-bc-line: 62% 0.13 88;
+  --lch-hey: 55% 0.16 147;
+  --lch-hey-wash: 96.5% 0.03 145;
+  --lch-hey-text: 42% 0.11 148;
+  --lch-red: 55% 0.19 30;
+  --lch-link: 53.5% 0.1602 254.08;  /* Basecamp link */
+
+  --ink: oklch(var(--lch-ink-darkest));
+  --ink-darker: oklch(var(--lch-ink-darker));
+  --ink-dark: oklch(var(--lch-ink-dark));
+  --ink-medium: oklch(var(--lch-ink-medium));
+  --ink-light: oklch(var(--lch-ink-light));
+  --ink-lighter: oklch(var(--lch-ink-lighter));
+  --ink-lightest: oklch(var(--lch-ink-lightest));
+  --canvas: oklch(var(--lch-canvas));
+  --panel: oklch(var(--lch-panel));
+  --surface: oklch(var(--lch-surface));   /* cards and inputs sitting on the canvas */
+  --dawn: oklch(var(--lch-dawn));
+  --dawn-wash: oklch(var(--lch-dawn-wash));
+  --sky: oklch(var(--lch-sky));
+  --sky-wash: oklch(var(--lch-sky-wash));
+  --link: oklch(var(--lch-link));
+
   /* Backgrounds */
-  --bg: #FDFCFA;
-  --bg2: #F5F3EF;
-  --bg3: #EEEAE3;
+  --bg: var(--canvas);
+  --bg2: var(--ink-lightest);
+  --bg3: var(--ink-lighter);
 
   /* Text */
-  --text: #18191A;
-  --muted: #8c9aa3;
-  --muted2: #C2CAD0;
+  --text: var(--ink);
+  --muted: var(--ink-dark);
+  --muted2: var(--ink-medium);
 
   /* Lines */
-  --line: #E8E4DC;
-  --line2: #F0EDE7;
+  --line: var(--ink-lighter);
+  --line2: var(--ink-lightest);
 
-  /* Amber accent */
-  --amber: #E8902A;
-  --amber-pill: #F5A623;
-  --amber-bg: #FEF7EE;
-  --amber-text: #9A5A0A;
+  /* Dawn accent (names kept from v5's "amber") — "today", time, rituals */
+  --amber: oklch(var(--lch-dawn-strong));
+  --amber-pill: var(--dawn);
+  --amber-bg: var(--dawn-wash);
+  --amber-text: oklch(var(--lch-dawn-text));
 
-  /* Basecamp — brand refresh: Gold + Bunker, replacing the old generic blue.
-     Split into four tokens because Gold is a fill colour, not a text colour:
-     #FFD60A on the cream canvas is 1.4:1, so anything that renders type or a
-     hairline needs --bc-text / --bc-line instead. */
-  --bc: #FFD60A;        /* Basecamp Gold — solid marks: dots, stripes, badges */
-  --bc-ink: #0B1215;    /* Basecamp Bunker — the pairing for type set on Gold */
-  --bc-bg: #FFF8DB;     /* pale gold wash behind chips and timeline blocks */
-  --bc-text: #6B5200;   /* 6.9:1 on --bc-bg, matching --hey-text / --amber-text */
-  --bc-line: #B08900;   /* deeper gold for outlines that must read on the wash */
+  /* Basecamp — Gold is a fill colour, not a text colour: anything that renders
+     type or a hairline uses --bc-text / --bc-line. */
+  --bc: oklch(var(--lch-bc));
+  --bc-ink: oklch(var(--lch-bc-ink));
+  --bc-bg: oklch(var(--lch-bc-wash));
+  --bc-text: oklch(var(--lch-bc-text));
+  --bc-line: oklch(var(--lch-bc-line));
 
   /* HEY */
-  --hey: #16A34A;
-  --hey-bg: #F0FDF4;
-  --hey-text: #166534;
+  --hey: oklch(var(--lch-hey));
+  --hey-bg: oklch(var(--lch-hey-wash));
+  --hey-text: oklch(var(--lch-hey-text));
 
   /* States */
-  --red: #DC2626;
+  --red: oklch(var(--lch-red));
 
   /* Legacy aliases (used in existing views/models) */
   --color-canvas: var(--bg);
   --color-surface: var(--bg);
-  --color-surface-raised: var(--bg);
+  --color-surface-raised: var(--surface);
   --color-surface-today: var(--amber-bg);
   --color-text: var(--text);
   --color-text-muted: var(--muted);
@@ -63,20 +127,20 @@
   --color-basecamp: var(--bc);
   --color-hey: var(--hey);
   --color-completed: var(--muted2);
-  --color-warning: #F4C550;
+  --color-warning: oklch(84% 0.14 85);
   --color-danger: var(--red);
   --color-success: var(--hey);
 
   /* Gradients */
-  --gradient-sunrise-start: #FFFBF5;
+  --gradient-sunrise-start: var(--dawn-wash);
   --gradient-sunrise-end: var(--bg);
   --gradient-sunset-start: var(--bg);
-  --gradient-sunset-end: #FFF8F2;
+  --gradient-sunset-end: var(--sky-wash);
 
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-  --font-serif: Georgia, "Times New Roman", serif;
+  /* Typography — system stack, as Basecamp and HEY ship; serif only where you read or reflect */
+  --font-sans: -apple-system, BlinkMacSystemFont, Aptos, Roboto, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";  /* HEY app stack */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  --font-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
   --font-size-xs: 0.6875rem;
   --font-size-sm: 0.8125rem;
   --font-size-base: 0.875rem;
@@ -87,7 +151,7 @@
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold: 600; /* no 700 in v5 */
+  --font-weight-bold: 700;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -104,40 +168,44 @@
 
   /* Borders */
   --radius-sm: 4px;
-  --radius-md: 7px;
-  --radius-lg: 8px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  /* Shadows — soft, used sparingly on cards and pills */
-  --shadow-card: 0 1px 2px rgba(24, 25, 26, 0.04), 0 1px 3px rgba(24, 25, 26, 0.04);
-  --shadow-card-hover: 0 2px 4px rgba(24, 25, 26, 0.06), 0 6px 14px rgba(24, 25, 26, 0.08);
-  --shadow-overlay: 0 10px 30px rgba(24, 25, 26, 0.10), 0 2px 6px rgba(24, 25, 26, 0.05);
+  /* Shadows — 37signals' stacked 5% layers */
+  --lch-shadow: 0% 0 0;
+  --shadow-card: 0 0 0 1px oklch(var(--lch-shadow) / 5%), 0 0.1em 0.2em oklch(var(--lch-shadow) / 4%), 0 0.3em 0.5em oklch(var(--lch-shadow) / 4%);
+  --shadow-card-hover: 0 0 0 1px oklch(var(--lch-shadow) / 6%), 0 0.2em 0.2em oklch(var(--lch-shadow) / 5%), 0 0.4em 0.4em oklch(var(--lch-shadow) / 5%), 0 0.8em 0.8em oklch(var(--lch-shadow) / 5%);
+  --shadow-overlay: 0 0 0 1px oklch(var(--lch-shadow) / 6%), 0 0.4em 0.8em oklch(var(--lch-shadow) / 8%), 0 1.2em 2.4em oklch(var(--lch-shadow) / 10%);
   --shadow-stamp: none;
 
-  /* Week view columns: white by default; only today gets pale amber.
+  /* Week view columns: canvas by default; only today gets the dawn wash.
      Day-view sections reuse --col-today-bg as a warm surface accent. */
-  --col-default-bg:      #FFFFFF;
+  --col-default-bg:      var(--bg);
   --col-default-pill-bg: var(--bg2);
   --col-default-pill-ink: var(--muted);
-  --col-today-bg:        var(--amber-bg);      /* pale yellow — matches the "today" mark */
-  --col-today-pill-bg:   #FDE8CC;
+  --col-today-bg:        var(--amber-bg);
+  --col-today-pill-bg:   oklch(var(--lch-dawn-wash-2));
   --col-today-pill-ink:  var(--amber-text);
   /* Dynamic slots read by .kanban__column */
   --col-bg: var(--col-default-bg);
   --col-header-bg: var(--col-default-pill-bg);
   --col-header-text: var(--col-default-pill-ink);
 
-  /* Sunrise/sunset button palette — shared by .btn and ritual decisions */
-  --warm-ink:        #2a1f15; /* primary warm text */
-  --warm-ink-soft:   #7a6550; /* secondary warm text */
-  --warm-line:       rgba(139, 117, 96, 0.35); /* warm brown border */
-  --warm-line-hover: #8b7560;
-  --warm-surface:    #FFF8EF; /* cream paper */
-  --warm-surface-2:  rgba(255, 255, 255, 0.5);
-  --brick:           #A8372C; /* ritual "chosen" brick red */
-  --brick-hover:     #831F16;
-  --brick-ink:       #FFFBF5; /* cream text on brick */
+  /* Ritual palette — shared by .btn and ritual decisions. Primary actions are
+     ink pills, as in Basecamp; dawn is kept for "today" and time. */
+  --warm-ink:        var(--ink);
+  --warm-ink-soft:   var(--ink-darker);
+  --warm-line:       var(--ink-light);
+  --warm-line-hover: var(--ink-dark);
+  --warm-surface:    var(--surface);
+  --warm-surface-2:  oklch(var(--lch-surface) / 0.5);
+  --brick:           var(--ink);
+  --brick-hover:     var(--ink-darker);
+  --brick-active:    var(--ink-dark);
+  --brick-ink:       var(--canvas);
+  --stamp-red:       #A8372C; /* the "DONE" stamp keeps its ink */
 
   /* Layout */
   --sidebar-width: 188px;
@@ -168,13 +236,88 @@
 }
 
 /* --------------------------------------------------------------------------
+   THEMES — users.theme sets data-theme="light"/"dark" on <html>; "system"
+   sets nothing and follows the OS. Only primitives are redefined here.
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --lch-canvas: 20% 0.0195 232.58;
+    --lch-panel: 17.5% 0.018 232;
+    --lch-surface: 27.1% 0.023 230;
+    --lch-ink-darkest: 91.97% 0.0059 239.83;
+    --lch-ink-darker: 84% 0.0065 240;
+    --lch-ink-dark: 72% 0.009 240;
+    --lch-ink-medium: 61% 0.012 240;
+    --lch-ink-light: 40% 0.0148 240;
+    --lch-ink-lighter: 30% 0.0178 240;
+    --lch-ink-lightest: 25% 0.0204 240;
+    --lch-dawn: 74% 0.16 60;
+    --lch-dawn-strong: 78% 0.14 62;
+    --lch-dawn-text: 82% 0.11 66;
+    --lch-dawn-wash: 23% 0.016 62;
+    --lch-dawn-wash-2: 34% 0.06 58;
+    --lch-sky: 75% 0.08 235;
+    --lch-sky-wash: 27% 0.03 235;
+    --lch-bc: 86% 0.16 95;
+    --lch-bc-wash: 28% 0.04 95;
+    --lch-bc-text: 86% 0.12 95;
+    --lch-bc-line: 70% 0.12 90;
+    --lch-hey: 72% 0.14 147;
+    --lch-hey-wash: 27% 0.04 145;
+    --lch-hey-text: 82% 0.1 147;
+    --lch-red: 72% 0.15 35;
+    --lch-link: 72% 0.13 254.08;
+    --lch-shadow: 0% 0 0;
+    --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
+    --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
+    --shadow-overlay: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.8em 2em oklch(0% 0 0 / 45%);
+    --stamp-red: #E0705F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --lch-canvas: 20% 0.0195 232.58;
+  --lch-panel: 17.5% 0.018 232;
+  --lch-surface: 27.1% 0.023 230;
+  --lch-ink-darkest: 91.97% 0.0059 239.83;
+  --lch-ink-darker: 84% 0.0065 240;
+  --lch-ink-dark: 72% 0.009 240;
+  --lch-ink-medium: 61% 0.012 240;
+  --lch-ink-light: 40% 0.0148 240;
+  --lch-ink-lighter: 30% 0.0178 240;
+  --lch-ink-lightest: 25% 0.0204 240;
+  --lch-dawn: 74% 0.16 60;
+  --lch-dawn-strong: 78% 0.14 62;
+  --lch-dawn-text: 82% 0.11 66;
+  --lch-dawn-wash: 23% 0.016 62;
+  --lch-dawn-wash-2: 34% 0.06 58;
+  --lch-sky: 75% 0.08 235;
+  --lch-sky-wash: 27% 0.03 235;
+  --lch-bc: 86% 0.16 95;
+  --lch-bc-wash: 28% 0.04 95;
+  --lch-bc-text: 86% 0.12 95;
+  --lch-bc-line: 70% 0.12 90;
+  --lch-hey: 72% 0.14 147;
+  --lch-hey-wash: 27% 0.04 145;
+  --lch-hey-text: 82% 0.1 147;
+  --lch-red: 72% 0.15 35;
+  --lch-link: 72% 0.13 254.08;
+  --lch-shadow: 0% 0 0;
+  --shadow-card: 0 0 0 1px oklch(100% 0 0 / 7%), 0 0.2em 0.4em oklch(0% 0 0 / 25%);
+  --shadow-card-hover: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.4em 0.8em oklch(0% 0 0 / 35%);
+  --shadow-overlay: 0 0 0 1px oklch(100% 0 0 / 10%), 0 0.8em 2em oklch(0% 0 0 / 45%);
+  --stamp-red: #E0705F;
+}
+
+/* --------------------------------------------------------------------------
    RESET
    -------------------------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-text-size-adjust: 100%; height: 100%; }
 body {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--text);
   background: var(--bg);
@@ -190,6 +333,27 @@ body:has(.shell) {
 }
 /* Ensure [hidden] always wins over any display rule in author CSS */
 [hidden] { display: none !important; }
+
+/* Basecamp's focus ring: ink outline, no extra colour, works in both themes */
+:focus-visible {
+  outline: max(2px, 0.1em) solid var(--ink);
+  outline-offset: max(2px, 0.1em);
+}
+
+/* Icons — mask-painted SVGs from app/assets/images/icons; see ApplicationHelper#icon */
+.icon {
+  background-color: currentColor;
+  block-size: var(--icon-size, 1em);
+  display: inline-block;
+  flex-shrink: 0;
+  inline-size: var(--icon-size, 1em);
+  mask-image: var(--svg);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: var(--icon-size, 1em);
+  pointer-events: none;
+  user-select: none;
+}
 img, svg { display: block; max-width: 100%; }
 a { color: var(--amber); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -339,18 +503,17 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sb-toggle:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
 }
 
-.sb-toggle svg {
+.sb-toggle .icon {
+  --icon-size: 16px;
   display: block;
-  width: 14px;
-  height: 14px;
   transition: transform 0.2s ease;
 }
 
-.sb.sb--collapsed .sb-toggle svg {
+.sb.sb--collapsed .sb-toggle .icon {
   transform: rotate(180deg);
 }
 
@@ -476,65 +639,19 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sbi.on {
-  background: var(--amber-bg);
-  color: var(--amber-text);
+  background: var(--bg2);
+  color: var(--text);
+  font-weight: 600;
 }
 
-.sbi svg {
-  flex-shrink: 0;
-  display: inline;
+/* Nav glyphs: solid Fizzy icons via the icon helper */
+.sbi .icon,
+.rri .icon.nav-icon {
+  --icon-size: 1.25em;
 }
 
-/* Legacy geometric icons keep their authored strokes */
-.sbi svg:not(.nav-icon--drawn) {
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Sidebar: hand-drawn nav icons */
-.sbi svg.nav-icon--drawn {
-  width: var(--nav-drawn-icon-size);
-  height: var(--nav-drawn-icon-size);
-  flex-shrink: 0;
-  transition: transform 0.28s cubic-bezier(0.33, 1.45, 0.56, 1);
-  transform-origin: center;
-}
-
-/* Rail: hand-drawn partials — same size as sidebar */
-.rri svg.nav-icon--drawn {
-  width: var(--nav-drawn-icon-size);
-  height: var(--nav-drawn-icon-size);
-  flex-shrink: 0;
-  display: block;
-  box-sizing: border-box;
-  transition: transform 0.28s cubic-bezier(0.33, 1.45, 0.56, 1);
-  transform-origin: center;
-}
-
-/* Drawn fill icon (week calendar) */
-.sbi svg.nav-icon--drawn-fill {
-  fill: currentColor;
-  stroke: none;
-}
-
-/*
- * Drawn stroke icons: viewBox 400×400; stroke scales with --nav-drawn-icon-size
- * (keep user weight low so fill calendar + stroke icons feel similar).
- */
-.sbi svg.nav-icon--drawn-stroke path,
-.rri svg.nav-icon--drawn-stroke path {
-  stroke-width: var(--nav-drawn-stroke-user);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Hover tilt — drawn icons only (sidebar + Goals/Daily log rail; not Basecamp/HEY) */
-.sbi:hover svg.nav-icon--drawn,
-.rri:hover svg.nav-icon--drawn {
-  transform: rotate(var(--nav-drawn-hover-tilt));
+.rri .icon.nav-icon--brand {
+  --icon-size: 17px;
 }
 
 .sbi-shortcut {
@@ -601,7 +718,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
   width: var(--nav-drawn-icon-size);
   height: var(--nav-drawn-icon-size);
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #E8852A);
+  background: linear-gradient(135deg, var(--amber-pill), #E8852A);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -746,21 +863,25 @@ img.sb-avatar--photo {
   min-height: 0;
 }
 
-.week-view .first-run {
-  flex-shrink: 0;
-}
-
 .week-view .kanban {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
 .week-view .kanban::-webkit-scrollbar { display: none; }
+
+@container (min-width: 380px)  { .kanban > turbo-frame { --week-visible-days: 2; } }
+@container (min-width: 570px)  { .kanban > turbo-frame { --week-visible-days: 3; } }
+@container (min-width: 760px)  { .kanban > turbo-frame { --week-visible-days: 4; } }
+@container (min-width: 950px)  { .kanban > turbo-frame { --week-visible-days: 5; } }
+@container (min-width: 1140px) { .kanban > turbo-frame { --week-visible-days: 6; } }
+@container (min-width: 1330px) { .kanban > turbo-frame { --week-visible-days: 7; } }
 
 .week-view .sometime-row {
   margin-top: auto;
@@ -825,7 +946,7 @@ img.sb-avatar--photo {
 }
 
 .right__resizer:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: -2px;
 }
 
@@ -956,14 +1077,13 @@ a.rri:hover {
 }
 
 .rri.rri--panel-toggle:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: -2px;
 }
 
 .rri.rri--panel-toggle .rri--panel-toggle-icon {
+  --icon-size: 16px;
   display: block;
-  width: 14px;
-  height: 14px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
@@ -973,8 +1093,8 @@ a.rri:hover {
 }
 
 .rri.on {
-  background: var(--amber-bg);
-  color: var(--amber-text);
+  background: var(--bg2);
+  color: var(--text);
 }
 
 .rri.on::after {
@@ -985,7 +1105,7 @@ a.rri:hover {
   bottom: 8px;
   width: 2px;
   border-radius: 1px 0 0 1px;
-  background: var(--amber);
+  background: var(--text);
 }
 
 .rri svg:not(.nav-icon--drawn):not(.rri--panel-toggle-icon) {
@@ -998,11 +1118,6 @@ a.rri:hover {
   stroke: none;
 }
 
-/* Panel toggle uses stroked chevron like sidebar toggle. */
-.rri.rri--panel-toggle .rri--panel-toggle-icon {
-  fill: none;
-  stroke: currentColor;
-}
 
 /* Stroke-only rail icons (e.g. Goals rings) */
 .rri svg.rri-svg--stroke {
@@ -1454,11 +1569,11 @@ a.rri:hover {
   font-size: 12px;
   font-weight: 500;
   font-family: var(--font-sans);
-  padding: 6px 14px;
-  border-radius: 20px; /* pill by default — matches ritual decision chip */
-  border: 1px solid var(--warm-line);
-  background: var(--warm-surface-2);
-  color: var(--warm-ink);
+  padding: 0.5em 1em;
+  border-radius: 3rem; /* HEY pill */
+  border: 1px solid transparent;
+  background: oklch(var(--lch-ink-darkest) / 5%); /* Basecamp's quiet ink fill */
+  color: var(--ink);
   cursor: pointer;
   transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
   text-decoration: none;
@@ -1466,9 +1581,8 @@ a.rri:hover {
 }
 
 .btn:hover {
-  color: var(--warm-ink);
-  border-color: var(--warm-line-hover);
-  background: var(--warm-surface);
+  color: var(--ink);
+  background: oklch(var(--lch-ink-darkest) / 8%);
   text-decoration: none;
 }
 
@@ -1487,20 +1601,20 @@ a.rri:hover {
 }
 
 .btn--primary:active {
-  background: #6B1A12;
-  border-color: #6B1A12;
+  background: var(--brick-active);
+  border-color: var(--brick-active);
 }
 
-/* Secondary — cream paper, warm border (same as base; kept for explicit intent) */
+/* Secondary — HEY's default button: transparent pill with an ink outline */
 .btn--secondary {
-  background: var(--warm-surface-2);
-  color: var(--warm-ink);
-  border-color: var(--warm-line);
+  background: transparent;
+  color: var(--ink);
+  border-color: oklch(var(--lch-ink-darkest) / 50%);
 }
 
 .btn--secondary:hover {
-  background: var(--warm-surface);
-  border-color: var(--warm-line-hover);
+  background: oklch(var(--lch-ink-darkest) / 5%);
+  border-color: var(--ink);
 }
 
 .btn--ghost {
@@ -1557,8 +1671,8 @@ a.rri:hover {
 }
 
 .btn--warm:active {
-  background: #6B1A12;
-  border-color: #6B1A12;
+  background: var(--brick-active);
+  border-color: var(--brick-active);
 }
 
 /* Pill — same shape as base .btn (which is already pill); kept as a semantic hook
@@ -1622,9 +1736,9 @@ a.rri:hover {
 .form-input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--bg);
+  border: 1px solid oklch(var(--lch-ink-darkest) / 15%);
+  border-radius: 6px;
+  background: var(--surface);
   color: var(--text);
   font-size: var(--font-size-base);
   transition: border-color var(--transition-fast);
@@ -1632,7 +1746,12 @@ a.rri:hover {
 
 .form-input:focus {
   outline: none;
-  border-color: var(--amber);
+  border-color: oklch(var(--lch-ink-darkest) / 50%);
+}
+
+.form-input:focus-visible {
+  outline: max(2px, 0.1em) solid var(--ink);
+  outline-offset: 0;
 }
 
 .form-input--large {
@@ -1671,9 +1790,41 @@ select.form-input {
 }
 
 .flash--alert {
-  background: #FDE8E8;
+  background: oklch(var(--lch-red) / 0.12);
   color: var(--red);
   border: 1px solid var(--red);
+}
+
+/* Passing messages (flash_controller.js dismisses them) float as a toast at
+   the bottom instead of pushing the page down */
+.flash[data-controller~="flash"] {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--mtab-height, 0px) + 24px);
+  z-index: 900;
+  translate: -50% 0;
+  max-width: min(520px, calc(100vw - 32px));
+  margin: 0;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--radius-full);
+  line-height: 1.4;
+  box-shadow: 0 8px 28px oklch(20% 0.02 260 / 0.18);
+  animation: flash-in 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.flash--notice[data-controller~="flash"] {
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+.flash--alert[data-controller~="flash"] {
+  background: var(--red);
+  color: #fff;
+}
+
+@keyframes flash-in {
+  from { opacity: 0; transform: translateY(8px); }
 }
 
 /* --------------------------------------------------------------------------
@@ -1681,9 +1832,9 @@ select.form-input {
    -------------------------------------------------------------------------- */
 .task-card {
   position: relative;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl); /* 12px to match soft-card aesthetic */
+  background: var(--surface);
+  border: 1px solid transparent; /* the stacked shadow draws the edge, as in Fizzy */
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
   margin-bottom: 8px;
   cursor: grab;
@@ -1696,7 +1847,7 @@ select.form-input {
 }
 
 .task-card:hover {
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
 }
@@ -1718,9 +1869,6 @@ select.form-input {
    Fade the card's *contents*, not the card. Fading .task-card itself also faded
    the stamp sitting inside it — 0.55 card x 0.86 stamp left the ink at ~0.47 and
    the whole point of the stamp barely visible. */
-.task-card--completed {
-  border-left-color: var(--muted2);
-}
 
 .task-card--completed .task-card__title,
 .task-card--completed .task-card__bottom,
@@ -1962,9 +2110,11 @@ select.form-input {
   background: var(--bg);
 }
 
+/* Columns divide the board evenly so whole days fit, never a half-cut one:
+   the board's width picks how many days show (up to the full week). */
 .kanban > turbo-frame {
-  flex: 0 0 268px;
-  min-width: 268px;
+  flex: 0 0 calc(100cqi / var(--week-visible-days, 1));
+  min-width: 0;
   display: flex;
   flex-direction: column;
   scroll-snap-align: start;
@@ -1981,9 +2131,8 @@ select.form-input {
   overflow-x: hidden;
 }
 
-/* All columns white; only the current day gets a warm tint. */
+/* All columns white, today included; only its header chip is amber. */
 .kanban__column--today {
-  --col-bg: var(--col-today-bg);
   --col-header-bg: var(--col-today-pill-bg);
   --col-header-text: var(--col-today-pill-ink);
 }
@@ -2004,131 +2153,80 @@ select.form-input {
 }
 
 .kanban__column-header {
-  padding: 12px 10px 10px;
-  text-align: center;
+  padding: 14px 12px 8px;
   position: sticky;
   top: 0;
   background: var(--col-bg);
   z-index: 10;
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Pill badge wrapping the day name + task count (e.g. "MON 9") */
-.kanban__header-pill {
-  display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
-  padding: 4px 10px 4px 12px;
-  background: var(--col-header-bg);
-  color: var(--col-header-text);
-  border-radius: var(--radius-full);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1.2;
-  min-height: 22px;
 }
 
-.kanban__header-pill-count {
+/* "WED 21" — the date is the column's name; the link opens that day */
+.kanban__day-link {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.65);
-  color: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.kanban__column-header--today .kanban__day-name {
-  color: var(--amber-text);
-}
-
-/* Today: month + day-in-circle on one row (same header rhythm as other columns) */
-.kanban__day-date--today {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  min-height: 26px;
-}
-
-.kanban__day-date-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  align-items: baseline;
   gap: 6px;
-  color: inherit;
+  color: var(--text);
   text-decoration: none;
-  line-height: 1;
+  border-radius: var(--radius-sm);
 }
 
-.kanban__day-month {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-  line-height: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.kanban__column-header--today .kanban__day-month {
-  color: var(--muted);
-}
-
-.kanban__day-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--amber-pill);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  flex-shrink: 0;
-}
+.kanban__day-link:hover { text-decoration: none; }
+.kanban__day-link:hover .kanban__day-number { color: var(--link); }
 
 .kanban__day-name {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text);
-  margin-bottom: 4px;
+  color: var(--muted);
 }
 
-.kanban__day-date {
-  font-size: 14px;
+.kanban__day-number {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--transition-fast);
+}
+
+.kanban__day-month {
+  font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 26px;
-  line-height: 1;
 }
 
-.kanban__day-date a {
-  color: inherit;
-  text-decoration: none;
-  line-height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.kanban__column-header--today .kanban__day-name,
+.kanban__column-header--today .kanban__day-month {
+  color: var(--amber-text);
+}
+
+.kanban__today-chip {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--amber-pill);
+  color: oklch(22% 0.04 50);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.kanban__header-count {
+  align-self: center;
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--col-header-bg);
+  color: var(--col-header-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Grow off: a flex:1 pending list shoves completed tasks to the bottom of the column. */
@@ -2191,11 +2289,11 @@ select.form-input {
   border-radius: 3px;
   cursor: pointer;
   color: inherit;
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
 }
 
 .calendar-event__pin:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: oklch(var(--lch-surface) / 0.55);
 }
 
 .calendar-event.is-pinned-to-week .calendar-event__pin {
@@ -2246,7 +2344,7 @@ select.form-input {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  background: #f7f8fb;
+  background: var(--bg2);
 }
 
 .sometime-row__label {
@@ -2458,8 +2556,8 @@ select.form-input {
 
 .day-view__section-pill--timeline {
   /* Cream pill on the sunset gradient — high contrast, stays legible on coral/ember */
-  background: #FFF4E3;
-  color: #6B2410;
+  background: var(--amber-bg);
+  color: var(--amber-text);
 }
 
 .day-view__section-pill-count {
@@ -2470,7 +2568,7 @@ select.form-input {
   height: 16px;
   padding: 0 5px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(var(--lch-surface) / 0.7);
   color: inherit;
   font-size: 10px;
   font-weight: 700;
@@ -2504,7 +2602,7 @@ select.form-input {
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.7);
+  background: oklch(var(--lch-surface) / 0.7);
 }
 
 .day-view__quick-add-input {
@@ -2535,9 +2633,15 @@ select.form-input {
   gap: 8px;
   margin: 8px 8px 6px;
   padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed var(--ink-light);
+  border-radius: var(--radius-lg);
+  background: transparent;
+}
+
+.kanban__quick-add:focus-within {
+  border-style: solid;
+  border-color: var(--ink-medium);
+  background: var(--surface);
 }
 
 .kanban__quick-add-input {
@@ -2573,7 +2677,7 @@ select.form-input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--surface);
 }
 
 .day-view__timeline-column .timeline {
@@ -2800,11 +2904,11 @@ select.form-input {
   font-weight: 600;
   cursor: pointer;
   color: inherit;
-  background: rgba(255, 255, 255, 0.2);
+  background: oklch(var(--lch-surface) / 0.2);
 }
 
 .hey-timeline-event__delete:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
 }
 
 .hey-timeline-event__row--main {
@@ -3251,7 +3355,7 @@ select.form-input {
   margin: 0 auto 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #f6f5f3;
+  background: var(--bg2);
   padding: 8px 12px;
   width: fit-content;
   max-width: calc(100% - 40px);
@@ -3265,12 +3369,12 @@ select.form-input {
 }
 
 .daily-log--scratch .jrnl-btn {
-  color: #6f7784;
+  color: var(--muted);
 }
 
 .daily-log--scratch .jrnl-btn:hover {
   color: var(--text);
-  background: #ece9e3;
+  background: var(--bg3);
 }
 
 /* --------------------------------------------------------------------------
@@ -3412,7 +3516,7 @@ select.form-input {
   border-top: none;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #f6f5f3;
+  background: var(--bg2);
   width: fit-content;
   max-width: calc(100% - 24px);
   flex-wrap: wrap;
@@ -3476,7 +3580,7 @@ select.form-input {
 }
 
 .ritual--morning {
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 60%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 60%);
 }
 
 /* Sunrise in the main shell: fill the scroll column instead of forcing 100vh */
@@ -3487,7 +3591,7 @@ select.form-input {
 }
 
 .ritual--evening {
-  background: linear-gradient(180deg, var(--bg) 40%, #FFF8F2 100%);
+  background: linear-gradient(180deg, var(--bg) 40%, var(--bg) 100%);
 }
 
 .shell .view-area > .ritual.ritual--evening.ritual--sunset-step1 {
@@ -3895,7 +3999,7 @@ select.form-input {
 }
 
 .sunset-decision input:focus-visible + .sunset-decision__ui {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -4291,7 +4395,7 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 50%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 50%);
 }
 
 .onboarding__card {
@@ -4402,7 +4506,7 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 60%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 60%);
 }
 
 .login-card {
@@ -4587,7 +4691,7 @@ select.form-input {
    WEEKLY CHECK-IN RITUAL
    -------------------------------------------------------------------------- */
 .ritual--checkin {
-  background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 55%);
+  background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 55%);
 }
 
 .shell .view-area > .ritual.ritual--checkin {
@@ -4671,8 +4775,8 @@ select.form-input {
 }
 
 .checkin-ritual__checkbox:checked + .checkin-ritual__goal-check {
-  background: #16A34A;
-  border-color: #16A34A;
+  background: var(--hey);
+  border-color: var(--hey);
   color: #fff;
 }
 
@@ -4729,7 +4833,7 @@ select.form-input {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(24, 25, 26, 0.4);
+  background: oklch(var(--lch-shadow) / 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4946,7 +5050,7 @@ select.form-input {
 }
 
 .modal__title-input:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -5097,14 +5201,14 @@ select.form-input {
 }
 
 .modal__comment-error {
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger, var(--red));
   font-size: var(--font-size-sm);
   margin: 0 0 var(--space-2);
 }
 
 /* Brief red outline when auto-save fails */
 form[data-save-error="true"] {
-  outline: 2px solid var(--color-danger, #dc2626);
+  outline: 2px solid var(--color-danger, var(--red));
   outline-offset: -2px;
   border-radius: var(--radius, 8px);
 }
@@ -5149,8 +5253,8 @@ form[data-save-error="true"] {
 
 @keyframes sunrise {
   0% { background: linear-gradient(180deg, #2C3E50 0%, #1D2D35 100%); }
-  40% { background: linear-gradient(180deg, #F5A623 0%, #E8852A 40%, var(--bg) 100%); }
-  100% { background: linear-gradient(180deg, #FFFBF5 0%, var(--bg) 40%); }
+  40% { background: linear-gradient(180deg, var(--amber-pill) 0%, #E8852A 40%, var(--bg) 100%); }
+  100% { background: linear-gradient(180deg, var(--dawn-wash) 0%, var(--bg) 40%); }
 }
 
 @keyframes sunset {
@@ -5169,11 +5273,11 @@ form[data-save-error="true"] {
   20%  { background-color: #7B3F2B; }
   45%  { background-color: #E8833A; }
   70%  { background-color: #F5C06F; }
-  100% { background-color: #FFFBF5; }
+  100% { background-color: var(--dawn-wash); }
 }
 
 @keyframes sunset-ritual {
-  0%   { background-color: #FFFBF5; }
+  0%   { background-color: var(--dawn-wash); }
   25%  { background-color: #E8833A; }
   55%  { background-color: #C25B7A; }
   80%  { background-color: #3D1A4A; }
@@ -5236,7 +5340,7 @@ form[data-save-error="true"] {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-full);
   animation: twinkle 2s ease-in-out infinite;
 }
@@ -5253,12 +5357,12 @@ form[data-save-error="true"] {
 }
 
 .greeting-screen--sunrise {
-  background: linear-gradient(180deg, #F5A623 0%, #FFFBF5 50%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--amber-pill) 0%, var(--dawn-wash) 50%, var(--bg) 100%);
   animation: sunrise 2.5s ease-out forwards;
 }
 
 .greeting-screen--sunset {
-  background: linear-gradient(180deg, var(--bg) 0%, #FFF8F2 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
 }
 
 .greeting-screen__text {
@@ -5280,28 +5384,6 @@ form[data-save-error="true"] {
 /* --------------------------------------------------------------------------
    EMPTY STATES
    -------------------------------------------------------------------------- */
-.first-run {
-  text-align: center;
-  max-width: 480px;
-  margin: var(--space-8) auto var(--space-6);
-  padding: var(--space-6);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-}
-
-.first-run__heading {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
-}
-
-.first-run__body {
-  font-size: var(--font-size-base);
-  color: var(--muted);
-  line-height: 1.6;
-}
-
 .kanban__empty {
   display: flex;
   align-items: center;
@@ -5983,9 +6065,9 @@ body.focus-open { overflow: hidden; }
   --focus-sun-soft:  rgba(255, 243, 216, 0.50);
   --focus-sun-glow:  rgba(255, 236, 205, 0.35);
   --focus-ink:       #3A2A18;
-  --focus-ink-muted: #8B7560;
+  --focus-ink-muted: var(--warm-line-hover);
   --focus-card:      rgba(255, 255, 255, 0.58);
-  --focus-line:      rgba(139, 117, 96, 0.22);
+  --focus-line:      oklch(var(--lch-ink-dark) / 0.22);
 }
 .focus-overlay--midday {
   --focus-sky:       #FCF4E0;
@@ -6414,7 +6496,7 @@ body.focus-open { overflow: hidden; }
 
 /* Task card focus hint */
 .task-card:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: max(2px, 0.1em) solid var(--ink);
   outline-offset: 1px;
 }
 
@@ -6519,7 +6601,7 @@ body.focus-open { overflow: hidden; }
 .sometime-row__tasks .task-card--completed .task-card__title { padding-right: 26px; }
 
 /* Muted, slightly desaturated inks */
-.stamp--red-done       { color: #A8372C; }
+.stamp--red-done       { color: var(--stamp-red); }
 .stamp--navy-star      { color: #1F3D5C; }
 .stamp--green-check    { color: #2D6A4F; }
 .stamp--brown-complete { color: #6B4A2B; }
@@ -6555,7 +6637,7 @@ body.focus-open { overflow: hidden; }
   flex-direction: column;
   align-items: center;
   padding: clamp(40px, 6svh, 88px) 24px clamp(48px, 8svh, 120px);
-  color: #3a2e23;
+  color: var(--warm-ink);
   position: relative;
 }
 .ritual-doc__page {
@@ -6570,7 +6652,7 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__dateline {
   letter-spacing: 0.02em;
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
@@ -6581,22 +6663,22 @@ body.focus-open { overflow: hidden; }
   font-weight: 400;
   line-height: 1.18;
   letter-spacing: -0.01em;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__prose {
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.7;
-  color: #3a2e23;
+  color: var(--warm-ink);
   margin: 0;
 }
-.ritual-doc__prose--muted { color: #7a6550; font-style: italic; }
+.ritual-doc__prose--muted { color: var(--warm-ink-soft); font-style: italic; }
 .ritual-doc__prompt {
   font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.5;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__divider {
@@ -6622,11 +6704,11 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.55;
-  color: #3a2e23;
+  color: var(--warm-ink);
   padding: 0;
   text-decoration: none;
 }
-.ritual-doc__list-item:hover { color: #1f1a13; }
+.ritual-doc__list-item:hover { color: var(--ink); }
 .ritual-doc__list-mark {
   flex: 0 0 auto;
   width: 28px;
@@ -6634,13 +6716,13 @@ body.focus-open { overflow: hidden; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #A8372C;
+  color: var(--brick);
 }
 .ritual-doc__list-mark .stamp { width: 28px; height: 28px; opacity: 0.9; }
 .ritual-doc__list-main { flex: 1; }
 .ritual-doc__list-meta {
   font-size: 14px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   margin-top: 2px;
 }
@@ -6650,9 +6732,9 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.6;
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
-.ritual-doc__meter strong { font-weight: 700; color: #2a1f15; }
+.ritual-doc__meter strong { font-weight: 700; color: var(--warm-ink); }
 .ritual-doc__meter-bar {
   margin-top: 10px;
   height: 2px;
@@ -6664,53 +6746,62 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__meter-fill {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: linear-gradient(90deg, #D89B5E, #A8372C);
+  background: linear-gradient(90deg, #D89B5E, var(--brick));
   border-radius: 1px;
   transition: width 0.6s ease-out;
 }
 
-/* Hyperlink-style submit buttons */
+/* Ritual actions: the primary pill sits left, under the text it follows;
+   a quiet back link trails after it. */
 .ritual-doc__actions {
   display: flex;
-  /* Default: right-align the primary action. The `:has` rule below detects
-     the back-link pattern (back arrow + primary button) and switches to
-     space-between. This is more reliable than `:only-child`, which breaks
-     when the actions container is a <form> with a hidden input sibling
-     (as in sunrise). */
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
-  gap: 16px;
+  gap: 12px 20px;
   margin-top: 8px;
 }
-
-/* Back link present → put back on the left, primary on the right. */
-.ritual-doc__actions:has(> .ritual-doc__link--back) {
-  justify-content: space-between;
+.ritual-doc__actions > .ritual-doc__link--back { order: 2; }
+/* The wrap screen is centred; a lone back link there becomes an outlined pill */
+.ritual-doc--wrap .ritual-doc__actions { justify-content: center; }
+.ritual-doc__actions > .ritual-doc__link--back:only-child {
+  color: var(--ink);
+  border-color: oklch(from var(--ink) l c h / 50%);
+  padding-inline: 1.25em;
 }
 .ritual-doc__link {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-style: italic;
-  color: #A8372C;
-  background: none;
-  border: 0;
-  padding: 6px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font: 500 15px/1 var(--font-sans);
+  color: var(--brick-ink);
+  background: var(--brick);
+  border: 1px solid var(--brick);
+  border-radius: 3rem;
+  padding: 0.7em 1.25em;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: rgba(168, 55, 44, 0.4);
-  transition: color 120ms ease, text-decoration-color 120ms ease;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 .ritual-doc__link:hover {
-  color: #831F16;
-  text-decoration-color: #831F16;
+  background: var(--brick-hover);
+  border-color: var(--brick-hover);
+  color: var(--brick-ink);
+  text-decoration: none;
 }
 .ritual-doc__link--back {
-  color: #8b7560;
-  text-decoration-color: rgba(139, 117, 96, 0.35);
+  color: var(--ink-dark);
+  background: transparent;
+  border-color: transparent;
+  padding-inline: 0.25em;
 }
-.ritual-doc__link--back:hover { color: #5e4d3b; text-decoration-color: #5e4d3b; }
+.ritual-doc__link--back:hover {
+  color: var(--ink);
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 
 /* Stepper dots at the bottom */
 .ritual-doc__stepper {
@@ -6723,19 +6814,18 @@ body.focus-open { overflow: hidden; }
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(139, 117, 96, 0.28);
+  background: oklch(var(--lch-ink-dark) / 0.28);
 }
-.ritual-doc__stepper-dot--active { background: #A8372C; }
+.ritual-doc__stepper-dot--active { background: var(--brick); }
 
 /* Variants per ritual (seasonal warmth) */
-.ritual-doc--sunrise {
-  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 55%, #FAF2E4 100%);
-}
+.ritual-doc--sunrise,
 .ritual-doc--sunset {
-  background: linear-gradient(180deg, #FFF4EA 0%, #F8EADB 55%, #EED8C0 100%);
+  /* The sky banner carries the colour; the page under it stays plain */
+  background: var(--bg);
 }
 .ritual-doc--weekly {
-  background: linear-gradient(180deg, #FAF6EF 0%, #F5EDE0 100%);
+  background: linear-gradient(180deg, var(--sky-wash) 0%, var(--bg) 100%);
 }
 
 /* Sunset reflection — one line, centered, private */
@@ -6749,26 +6839,26 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.6;
-  color: #2a1f15;
+  color: var(--warm-ink);
   padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(139, 117, 96, 0.28);
+  background: oklch(var(--lch-surface) / 0.55);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.28);
   border-radius: 6px;
   box-shadow: inset 0 1px 2px rgba(120, 90, 60, 0.05);
   outline: none;
   transition: border-color 120ms ease, background 120ms ease;
 }
 .ritual-doc__reflection-input::placeholder {
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-style: italic;
 }
 .ritual-doc__reflection-input:focus {
-  border-color: #A8372C;
-  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--brick);
+  background: oklch(var(--lch-surface) / 0.85);
 }
 .ritual-doc__reflection-hint {
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   text-align: center;
   margin: 0;
@@ -6777,7 +6867,7 @@ body.focus-open { overflow: hidden; }
 /* Evening decisions — handwritten-style tags */
 .ritual-doc__card {
   padding: 14px 0;
-  border-bottom: 1px dashed rgba(139, 117, 96, 0.28);
+  border-bottom: 1px dashed oklch(var(--lch-ink-dark) / 0.28);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -6786,12 +6876,12 @@ body.focus-open { overflow: hidden; }
 .ritual-doc__card-title {
   font-family: var(--font-serif);
   font-size: 18px;
-  color: #2a1f15;
+  color: var(--warm-ink);
   line-height: 1.4;
 }
 .ritual-doc__card-meta {
   font-size: 13px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
 }
 .ritual-doc__decisions {
@@ -6813,21 +6903,21 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 15px;
-  color: #7a6550;
+  color: var(--warm-ink-soft);
   padding: 5px 14px;
-  border: 1px solid rgba(139, 117, 96, 0.35);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.35);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.35);
+  background: oklch(var(--lch-surface) / 0.35);
   transition: all 120ms ease;
 }
 .ritual-doc__decision:hover .ritual-doc__decision-ui {
-  color: #2a1f15;
-  border-color: #8b7560;
+  color: var(--warm-ink);
+  border-color: var(--warm-line-hover);
 }
 .ritual-doc__decision input:checked + .ritual-doc__decision-ui {
-  color: #FFFBF5;
-  background: #A8372C;
-  border-color: #A8372C;
+  color: var(--dawn-wash);
+  background: var(--brick);
+  border-color: var(--brick);
 }
 
 /* Weekly checkin: lined-paper inputs + reading-list goals */
@@ -6836,14 +6926,14 @@ body.focus-open { overflow: hidden; }
   align-items: baseline;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(139, 117, 96, 0.22);
+  border-bottom: 1px solid oklch(var(--lch-ink-dark) / 0.22);
 }
 .ritual-doc__goal-num {
   width: 20px;
   text-align: right;
   font-family: var(--font-serif);
   font-style: italic;
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-size: 16px;
   flex: 0 0 auto;
 }
@@ -6852,14 +6942,14 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.5;
-  color: #2a1f15;
+  color: var(--warm-ink);
   background: transparent;
   border: 0;
   outline: none;
   padding: 4px 0;
 }
 .ritual-doc__goal-input::placeholder {
-  color: #b5a08a;
+  color: var(--ink-medium);
   font-style: italic;
 }
 
@@ -6869,7 +6959,7 @@ body.focus-open { overflow: hidden; }
   gap: 14px;
   padding: 12px 0;
   cursor: pointer;
-  border-bottom: 1px dashed rgba(139, 117, 96, 0.22);
+  border-bottom: 1px dashed oklch(var(--lch-ink-dark) / 0.22);
 }
 .ritual-doc__goal-check:last-of-type { border-bottom: 0; }
 .ritual-doc__goal-check input { position: absolute; opacity: 0; pointer-events: none; }
@@ -6877,12 +6967,12 @@ body.focus-open { overflow: hidden; }
   flex: 0 0 auto;
   width: 20px;
   height: 20px;
-  border: 1px solid rgba(139, 117, 96, 0.45);
+  border: 1px solid oklch(var(--lch-ink-dark) / 0.45);
   border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.4);
+  background: oklch(var(--lch-surface) / 0.4);
   transition: all 120ms ease;
   margin-top: 2px;
 }
@@ -6891,18 +6981,18 @@ body.focus-open { overflow: hidden; }
   background: #2D6A4F;
   border-color: #2D6A4F;
 }
-.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: #FFFBF5; }
+.ritual-doc__goal-check input:checked + .ritual-doc__goal-check-box svg { opacity: 1; color: var(--dawn-wash); }
 .ritual-doc__goal-check-title {
   flex: 1;
   font-family: var(--font-serif);
   font-size: 18px;
   line-height: 1.5;
-  color: #3a2e23;
+  color: var(--warm-ink);
 }
 .ritual-doc__goal-check--done .ritual-doc__goal-check-title {
-  color: #8b7560;
+  color: var(--warm-line-hover);
   text-decoration: line-through;
-  text-decoration-color: rgba(139, 117, 96, 0.45);
+  text-decoration-color: oklch(var(--lch-ink-dark) / 0.45);
 }
 
 /* Sunset wrap (closing card) */
@@ -6915,14 +7005,14 @@ body.focus-open { overflow: hidden; }
   font-family: var(--font-serif);
   font-size: clamp(36px, 5vw, 52px);
   font-weight: 400;
-  color: #2a1f15;
+  color: var(--warm-ink);
   margin: 0;
 }
 .ritual-doc__wrap-sub {
   font-family: var(--font-serif);
   font-size: 19px;
   font-style: italic;
-  color: #7a6550;
+  color: var(--warm-ink-soft);
   margin: 8px 0 0;
 }
 
@@ -6935,9 +7025,9 @@ body.focus-open { overflow: hidden; }
   pointer-events: none;
   opacity: 0.6;
 }
-.ritual-doc--sunrise::before { background: radial-gradient(ellipse at 50% 0%, #FFE7C2 0%, transparent 70%); }
-.ritual-doc--sunset::before  { background: radial-gradient(ellipse at 50% 0%, #F3CFA6 0%, transparent 70%); }
-.ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, #EEDFC7 0%, transparent 70%); }
+.ritual-doc--sunrise::before,
+.ritual-doc--sunset::before  { display: none; }
+.ritual-doc--weekly::before  { background: radial-gradient(ellipse at 50% 0%, var(--bg2) 0%, transparent 70%); }
 
 /* Softer sunrise/sunset fade-in */
 @keyframes ritualDocFade {
@@ -6959,12 +7049,12 @@ body.focus-open { overflow: hidden; }
   padding: 6px 10px;
   margin: 0 12px 8px;
   font-size: 11px;
-  color: #8b6a1a;
-  background: #fdf6e3;
+  color: var(--bc-text);
+  background: var(--bc-bg);
   border: 1px solid rgba(139, 106, 26, 0.2);
   border-radius: 4px;
 }
-.r-errors__dot { font-weight: 900; color: #b8871e; }
+.r-errors__dot { font-weight: 900; color: var(--bc-line); }
 .r-errors__msg { opacity: 0.85; }
 
 .modal__comments-error {
@@ -6974,225 +7064,406 @@ body.focus-open { overflow: hidden; }
   padding: 12px 14px;
   margin-bottom: 12px;
   font-size: 13px;
-  color: #6b4a2b;
-  background: #faf1e6;
+  color: var(--amber-text);
+  background: var(--amber-bg);
   border: 1px solid rgba(107, 74, 43, 0.15);
   border-radius: 6px;
 }
 .modal__comments-error-retry {
-  color: #A8372C;
+  color: var(--brick);
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.modal__comments-error-retry:hover { color: #831F16; }
+.modal__comments-error-retry:hover { color: var(--brick-hover); }
 
 /* ----- Onboarding (guided first week) ------------------------------------ */
-.onboarding-doc {
-  min-height: 100vh;
+/* --------------------------------------------------------------------------
+   ONBOARDING — one long sunrise (onboarding_controller.js). The sky fills the
+   screen; words sit straight on it, light at night and ink once it's day.
+   -------------------------------------------------------------------------- */
+.onb {
+  --onb-ink: oklch(97% 0.012 80);
+  --onb-ink-soft: oklch(90% 0.02 80);
+  --onb-field: oklch(100% 0 0 / 0.1);
+  --onb-field-line: oklch(100% 0 0 / 0.42);
+  --onb-primary: oklch(97% 0.012 80);
+  --onb-primary-ink: oklch(24% 0.03 265);
+  --onb-haze: oklch(18% 0.04 270 / 0.4);
+  --onb-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  position: fixed;
+  inset: 0;
+  overflow: hidden auto;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  color: var(--onb-ink);
+  background: oklch(17% 0.04 270);
+  transition: color 1.2s ease;
+}
+
+.onb[data-tone="day"] {
+  --onb-ink: oklch(25% 0.03 255);
+  --onb-ink-soft: oklch(34% 0.03 255);
+  --onb-field: oklch(100% 0 0 / 0.62);
+  --onb-field-line: oklch(32% 0.02 234 / 0.35);
+  --onb-primary: oklch(32.09% 0.0204 233.83);
+  --onb-primary-ink: oklch(99% 0.005 80);
+  --onb-haze: oklch(98% 0.015 75 / 0.3);
+}
+
+.onb__controls { position: fixed; z-index: 3; }
+
+.onb__stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: max(56px, 8svh) 16px 24px;
+}
+
+/* A soft haze behind the words keeps them readable on any part of the sky */
+.onb__stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(760px, 120vw);
+  height: min(560px, 90svh);
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, var(--onb-haze), transparent);
+  pointer-events: none;
+  transition: background 1.2s ease;
+}
+
+.onb__frame { display: contents; }
+
+.onb__step,
+.onb__stack {
+  position: relative;
+  width: min(100%, 540px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  background: linear-gradient(180deg, #FFFBF5 0%, #FAF2E4 100%);
-}
-.onboarding-doc__page {
-  max-width: 520px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  text-align: center;
-}
-.onboarding-doc__dateline {
-  letter-spacing: 0.02em;
-  font-size: 13px;
-  color: #8b7560;
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-}
-.onboarding-doc__title {
-  font-family: var(--font-serif);
-  font-size: clamp(30px, 4vw, 42px);
-  font-weight: 400;
-  line-height: 1.18;
-  color: #2a1f15;
-  margin: 0;
-}
-.onboarding-doc__prose {
-  font-family: var(--font-serif);
-  font-size: 19px;
-  line-height: 1.7;
-  color: #3a2e23;
-  margin: 0;
-}
-.onboarding-doc__form {
-  display: flex;
-  flex-direction: column;
   gap: 20px;
-  align-items: center;
-}
-.onboarding-doc__text-input {
-  width: 100%;
-  max-width: 360px;
-  font-family: var(--font-serif);
-  font-size: 22px;
   text-align: center;
-  color: #2a1f15;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(139, 117, 96, 0.28);
-  border-bottom: 2px solid rgba(139, 117, 96, 0.45);
-  border-radius: 6px 6px 2px 2px;
-  padding: 14px 18px;
+}
+
+.onb__logo { width: 72px; height: 72px; margin-bottom: 4px; filter: drop-shadow(0 8px 24px oklch(70% 0.15 60 / 0.35)); }
+.onb__app-icon { width: 56px; height: 56px; border-radius: 13px; box-shadow: 0 6px 20px oklch(20% 0.03 260 / 0.18); }
+
+.onb__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: var(--onb-ink);
+  text-wrap: balance;
   outline: none;
 }
-.onboarding-doc__text-input:focus {
-  border-color: #A8372C;
-  background: rgba(255, 255, 255, 0.9);
+
+.onb__prose {
+  margin: 0;
+  max-width: 34em;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--onb-ink-soft);
+  text-wrap: pretty;
 }
-.onboarding-doc__select {
-  width: 100%;
-  max-width: 360px;
-  font-family: var(--font-sans);
-  font-size: 16px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(139, 117, 96, 0.3);
-  border-radius: 6px;
-}
-.onboarding-doc__stamp-grid {
+
+.onb__hint { margin: 0; font-size: 14px; color: var(--onb-ink-soft); }
+
+.onb__list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
+  font-size: 16px;
+  color: var(--onb-ink);
+  text-align: left;
 }
-@media (max-width: 480px) {
-  .onboarding-doc__stamp-grid { grid-template-columns: repeat(3, 1fr); }
+
+.onb__list li { display: flex; gap: 10px; align-items: baseline; }
+.onb__list li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.55; translate: 0 -2px; }
+
+.onb__form { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+.onb__input {
+  width: min(100%, 380px);
+  min-height: 52px;
+  padding: 12px 18px;
+  border: 1px solid var(--onb-field-line);
+  border-radius: 12px;
+  font: 500 20px/1.3 var(--font-sans);
+  text-align: center;
+  color: var(--onb-ink);
+  background: var(--onb-field);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
 }
-.onboarding-doc__stamp-option {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(139, 117, 96, 0.22);
-  border-radius: 6px;
-  padding: 14px 6px;
-  cursor: pointer;
-  transition: all 140ms ease;
+
+.onb__input::placeholder { color: var(--onb-ink-soft); opacity: 0.8; }
+.onb__input:focus { outline: none; border-color: var(--onb-ink); box-shadow: 0 0 0 4px color-mix(in oklch, var(--onb-ink) 18%, transparent); }
+.onb__select { font: 400 17px/1.3 var(--font-sans); text-align-last: center; }
+
+.onb__actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.onb__button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 1px solid var(--onb-field-line);
+  border-radius: var(--radius-full);
+  font: 500 16px/1 var(--font-sans);
+  color: var(--onb-ink);
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-base), border-color var(--transition-base), transform 300ms var(--onb-ease), box-shadow 300ms var(--onb-ease);
 }
-.onboarding-doc__stamp-option:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(139, 117, 96, 0.5);
+
+.onb__button:hover { background: var(--onb-field); text-decoration: none; color: var(--onb-ink); }
+.onb__button:focus-visible { outline: 2px solid var(--onb-ink); outline-offset: 3px; }
+
+.onb__button--quiet { border-color: transparent; color: var(--onb-ink-soft); }
+
+.onb__button--primary {
+  min-width: 140px;
+  border-color: var(--onb-primary);
+  color: var(--onb-primary-ink);
+  background: var(--onb-primary);
+  font-weight: 600;
+  box-shadow: 0 6px 24px color-mix(in oklch, var(--onb-primary) 30%, transparent);
 }
-.onboarding-doc__stamp-option--selected {
-  background: #fff;
-  border-color: #A8372C;
-  box-shadow: 0 0 0 2px rgba(168, 55, 44, 0.15);
+
+.onb__button--primary:hover {
+  color: var(--onb-primary-ink);
+  background: var(--onb-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px color-mix(in oklch, var(--onb-primary) 40%, transparent);
 }
-.onboarding-doc__stamp-preview {
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px dashed rgba(139, 117, 96, 0.3);
-  border-radius: 8px;
+
+.onb__stamps { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+.onb__stamp.stamp-option {
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--onb-field-line);
+  border-radius: 12px;
+  background: var(--onb-field);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 300ms var(--onb-ease), border-color var(--transition-base), background var(--transition-base);
+}
+
+.onb__stamp .stamp { width: 44px; height: 44px; }
+.onb__card-stamp .stamp { width: 52px; height: 52px; }
+
+.onb__stamp.stamp-option:hover { transform: translateY(-2px); border-color: var(--onb-ink); }
+.onb__stamp.stamp-option--selected { border: 2px solid var(--onb-ink); background: oklch(100% 0 0 / 0.85); }
+.onb__stamp.stamp-option--selected .stamp { animation: onb-stamp 420ms var(--onb-ease); }
+.onb__stamp:focus-visible { outline: 2px solid var(--onb-ink); outline-offset: 3px; }
+
+.onb__card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-top: 12px;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100%, 320px);
+  padding: 14px 16px;
+  border: 1px solid oklch(32% 0.02 234 / 0.18);
+  border-radius: 10px;
+  background: oklch(100% 0 0 / 0.92);
+  color: oklch(25% 0.03 255);
+  text-align: left;
+  box-shadow: 0 10px 30px oklch(30% 0.05 250 / 0.12);
 }
-.onboarding-doc__stamp-preview-label {
-  font-size: 12px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #8b7560;
+
+.onb__card-title { font-size: 16px; transition: color 400ms ease; }
+.onb__card-mark { position: relative; display: grid; place-items: center; width: 56px; height: 40px; }
+.onb__card-stamp { display: grid; place-items: center; }
+
+/* Picking a stamp: the rubber stamp drops onto the card, presses, lifts away,
+   and leaves the ink behind (timed by onboarding#stamp) */
+.onb__stamper {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 76px;
+  height: 114px;
+  margin-left: -38px;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 10px 14px oklch(25% 0.04 60 / 0.3));
+  --stamper-ink: oklch(40% 0.1 25);
 }
-.onboarding-doc__step-dots {
+
+.onb__stamper-wood { fill: oklch(58% 0.09 60); }
+.onb__stamper-block { fill: oklch(48% 0.08 55); }
+.onb__stamper-rubber { fill: var(--stamper-ink); }
+
+.onb__card.is-stamping .onb__stamper { animation: onb-stamper 1000ms both; }
+.onb__card.is-stamping .onb__card-stamp .stamp { opacity: 0; }
+.onb__card.is-inked .onb__card-stamp .stamp { opacity: 1; animation: onb-ink 700ms var(--onb-ease) both; }
+.onb__card.is-inked { animation: onb-card-press 360ms var(--onb-ease); }
+.onb__card.is-inked .onb__card-title { color: oklch(48% 0.02 255); }
+
+@keyframes onb-stamper {
+  0% { opacity: 0; transform: translate(14px, -70px) rotate(10deg); animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0); }
+  12% { opacity: 1; }
+  38% { transform: translate(0, 0) rotate(-4deg) scaleY(1); animation-timing-function: ease-out; }
+  46% { transform: translate(0, 2px) rotate(-4deg) scaleY(0.9); }
+  58% { transform: translate(0, 0) rotate(-4deg) scaleY(1); opacity: 1; animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1); }
+  100% { opacity: 0; transform: translate(-6px, -80px) rotate(-12deg); }
+}
+
+@keyframes onb-ink {
+  0% { opacity: 0.2; transform: scale(1.12) rotate(-4deg); filter: blur(1px); }
+  35% { opacity: 1; filter: none; }
+  100% { opacity: 1; transform: scale(1) rotate(-4deg); }
+}
+
+@keyframes onb-card-press {
+  40% { transform: translateY(2px) scale(0.99); box-shadow: 0 4px 14px oklch(30% 0.05 250 / 0.1); }
+}
+
+.onb__progress {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 24px;
+  margin: 0;
+  padding: 0 0 max(24px, env(safe-area-inset-bottom));
+  list-style: none;
 }
-.onboarding-doc__step-dot {
+
+.onb__dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: rgba(139, 117, 96, 0.28);
+  border-radius: var(--radius-full);
+  background: var(--onb-ink);
+  opacity: 0.3;
+  transition: width 600ms var(--onb-ease), opacity 600ms ease;
 }
-.onboarding-doc__step-dot--active { background: #A8372C; }
 
-.onboarding-doc__basecamp-icon,
-.onboarding-doc__hey-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto;
-  opacity: 0.8;
+.onb__dot.is-done { opacity: 0.6; }
+.onb__dot.is-current { width: 22px; opacity: 1; }
+
+/* Motion: words rise out of a blur, then everything else in turn */
+.onb--ready [data-reveal]:not([data-reveal="words"]),
+.onb--ready .onb__word {
+  opacity: 0;
 }
-.onboarding-doc__feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-family: var(--font-serif);
-  font-size: 16px;
-  color: #3a2e23;
+
+.onb__word { display: inline-block; }
+
+.onb--ready .is-in [data-reveal]:not([data-reveal="words"]),
+.onb--ready .is-in .onb__word {
+  animation: onb-rise 1100ms var(--onb-ease) var(--d, 0ms) both;
 }
-.onboarding-doc__feature-list li {
-  padding-left: 16px;
-  position: relative;
-  text-align: left;
+
+.onb--ready .is-in .onb__word { animation-duration: 1300ms; }
+
+.onb__step.is-leaving {
+  animation: onb-leave 420ms ease-in both;
 }
-.onboarding-doc__feature-list li::before {
-  content: "·";
-  position: absolute;
-  left: 0;
-  color: #A8372C;
-  font-weight: 900;
+
+.onb--leaving .onb__stage,
+.onb--leaving .onb__progress {
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 900ms ease, filter 900ms ease;
 }
-.onboarding-doc__closer-preview {
-  background: linear-gradient(180deg, #FFFBF5 0%, #FFF8EE 100%);
-  border: 1px solid rgba(139, 117, 96, 0.22);
-  border-radius: 10px;
-  padding: 24px;
-  text-align: left;
-  font-family: var(--font-serif);
-  color: #3a2e23;
+
+@keyframes onb-rise {
+  from { opacity: 0; transform: translateY(14px); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
 }
-.onboarding-doc__closer-preview-label {
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #8b7560;
-  margin-bottom: 8px;
-  font-family: var(--font-sans);
+
+@keyframes onb-leave {
+  to { opacity: 0; transform: translateY(-10px); filter: blur(8px); }
 }
-.onboarding-doc__closer-preview-title {
-  font-size: 22px;
-  color: #2a1f15;
-  margin: 0 0 4px;
+
+@keyframes onb-stamp {
+  0% { transform: scale(1.35) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-4deg); }
 }
-.onboarding-doc__closer-preview-sub {
-  font-size: 14px;
-  color: #7a6550;
-  font-style: italic;
-  margin: 0;
+
+/* Reduced motion: no drifting or blurring, the steps simply appear */
+.onb--still .is-in [data-reveal]:not([data-reveal="words"]),
+.onb--still .is-in .onb__word {
+  animation: onb-fade 200ms linear both;
+  animation-delay: 0ms;
+}
+
+.onb--still .onb__stamp .stamp,
+.onb--still .onb__card-stamp .stamp,
+.onb--still .onb__card.is-inked,
+.onb--still .onb__card.is-inked .onb__card-stamp .stamp { animation: none; }
+.onb--still .onb__stamper { display: none; }
+
+@keyframes onb-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 480px) {
+  .onb__prose { font-size: 17px; }
+  .onb__stamp.stamp-option { width: 56px; height: 56px; }
+}
+
+/* Arrival: the first week view after onboarding starts under the same
+   morning sky onboarding ended on, which clears as the panels rise in.
+   It's turbo-temporary, so going back to a cached page doesn't replay it. */
+.arrival {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgb(255 190 130 / 0.38), transparent 70%),
+    linear-gradient(rgb(150 200 240), rgb(214 230 244));
+  animation: arrival-clear 1500ms cubic-bezier(0.4, 0, 0.2, 1) 350ms both;
+}
+
+body:has(> .arrival) .shell > * { animation: arrival-rise 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) 450ms both; }
+body:has(> .arrival) .shell > :nth-child(2) { animation-delay: 600ms; }
+body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
+
+@keyframes arrival-clear {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes arrival-rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrival { animation-duration: 400ms; animation-delay: 0ms; }
+  body:has(> .arrival) .shell > * { animation: none; }
 }
 
 /* Onboarding restart footer link (in settings) */
 .onboarding-restart-link {
   font-size: 12px;
-  color: #8b7560;
+  color: var(--warm-line-hover);
   font-style: italic;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(139, 117, 96, 0.35);
+  text-decoration-color: oklch(var(--lch-ink-dark) / 0.35);
 }
-.onboarding-restart-link:hover { color: #5e4d3b; }
+.onboarding-restart-link:hover { color: var(--warm-ink-soft); }
 
 
 /* ==========================================================================
@@ -7402,3 +7673,1526 @@ body.focus-open { overflow: hidden; }
     overflow-y: auto;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   LAYOUT REFRESH: app tiles, "Me" row, Today on white, Sometime strip,
+   empty states
+   -------------------------------------------------------------------------- */
+
+/* Full-colour app tiles for Basecamp and HEY */
+.src-tile {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex: none;
+  display: inline-block;
+}
+.task-card__project-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+.task-card__project-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rri .rri-tile {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px oklch(var(--lch-shadow) / 12%);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+.rri:not(.on) .rri-tile { filter: saturate(0.7); }
+.rri:hover .rri-tile { transform: translateY(-1px); filter: none; }
+
+/* Account row at the foot of the sidebar: quiet hover like Basecamp */
+.sb-bot .sb-bot-link { border-radius: 8px; }
+.sb-bot .sb-bot-link:hover { background: oklch(var(--lch-ink-darkest) / 5%); }
+
+/* Today on white instead of a full wash */
+.day-view__tasks {
+  background: var(--surface);
+}
+
+/* Sometime this week: a slim strip of chips */
+.sometime-row {
+  background: var(--bg);
+  padding: 10px 16px;
+}
+.sometime-row__empty {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 3rem;
+  padding: 5px 12px;
+  margin: 0;
+}
+
+/* Empty states: one line, a hint, and a button where there is something to do */
+.r-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.r-empty__tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  margin-bottom: 4px;
+}
+.r-empty__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.r-empty__sub {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  max-width: 24ch;
+}
+
+/* With the panel closed no tab is showing, so no rail icon reads as selected */
+.right.right--collapsed .rri.on { background: transparent; }
+.right.right--collapsed .rri.on::after { display: none; }
+.right.right--collapsed .rri:not(.on) .rri-tile,
+.right.right--collapsed .rri.on .rri-tile { filter: none; }
+
+/* Rubber stamps: Magnific-rendered ink used as a mask, painted in the stamp's colour */
+.stamp {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask: var(--stamp-mask) center / contain no-repeat;
+  mask: var(--stamp-mask) center / contain no-repeat;
+}
+
+/* Dark inks would vanish on a dark card; lift them a little */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .stamp--navy-star      { color: #6E92C4; }
+  :root:not([data-theme="light"]) .stamp--green-check    { color: #5FA882; }
+  :root:not([data-theme="light"]) .stamp--brown-complete { color: #B88A5E; }
+  :root:not([data-theme="light"]) .stamp--black-dot      { color: #B9C0C4; }
+}
+:root[data-theme="dark"] .stamp--navy-star      { color: #6E92C4; }
+:root[data-theme="dark"] .stamp--green-check    { color: #5FA882; }
+:root[data-theme="dark"] .stamp--brown-complete { color: #B88A5E; }
+:root[data-theme="dark"] .stamp--black-dot      { color: #B9C0C4; }
+
+/* No coloured accent lines down the left edge of cards or blocks */
+.timeline__block--calendar,
+.timeline__block--task,
+.timeline__block--basecamp,
+.timeline__block--hey { border-left: none; }
+
+/* ==========================================================================
+   STYLE PASS 2 — to-do cards, quieter adds, calmer headers
+   ========================================================================== */
+
+/* Cards read like Basecamp to-dos: round check on the left of the title */
+.task-card {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: start;
+}
+.task-card__bottom { display: contents; }
+.task-card__check { grid-column: 1; grid-row: 1; margin-top: 2px; }
+.task-card__title,
+.task-card__dedicated,
+.task-card__project-label { grid-column: 2; }
+.task-card__title { grid-row: 1; font-size: 15px; line-height: 1.35; margin-bottom: 0; padding-right: 0; }
+.task-card__dedicated { padding-right: 0; margin: 2px 0 0; }
+.task-card__project-label { margin: 4px 0 0; justify-self: start; text-align: left; max-width: 100%; }
+.task-card__project-label:empty { display: none; }
+
+/* The stamp sits on the card's right edge so the title stays readable */
+.task-card--completed .task-card__title { padding-right: 44px; }
+.task-card__stamp {
+  top: 50%;
+  left: auto;
+  right: 4px;
+  --stamp-translate: translateY(-50%);
+}
+.task-card__stamp .stamp,
+.card--small .task-card__stamp .stamp,
+.card--large .task-card__stamp .stamp { width: 44px; height: 44px; }
+
+/* Add a to-do: a quiet line, the button only appears while typing */
+.kanban__quick-add,
+.day-view__quick-add {
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+}
+.kanban__quick-add:focus-within,
+.day-view__quick-add:focus-within {
+  border: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+}
+.kanban__quick-add-input,
+.day-view__quick-add-input { font-size: 14px; }
+.kanban__quick-add-input::placeholder,
+.day-view__quick-add-input::placeholder { color: var(--ink-dark); }
+.kanban__quick-add:hover .kanban__quick-add-input::placeholder,
+.day-view__quick-add:hover .day-view__quick-add-input::placeholder { color: var(--text); }
+.kanban__quick-add:not(:focus-within) .kanban__quick-add-button,
+.day-view__quick-add:not(:focus-within) .day-view__quick-add-button { display: none; }
+
+/* Day headers: plain grey count, hairline between weeks */
+.kanban__header-count {
+  background: none;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0;
+  min-width: 0;
+}
+.kanban__column--week-start { border-left: 1px solid var(--line); }
+
+/* Bigger page titles */
+.topbar__title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.day-view__tasks-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* "Today's tasks" already names the list */
+.day-view__section-pill { display: none; }
+
+/* Cards hug their content now that the check shares the title row */
+.card--small,
+.card--medium,
+.card--large { min-height: 0; }
+
+/* Sometime chips stay one line: check, title, nothing else */
+.sometime-row__tasks .task-card {
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 6px;
+  align-items: center;
+}
+.sometime-row__tasks .task-card__check { margin-top: 0; }
+.sometime-row__tasks .task-card__title { font-size: 13px; }
+.sometime-row__tasks .task-card__project-label { display: none; }
+
+/* ==========================================================================
+   ROOM TO BREATHE — BC5-sized type and spacing
+   ========================================================================== */
+body { font-size: 16px; line-height: 1.5; }
+
+/* Wider days: about 220px each before another day fits */
+@container (min-width: 440px)  { .kanban > turbo-frame { --week-visible-days: 2; } }
+@container (min-width: 660px)  { .kanban > turbo-frame { --week-visible-days: 3; } }
+@container (min-width: 880px)  { .kanban > turbo-frame { --week-visible-days: 4; } }
+@container (min-width: 1100px) { .kanban > turbo-frame { --week-visible-days: 5; } }
+@container (min-width: 1320px) { .kanban > turbo-frame { --week-visible-days: 6; } }
+@container (min-width: 1540px) { .kanban > turbo-frame { --week-visible-days: 7; } }
+@container (max-width: 439px)  { .kanban > turbo-frame { --week-visible-days: 1; } }
+
+.kanban__column-header { padding: 20px 16px 12px; }
+.kanban__tasks { padding: 4px 12px 8px; }
+.kanban__quick-add { margin: 4px 12px 10px; }
+.task-card { padding: 14px 16px; margin-bottom: 10px; column-gap: 10px; }
+.task-card__project-label { margin-top: 6px; font-size: 12px; }
+
+/* Sidebar */
+.sb-nav { padding: 8px 12px; gap: 6px; }
+.sbi { font-size: 15px; padding: 7px 10px; gap: 11px; }
+
+/* Today page */
+.day-view__tasks-header { padding: 24px 24px 12px; }
+.day-view__tasks-list { padding: 12px 18px; }
+
+/* Right rail */
+.right-panel__body,
+.r-empty { padding-inline: 20px; }
+
+/* ==========================================================================
+   TYPE SCALE — one ladder, nothing readable under 12px
+   12 meta · 13 secondary · 14 controls · 16 body · 20 page title · 22 section
+   ========================================================================== */
+.r-cnt { font-size: 11px; min-width: 18px; }               /* numeric badge only */
+.timeline__hour-label { font-size: 11px; }                 /* axis tick */
+.sb-sect,
+.sometime-row__label { font-size: 12px; letter-spacing: 0.06em; }
+.kanban__day-name,
+.kanban__today-chip,
+.sbi-shortcut,
+.rri-tip,
+.text-xs { font-size: 12px; }
+.kanban__header-count,
+.topbar__sub,
+.r-empty__sub,
+.day-view__tasks-subtitle { font-size: 13px; }
+.sb-username { font-size: 14px; }
+
+/* ==========================================================================
+   WCAG AA — text contrast at least 4.5:1 (3:1 for large), checked light and dark
+   ========================================================================== */
+/* Done work is quieter by colour and strike, not by opacity, so it stays readable */
+.task-card--completed .task-card__title,
+.task-card--completed .task-card__bottom,
+.task-card--completed .task-card__dedicated { opacity: 1; }
+.task-card--completed .task-card__project-label { color: var(--muted); }
+.task-card--completed .task-card__project-label .src-tile { opacity: 0.6; }
+
+.day-view__completed { margin-top: 28px; }
+.day-view__completed-label {
+  margin: 0 0 10px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sb-sect,
+.timeline__hour-label,
+.ritual-doc__dateline { color: var(--muted); }
+.ritual-doc__prose { color: var(--text); }
+/* White initial needs a deep enough orange to read (4.5:1) */
+.sb-avatar:not(.sb-avatar--photo) { background: oklch(54% 0.16 50.86); color: #fff; font-size: 12px; }
+
+/* Days already gone this week step back: muted date, no add line (contrast stays AA) */
+.kanban__column--past .kanban__day-name,
+.kanban__column--past .kanban__day-number,
+.kanban__column--past .kanban__header-count { color: var(--muted); }
+.kanban__column--past .kanban__quick-add { display: none; }
+
+/* ==========================================================================
+   THREE LEVELS — panels (deeper tint), page (faint warm tint), cards (white)
+   ========================================================================== */
+.sb,
+.right,
+.r-rail,
+.r-content { background: var(--panel); }
+.sb { border-right: 1px solid var(--line); }
+.right { border-left: 1px solid var(--line); }
+.kanban,
+.kanban__column,
+.day-view__tasks,
+.day-view__timeline-column { background: var(--canvas); }
+.kanban__column { --col-bg: var(--canvas); }
+
+/* ============================================================
+   SHORT TIMELINE BLOCKS — under 30 min, title and time share one line
+   ============================================================ */
+.timeline__block--short {
+  padding: 0;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.timeline__block--short .hey-timeline-event__row--main,
+.timeline__block--short:has(> .hey-timeline-event__resize) .hey-timeline-event__row--main {
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  padding: 0 4px 0 10px;
+}
+
+.timeline__block--short .hey-timeline-event__delete {
+  width: 18px;
+  height: 14px;
+  font-size: 13px;
+}
+
+.timeline__block--short .hey-timeline-event__body {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.timeline__block--short .hey-timeline-event__body strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.timeline__block--short .hey-timeline-event__body .text-xs {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   RIGHT PANEL FILTERS — quiet menu buttons, BC5 style
+   ============================================================ */
+.r-filter {
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: none;
+}
+
+.r-select,
+.r-sort {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%236b6560' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  flex: 0 1 auto;
+  field-sizing: content;
+  max-width: 60%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  background: transparent var(--chevron) no-repeat right 8px center / 10px;
+  padding: 6px 24px 6px 8px;
+  transition: background-color 120ms ease;
+}
+
+.r-sort {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.r-select:hover,
+.r-sort:hover {
+  background-color: color-mix(in oklch, var(--text) 7%, transparent);
+}
+
+.r-select:focus,
+.r-sort:focus {
+  border: none;
+}
+
+.r-select:focus-visible,
+.r-sort:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .r-select,
+  :root:not([data-theme="light"]) .r-sort {
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  }
+}
+
+[data-theme="dark"] .r-select,
+[data-theme="dark"] .r-sort {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   PANEL HEADERS + FORM SELECTS — same quiet treatment as the filters
+   ============================================================ */
+/* The rail icon already says which source this is; the dot repeated it. */
+.r-head .r-dot { display: none; }
+
+.r-cnt {
+  margin-left: 0;
+  min-width: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+select.form-input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%236b6560' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+  background: var(--surface) var(--chevron) no-repeat right 14px center / 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) select.form-input {
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+  }
+}
+
+[data-theme="dark"] select.form-input {
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23a8a29e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4l2.5 2.5L7.5 4'/%3E%3C/svg%3E");
+}
+
+/* Settings is a left-aligned form; only onboarding centres the stamps. */
+.settings .stamp-picker { justify-content: flex-start; }
+
+/* ============================================================
+   PANEL CONSISTENCY — one header, one list item, one meta size
+   across Basecamp, HEY, Goals and Daily log
+   ============================================================ */
+.r-head-title,
+.jrnl-date {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Daily log used its own taller header with a lighter rule; match .r-head */
+.jrnl-header {
+  height: var(--topbar-height);
+  padding: 0 10px 0 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* "HEY" / "Synced" is status text, not a button: no pill */
+.jrnl-hey-badge {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.jrnl-hey-badge--synced { color: var(--hey-text); background: none; }
+.jrnl-hey-badge--pending { color: var(--amber-text); }
+
+/* Filters line up with the 14px list gutter */
+.r-filter { padding: 6px 6px; }
+
+/* List items: same type for to-dos and emails; drag grip only on hover */
+.r-item,
+.hey-r-item {
+  position: relative;
+  padding: 12px 34px 12px 14px;
+}
+
+.r-item-name,
+.hey-r-item .r-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+.r-item-project,
+.hey-r-item .r-item-project {
+  font-size: 12px;
+  margin: 0;
+}
+
+.r-item-drag-hint {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  translate: 0 -50%;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.r-item:hover .r-item-drag-hint,
+.r-item:focus-within .r-item-drag-hint { opacity: 1; }
+
+@media (hover: none) {
+  .r-item-drag-hint { opacity: 1; }
+}
+
+/* Goals: readable progress, meta on the same 12px step as everything else */
+.g-list { padding: 14px; }
+
+.g-section-label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.g-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.g-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  margin-bottom: 6px;
+}
+
+.g-progress-fill { border-radius: 2px; background: var(--amber); }
+
+.g-frac { font-size: 12px; }
+
+/* Journal is reading text: a step above list text, same 14px gutter */
+.jrnl-body { padding: 14px; font-size: 15px; line-height: 1.6; }
+
+/* Email subjects wrap like to-do titles (two lines max) instead of cutting off */
+.hey-r-item .r-item-name {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HEY ROWS — read like an inbox: who, when, what
+   ============================================================ */
+.contact-avatar {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: oklch(52% 0.13 var(--contact-hue));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.hey-r-item {
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 14px;
+}
+
+.hey-r-item__top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hey-r-item__sender {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hey-r-item__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hey-r-item .r-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 1px 0 0;
+  -webkit-line-clamp: 1;
+}
+
+.hey-r-item__snippet {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Grip would sit on top of the timestamp; the whole row is the drag handle */
+.hey-r-item .r-item-drag-hint { display: none; }
+
+/* ============================================================
+   WEEKLY GOALS — goals you can tick off, week progress on top
+   ============================================================ */
+.g-week {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+
+.g-week__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.g-week__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.g-week__frac {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.g-week .g-progress {
+  height: 6px;
+  border-radius: 3px;
+  margin: 0;
+}
+
+.g-week .g-progress-fill { border-radius: 3px; }
+
+.g-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 4px;
+}
+
+.g-head__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.g-head__count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.g-goals {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.g-goal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line2);
+}
+
+.g-goal:last-child { border-bottom: none; }
+
+.g-goal__form { display: contents; }
+
+.g-goal__check {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -2px 0 0 -3px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.g-goal__check:hover { color: var(--text); background: color-mix(in oklch, var(--text) 7%, transparent); }
+.g-goal__check:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+.g-goal__title {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.g-goal--done .g-goal__title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklch, var(--muted) 60%, transparent);
+}
+
+.g-edit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.g-edit:hover { color: var(--text); text-decoration: underline; }
+
+/* ============================================================
+   JOURNAL — a page you can obviously write on
+   ============================================================ */
+.r-tab-content[data-tab="log"] .jrnl-body {
+  flex: 1;
+  margin: 12px 12px 8px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: text;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.r-tab-content[data-tab="log"] .jrnl-body:hover { border-color: color-mix(in oklch, var(--text) 25%, transparent); }
+
+.r-tab-content[data-tab="log"] .jrnl-body:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--amber) 22%, transparent);
+}
+
+.jrnl-body:empty::before { color: var(--muted); }
+
+/* Toolbar sits under the page instead of floating over the text */
+.r-tab-content[data-tab="log"] .jrnl-toolbar {
+  position: static;
+  margin: 0 12px 12px;
+  max-width: none;
+  width: auto;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  justify-content: flex-start;
+  padding: 2px 0;
+}
+
+/* Row dividers in the side panel: --line2 vanished on the light panel tint */
+.r-item,
+.g-goal { border-bottom-color: var(--line); }
+
+/* HEY Journal sync label: app tile + "Journal" */
+.jrnl-hey-tile {
+  width: 14px;
+  height: 14px;
+  margin-right: -2px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.daily-log__head-meta:has(.jrnl-hey-tile) { display: flex; align-items: center; gap: 6px; }
+.jrnl-header-meta { gap: 6px; flex-wrap: nowrap; }
+
+/* ============================================================
+   KANBAN CARDS — stage chip in the list, stage picker in the modal
+   ============================================================ */
+.r-item-stage {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--text) 8%, transparent);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+  vertical-align: 1px;
+}
+
+.stage-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stage-picker__form { display: contents; }
+
+.stage-picker__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 13px/1.2 var(--font-sans);
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.stage-picker__step:hover:not(:disabled) { border-color: color-mix(in oklch, var(--text) 35%, transparent); }
+.stage-picker__step:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+.stage-picker__step--current,
+.stage-picker__step:disabled {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  cursor: default;
+}
+
+.stage-picker__step--done:not(.stage-picker__step--current) { color: #15803d; }
+
+.stage-picker__fallback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.modal__check-icon--card { color: var(--muted); }
+
+/* Basecamp descriptions are rich text: show them, don't dump HTML in a textarea */
+.modal__richtext {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.modal__richtext > :first-child { margin-top: 0; }
+.modal__richtext > :last-child { margin-bottom: 0; }
+.modal__richtext a { color: var(--link, #2563eb); }
+
+/* ============================================================
+   EMAIL DETAIL — sender first, then the message
+   ============================================================ */
+.modal__channel-hey { width: 14px; height: 14px; margin-right: 6px; }
+
+.email-modal { padding: 20px 24px 24px; }
+
+.email-modal__subject {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.email-modal__from {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.email-modal__from .contact-avatar { width: 40px; height: 40px; font-size: 14px; }
+
+.email-modal__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.email-modal__sender { font-size: 15px; font-weight: 600; color: var(--text); }
+.email-modal__address { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email-modal__time { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+
+.email-modal__snippet {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.email-modal__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.email-modal__open:hover { text-decoration: underline; }
+
+/* ============================================================
+   RICH TEXT — email bodies, Basecamp descriptions and comments.
+   Long links, wide tables and code never push the modal sideways.
+   ============================================================ */
+.rich-text {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.rich-text p,
+.rich-text div + div { margin: 0 0 0.6em; }
+.rich-text ul,
+.rich-text ol { margin: 0.4em 0 0.8em; padding-left: 1.4em; }
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: 0.15em 0; }
+.rich-text h1, .rich-text h2, .rich-text h3, .rich-text h4 { font-size: 1.05em; font-weight: 700; margin: 0.9em 0 0.4em; }
+.rich-text blockquote { margin: 0.6em 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--line); color: var(--muted); }
+.rich-text pre { overflow-x: auto; padding: 10px 12px; border-radius: 6px; background: var(--bg2); font-size: 13px; white-space: pre; }
+.rich-text code { font-family: var(--font-mono); font-size: 0.9em; }
+.rich-text a { color: var(--link, #2563eb); text-decoration: underline; text-underline-offset: 2px; }
+.rich-text hr { border: none; border-top: 1px solid var(--line); margin: 1em 0; }
+.rich-text table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 13px; margin: 0.6em 0; }
+.rich-text td, .rich-text th { padding: 4px 8px; border: 1px solid var(--line); vertical-align: top; }
+.rich-text > :last-child { margin-bottom: 0; }
+
+.bc-file {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--text) 7%, transparent);
+  font-size: 13px;
+}
+
+.email-modal__body { margin-top: 16px; font-size: 15px; line-height: 1.6; color: var(--text); }
+.email-modal__thread { margin: 16px 0 0; font-size: 12px; color: var(--muted); }
+.email-modal__loading { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+
+/* Card steps */
+.card-steps { list-style: none; margin: 0; padding: 0; }
+.card-steps__item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 14px; line-height: 1.4; color: var(--text); }
+.card-steps__item svg { flex-shrink: 0; margin-top: 2px; color: var(--muted); }
+.card-steps__title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.card-steps__item--done .card-steps__title { color: var(--muted); text-decoration: line-through; }
+.card-steps__due { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+
+/* Long content: keep the actions reachable while the modal scrolls */
+.modal--task .modal__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+}
+
+@media (max-width: 640px) {
+  .modal { width: calc(100% - 24px); max-height: calc(100dvh - 24px); }
+  .email-modal { padding: 16px; }
+  .stage-picker { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .stage-picker__step { flex-shrink: 0; }
+}
+
+/* Table cells scroll with the table instead of breaking words letter by letter */
+.rich-text td, .rich-text th { overflow-wrap: normal; min-width: 4ch; }
+
+/* ============================================================
+   BASECAMP-STYLE RICH TEXT — mention pills, links, comments
+   ============================================================ */
+.bc-mention {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 1px 8px 1px 2px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--text) 8%, transparent);
+  font-weight: 600;
+  line-height: 1.4;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.bc-mention__avatar { align-self: center; }
+.bc-mention:not(:has(.bc-mention__avatar)) { padding-left: 8px; }
+.bc-mention:not(:has(.bc-mention__avatar))::before { content: "@"; }
+
+.bc-mention__avatar {
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+a.bc-file { color: inherit; text-decoration: none; }
+a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent); }
+
+.rich-text a:not(.bc-file) {
+  color: oklch(52% 0.17 255);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.rich-text a:not(.bc-file):hover { text-decoration-thickness: 2px; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rich-text a:not(.bc-file) { color: oklch(74% 0.12 255); }
+}
+[data-theme="dark"] .rich-text a:not(.bc-file) { color: oklch(74% 0.12 255); }
+
+/* Comments read like Basecamp's: photo, name and time, then the words */
+.modal__comments-list { display: flex; flex-direction: column; gap: 18px; margin-bottom: 18px; }
+
+.bc-comment { display: flex; gap: 12px; align-items: flex-start; }
+
+.bc-comment__avatar,
+.bc-comment .contact-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.bc-comment__main { flex: 1; min-width: 0; }
+.bc-comment__meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.bc-comment__author { font-size: 14px; font-weight: 700; color: var(--text); }
+.bc-comment__time { font-size: 12px; color: var(--muted); }
+.bc-comment__content { font-size: 15px; line-height: 1.55; color: var(--text); }
+
+/* --------------------------------------------------------------------------
+   SKY — animated sunrise/sundown scene (sky_controller.js, sky/scene.js)
+   -------------------------------------------------------------------------- */
+.ritual-doc--with-sky { padding-top: 0; }
+.ritual-doc--with-sky::before { display: none; }
+
+.sky {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky--banner {
+  align-self: stretch;
+  flex: 0 0 auto;
+  height: clamp(180px, 32svh, 320px);
+  margin: 0 -24px clamp(28px, 4svh, 52px);
+  /* Melt the bottom edge into the page instead of a hard band */
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}
+
+.sky--immersive {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.sky__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sky__controls {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+  pointer-events: auto;
+  opacity: 0.75;
+  transition: opacity var(--transition-base);
+}
+
+.sky:hover .sky__controls,
+.sky__controls:focus-within { opacity: 1; }
+
+.sky__button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  color: oklch(98% 0.01 80);
+  background: oklch(20% 0.02 260 / 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.sky__button:hover { background: oklch(20% 0.02 260 / 0.42); }
+.sky__button:focus-visible { outline: 2px solid oklch(98% 0.01 80); outline-offset: 2px; }
+.sky__button .icon { --icon-size: 14px; }
+.sky__sound-icon { width: 16px; height: 16px; }
+.sky__sound-mute { display: none; }
+.sky__button--off .sky__sound-waves { display: none; }
+.sky__button--off .sky__sound-mute { display: inline; }
+
+/* Wrap screen: the night sky fills the page, so the words turn to starlight */
+.ritual-doc--wrap:has(.sky--immersive) {
+  --warm-ink: oklch(97% 0.012 80);
+  --warm-ink-soft: oklch(88% 0.02 80);
+  --warm-line-hover: oklch(84% 0.03 80);
+  --ink-medium: oklch(80% 0.02 80);
+  --ink-dark: oklch(86% 0.015 80);
+  --ink: oklch(97% 0.012 80);
+  --brick: oklch(97% 0.012 80);
+  --brick-hover: oklch(100% 0 0);
+  --brick-ink: oklch(22% 0.02 260);
+  min-height: 100%;
+  overflow: hidden;
+}
+
+/* ============================================================
+   PHONE LAYOUT — bottom tab bar, sheets, full-screen detail
+   Below 700px the two icon rails cost a quarter of the screen.
+   They go away; a bottom tab bar takes over, and the sidebar and
+   inbox panel open as full-screen sheets above it.
+   ============================================================ */
+.mtab,
+.sheet-close { display: none; }
+
+@media (max-width: 700px) {
+  :root { --mtab-height: calc(56px + env(safe-area-inset-bottom)); }
+
+  .shell,
+  .shell:has(.sb.sb--collapsed),
+  .shell.shell--no-right,
+  .shell.shell--no-right:has(.sb.sb--collapsed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mid { padding-bottom: var(--mtab-height); }
+
+  .mtab {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--mtab-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: color-mix(in oklch, var(--bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+    z-index: 960;
+  }
+
+  .mtab__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mtab__item .nav-icon,
+  .mtab__item svg { width: 22px; height: 22px; --icon-size: 22px; }
+  .mtab__item.on,
+  .mtab__item[aria-expanded="true"] { color: var(--text); }
+
+  /* Rails are gone; closed panels take no space at all. Until their
+     controllers connect (and close them), panels are hidden too, so a first
+     load never flashes them as full-screen sheets. */
+  .sb.sb--collapsed,
+  .right.right--collapsed,
+  .sb:not([data-sheet-ready]),
+  .right:not([data-sheet-ready]) { display: none; }
+
+  /* Open = full-screen sheet above the tab bar. */
+  .sb:not(.sb--collapsed),
+  .right:not(.right--collapsed) {
+    position: fixed;
+    inset: 0 0 var(--mtab-height) 0;
+    width: auto !important;
+    z-index: 955;
+    box-shadow: none;
+    animation: sheetUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .right:not(.right--collapsed) {
+    display: flex;
+    flex-direction: column;
+    --right-panel-content-width: 100% !important;
+  }
+
+  .right:not(.right--collapsed) { min-width: 0 !important; max-width: none !important; }
+  .right:not(.right--collapsed) .r-content { flex: 1; min-height: 0; width: 100%; max-width: none; border-right: 0; }
+
+  /* The rail becomes a source switcher across the top of the sheet. */
+  .right:not(.right--collapsed) .r-rail {
+    order: -1;
+    flex-direction: row;
+    height: auto;
+    padding: 8px 12px;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+    width: 100%;
+    overflow: visible;
+  }
+
+  .right:not(.right--collapsed) .r-rail-div { width: 1px; height: 20px; margin: 0 4px; }
+  .right .rri--panel-toggle,
+  .sb .sb-toggle { display: none; }
+
+  .sheet-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bg2);
+    color: var(--text);
+  }
+
+  .sheet-close .icon { --icon-size: 16px; }
+  .right .rri-tip { display: none; }
+
+  /* Sidebar sheet: the "More" menu. Collapse button reads as a close. */
+  .sb:not(.sb--collapsed) .sb-nav .sbi { min-height: 44px; }
+
+  /* Detail views (to-do, card, email) go full screen with the close X up top. */
+  .modal-overlay { align-items: stretch; z-index: 970; }
+  .modal,
+  .modal--task {
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: 100dvh;
+    border-radius: 0;
+    border: 0;
+    animation: sheetUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .modal__topbar { padding-top: max(10px, env(safe-area-inset-top)); }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb, .right, .modal { animation: none !important; }
+}
+
+/* ============================================================
+   FOCUS — calmer timer, background sound picker
+   ============================================================ */
+.focus__timer-display {
+  font-family: var(--font-serif, "Newsreader", Georgia, serif);
+  font-weight: 300;
+  font-size: clamp(56px, 9vw, 84px);
+  letter-spacing: 0;
+}
+
+.focus__sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: -12px auto 0;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--focus-ink) 6%, transparent);
+  color: color-mix(in oklch, var(--focus-ink) 60%, transparent);
+  align-self: center;
+}
+
+.focus__sound-icon { margin-right: 4px; flex-shrink: 0; }
+
+.focus__sound-opt {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  position: relative;
+}
+
+.focus__sound-opt:hover { color: var(--focus-ink); }
+.focus__sound-opt.on { background: color-mix(in oklch, var(--focus-ink) 14%, transparent); color: var(--focus-ink); }
+
+/* Last mood used: a quiet dot, since sound never starts on its own. */
+.focus__sound-opt.last:not(.on)::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (hover: none) { .focus__hint { display: none; } }
+
+/* ============================================================
+   AMBIENT SKY — the main canvas follows the time of day
+   Only the middle column. Rails, side panel, cards and modals keep
+   plain light/dark surfaces, so contrast never depends on the hour.
+   Colours come from ambient_controller.js (once a minute).
+   ============================================================ */
+.mid--ambient {
+  --amb-top: var(--canvas);
+  --amb-horizon: var(--canvas);
+  --amb-glow: transparent;
+  --amb-sun-x: 50%;
+  --amb-sun-y: 30%;
+  --amb-stars: 0;
+  position: relative;
+  isolation: isolate;
+  --amb-sun: transparent;
+  --amb-halo: transparent;
+  --amb-sun-r: 48px;
+  /* Back to front: sky, wide glow, halo, then the soft sun (or moon) disc. */
+  background:
+    radial-gradient(circle calc(var(--amb-sun-r) * 3.5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-sun) 0%, transparent 100%),
+    radial-gradient(circle calc(var(--amb-sun-r) * 5) at var(--amb-sun-x) var(--amb-sun-y), var(--amb-halo), transparent 70%),
+    radial-gradient(ellipse 75% 60% at var(--amb-sun-x) var(--amb-sun-y), var(--amb-glow), transparent 72%),
+    linear-gradient(180deg, var(--amb-top) 0%, var(--amb-horizon) 100%);
+  /* Everything inside that painted the flat canvas now lets the sky through. */
+  --bg: transparent;
+}
+
+.mid--ambient .kanban,
+.mid--ambient .kanban__column,
+.mid--ambient .day-view__tasks,
+.mid--ambient .day-view__timeline-column { background: transparent; --col-bg: transparent; }
+
+/* Night, dark mode: a sparse, still star field. */
+.mid--ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, oklch(95% 0.02 250 / 0.7), transparent),
+    radial-gradient(1px 1px at 34% 8%, oklch(95% 0.02 250 / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 58% 22%, oklch(95% 0.02 250 / 0.6), transparent),
+    radial-gradient(1px 1px at 76% 12%, oklch(95% 0.02 250 / 0.5), transparent),
+    radial-gradient(1px 1px at 88% 30%, oklch(95% 0.02 250 / 0.4), transparent),
+    radial-gradient(1px 1px at 22% 40%, oklch(95% 0.02 250 / 0.35), transparent),
+    radial-gradient(1.5px 1.5px at 66% 46%, oklch(95% 0.02 250 / 0.3), transparent);
+  background-size: 640px 480px;
+  transition: opacity 4s ease;
+}
+
+[data-theme="dark"] .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mid--ambient::before { opacity: calc(var(--amb-stars) * 1); }
+}
+
+/* Sometime chips read as small cards: filled surface, the card's own shadow
+   for an edge, no grey outline. */
+.sometime-row__tasks .task-card {
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-card);
+  padding: 7px 12px 7px 8px;
+}
+
+.sometime-row__tasks .task-card:hover {
+  background: var(--surface);
+  box-shadow: var(--shadow-card-hover, var(--shadow-card));
+}
+
+/* Done cards recede: the card goes half see-through with no lift, the title
+   drops to muted ink. The text stays at AA contrast and the stamp stays crisp. */
+.task-card.task-card--completed {
+  background: color-mix(in oklch, var(--surface) 45%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in oklch, var(--line) 60%, transparent);
+}
+
+.task-card--completed .task-card__title { color: var(--muted); }
+.task-card--completed .task-card__check { opacity: 0.7; }
+.task-card--completed .task-card__stamp { opacity: 1; }
+
+/* ============================================================
+   SERIF, SPARINGLY
+   Newsreader is kept for one display line per screen: the ritual
+   headline ("Good morning, Kosta."), the Focus task title and the
+   onboarding title. Everything else, including datelines, prose,
+   inputs, timers and hints, uses the UI sans in an upright style.
+   ============================================================ */
+.topbar__title--serif,
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-display,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input,
+.focus__source-body,
+.focus__comment-content,
+.focus__hint,
+.ritual-doc__dateline,
+.ritual-doc__prose,
+.ritual-doc__prose--muted,
+.ritual-doc__prompt,
+.ritual-doc__list-item,
+.ritual-doc__meter,
+.ritual-doc__link,
+.ritual-doc__reflection-input,
+.ritual-doc__card-title,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input,
+.ritual-doc__goal-check-title,
+.ritual-doc__wrap-title,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__prose,
+.onboarding-doc__text-input,
+.onboarding-doc__feature-list,
+.onboarding-doc__closer-preview {
+  font-family: var(--font-sans);
+}
+
+.topbar__sub--serif,
+.focus__eyebrow,
+.focus__timer-meta,
+.focus__timer-hint,
+.focus__notes-input::placeholder,
+.focus__hint,
+.focus__panel-hint,
+.focus__panel-empty,
+.ritual-doc__dateline,
+.ritual-doc__prose--muted,
+.ritual-doc__list-meta,
+.ritual-doc__link,
+.ritual-doc__reflection-input::placeholder,
+.ritual-doc__reflection-hint,
+.ritual-doc__card-meta,
+.ritual-doc__decision-ui,
+.ritual-doc__goal-num,
+.ritual-doc__goal-input::placeholder,
+.ritual-doc__wrap-sub,
+.onboarding-doc__dateline,
+.onboarding-doc__closer-preview-sub {
+  font-style: normal;
+}
+
+/* Sans needs a touch less size than the serif it replaces to sit at the same weight. */
+.ritual-doc__prose { font-size: 17px; line-height: 1.6; }
+.focus__timer-display { font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.focus__eyebrow,
+.ritual-doc__dateline { font-size: 13px; letter-spacing: 0.02em; }
+
+/* --------------------------------------------------------------------------
+   RITUALS SHARE THE AMBIENT SKY; FLAT UI CHROME
+   One sky per screen: ritual pages sit on the time-of-day canvas instead of
+   painting their own wash. Chrome (avatar, dividers, meter) stays flat.
+   -------------------------------------------------------------------------- */
+.mid--ambient .ritual--morning,
+.mid--ambient .ritual--evening,
+.mid--ambient .ritual--checkin,
+.mid--ambient .ritual--evening-wrap,
+.mid--ambient .ritual-doc--sunrise,
+.mid--ambient .ritual-doc--sunset,
+.mid--ambient .ritual-doc--weekly { background: transparent; }
+.mid--ambient .ritual-doc::before { display: none; }
+
+.sb-avatar { background: var(--amber-pill); }
+.ritual-doc__divider { background: oklch(var(--lch-ink-dark) / 0.12); }
+.ritual-doc__meter-bar { margin-top: 0; width: 100%; align-self: stretch; background: oklch(var(--lch-ink-dark) / 0.1); }
+.ritual-doc__meter-fill { background: var(--brick); }
+.task-card--completed::after { display: none; }
+
+/* "The day is closed." is the wrap screen's one display line */
+.ritual-doc__wrap-title { font-family: var(--font-serif); }

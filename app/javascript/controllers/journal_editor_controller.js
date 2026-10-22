@@ -7,21 +7,21 @@ const HEY_BADGE_BASE = "jrnl-hey-badge"
 // HEY pill = connection + “does HEY match our last save?” only (no autosave / no in-flight verbs).
 const heyBadgeSynced = () => ({
   className: `${HEY_BADGE_BASE} jrnl-hey-badge--synced`,
-  text: "Synced",
+  text: "Journal · Synced",
   title: "Your last save matches what’s in HEY Journal for this day."
 })
 
 // Connected, no journal row yet (or cleared).
 const heyBadgeHeyEmpty = () => ({
   className: `${HEY_BADGE_BASE} jrnl-hey-badge--idle`,
-  text: "HEY",
+  text: "Journal",
   title: "HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save."
 })
 
 // Connected, journal exists, digest not yet aligned with HEY (normal right after save).
 const heyBadgeHeyLinked = () => ({
   className: `${HEY_BADGE_BASE} jrnl-hey-badge--idle`,
-  text: "HEY",
+  text: "Journal",
   title: "HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically."
 })
 

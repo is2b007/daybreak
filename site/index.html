@@ -1,549 +1,411 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Daybreak: a calm planner that bridges Basecamp and HEY</title>
-  <meta name="description" content="Daybreak is a daily and weekly planner that bridges Basecamp and HEY into one opinionated workspace. Open source. Self-hostable. Built on the 37signals stack.">
-  <meta name="theme-color" content="#FDFCFA">
-
-  <meta property="og:title" content="Daybreak: a calm planner that bridges Basecamp and HEY">
-  <meta property="og:description" content="A daily and weekly planner that bridges Basecamp and HEY. Open source. Self-hostable.">
-  <meta property="og:url" content="https://daybreakplanner.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Daybreak · Plan your week and your day with Basecamp and HEY</title>
+  <meta name="description" content="Daybreak is a simple, self-hosted planner: your Basecamp to-dos and HEY calendar on one week, with a quick check-in to start the day and another to wrap it up.">
+  <meta name="theme-color" content="#9cc8f2">
+  <meta property="og:title" content="Daybreak">
+  <meta property="og:description" content="Plan your week and your day with Basecamp and HEY.">
   <meta property="og:type" content="website">
-
-  <link rel="icon" type="image/svg+xml" href="assets/daybreak-icon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap">
-  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="assets/daybreak-icon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/newsreader-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/site.css?v=11">
+  <script>matchMedia("(prefers-reduced-motion: reduce)").matches || (document.documentElement.classList.add("motion"), setTimeout(function () { document.documentElement.hasAttribute("data-motion-ready") || document.documentElement.classList.remove("motion") }, 2500))</script>
+  <script src="assets/vendor/motion-12.23.12.js" defer></script>
+  <script type="module" src="assets/site.js?v=5"></script>
 </head>
 <body>
-<script>document.documentElement.classList.replace('no-js','js');</script>
+  <a class="skip" href="#main">Skip to content</a>
 
-<header class="site-header">
-  <div class="wrap">
-    <a class="logo" href="/" aria-label="Daybreak home">
-      <img src="assets/daybreak-logo.svg" alt="" width="28" height="28">
-      <span>Daybreak</span>
-    </a>
-    <nav class="nav" aria-label="Primary">
-      <a href="#how">How it works</a>
-      <a href="#journal">HEY Journal</a>
-      <a href="#self-host">Self-host</a>
-      <a href="https://github.com/is2b007/daybreak">GitHub</a>
-    </nav>
-  </div>
-</header>
-
-<main>
-
-  <section class="hero">
-    <div class="wrap">
-      <h1>A <span class="serif">calm</span> planner that bridges <span class="tag tag-bc"><img class="brand-mark" src="assets/logos/basecamp-mark.svg" alt="" width="16" height="16">Basecamp</span> and <span class="tag tag-hey"><img class="brand-mark" src="assets/logos/hey-mark.svg" alt="" width="16" height="16">HEY</span>.</h1>
-      <p class="lede">
-        Daybreak pulls your Basecamp assignments, schedules, and HEY inputs into one quiet workspace so you can shape a realistic day, run a morning and evening ritual, and keep momentum, without creating another task silo.
-      </p>
-      <div class="cta-row">
-        <a class="btn btn-amber" href="#self-host">Self-host it</a>
-        <a class="btn btn-github" href="https://github.com/is2b007/daybreak">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.28-1.67-1.28-1.67-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .3.2.66.79.55C20.22 21.38 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
-          Star on GitHub
-        </a>
-      </div>
-      <p class="microcopy">Open source &middot; MIT licensed &middot; Single-user &middot; No account required &middot; No tracking</p>
+  <header class="masthead" data-masthead>
+    <div class="masthead__inner">
+      <a class="brand" href="/" aria-label="Daybreak home">
+        <img src="assets/daybreak-logo.svg" alt="" width="34" height="34">
+        <span>Daybreak</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#apps">Basecamp &amp; HEY</a>
+        <a href="#week">The week</a>
+        <a href="#rituals">Rituals</a>
+        <a href="#self-host">Self-host</a>
+      </nav>
+      <a class="pill pill--ink pill--sm" href="https://github.com/is2b007/daybreak"><svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
     </div>
-  </section>
+  </header>
 
-  <section class="mock-shell">
-    <div class="wrap">
-      <div class="mock-frame" aria-hidden="true">
-        <div class="mock-week">
-          <div class="mock-col mock-col--today">
-            <div class="mock-col-header">
-              <span class="mock-pill mock-pill--today">Mon <span class="mock-pill-count">4</span></span>
-              <span class="mock-day-number"><span class="mo">Apr</span><span class="n">23</span></span>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Ship onboarding copy review</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Daybreak website</span>
-              </div>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Respond to Q2 roadmap thread</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Roadmap</span>
-              </div>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Reply to Dia: dinner Friday?</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--hey"><span class="mock-task__project-dot"></span>Reply Later</span>
-              </div>
-            </div>
-            <div class="mock-task mock-task--completed">
-              <div class="mock-task__title">Morning ritual</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check mock-task__check--done"></span>
-                <span class="mock-task__project">Daybreak</span>
-              </div>
-              <svg class="mock-stamp" width="36" height="36" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <polygon points="20,4 24,16 37,16 26,24 30,36 20,28 10,36 14,24 3,16 16,16" fill="#1F3D5C" opacity="0.65"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="mock-col">
-            <div class="mock-col-header">
-              <span class="mock-pill">Tue <span class="mock-pill-count">2</span></span>
-              <span class="mock-day-number"><span class="mo">Apr</span><span class="n">24</span></span>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Basecamp sync follow-up</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Ops</span>
-              </div>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Walk before lunch</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project">Habits</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mock-col">
-            <div class="mock-col-header">
-              <span class="mock-pill">Wed <span class="mock-pill-count">1</span></span>
-              <span class="mock-day-number"><span class="mo">Apr</span><span class="n">25</span></span>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Design review with the team</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Product</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mock-col">
-            <div class="mock-col-header">
-              <span class="mock-pill">Thu <span class="mock-pill-count">1</span></span>
-              <span class="mock-day-number"><span class="mo">Apr</span><span class="n">26</span></span>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Draft monthly reflection</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project mock-task__project--hey"><span class="mock-task__project-dot"></span>Journal</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mock-col hide-sm">
-            <div class="mock-col-header">
-              <span class="mock-pill">Fri <span class="mock-pill-count">1</span></span>
-              <span class="mock-day-number"><span class="mo">Apr</span><span class="n">27</span></span>
-            </div>
-            <div class="mock-task">
-              <div class="mock-task__title">Shut down the week</div>
-              <div class="mock-task__bottom">
-                <span class="mock-task__check"></span>
-                <span class="mock-task__project">Ritual</span>
-              </div>
-            </div>
-          </div>
+  <main id="main">
+    <!-- Morning: the only sunrise on the page -->
+    <section class="hero" aria-labelledby="hero-title">
+      <canvas class="sky" data-sky="sunrise" aria-hidden="true"></canvas>
+      <div class="hero__copy">
+        <p class="eyebrow-chip">Open source · Runs on your server</p>
+        <h1 id="hero-title">Plan your week. Then your day.</h1>
+        <p class="lede">Daybreak is a simple planner for people who use <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>. Your work to-dos and your personal calendar show up on one week. Drag things onto days, pick what matters today, and check it off. That's it.</p>
+        <div class="actions">
+          <a class="pill pill--ink" href="#self-host">Run your own</a>
+          <a class="pill pill--glass" href="https://github.com/is2b007/daybreak"><svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>View on GitHub</a>
         </div>
+        <p class="fine">Free and MIT licensed · Your server, your data · No tracking</p>
       </div>
-    </div>
-  </section>
 
-  <section class="feature" id="how">
-    <div class="wrap">
-      <h2>Your day, <span class="serif">on one page</span>.</h2>
-      <p class="lede">
-        Daybreak's day view puts today's tasks on the left and your timebox plus HEY calendar on the right. One screen. Nothing pulling your attention sideways.
-      </p>
+      <!-- The week, drawn in HTML so it stays crisp and follows the theme -->
+      <figure class="app" aria-label="The Daybreak week view">
+        <div class="sun" aria-hidden="true"></div>
+        <div class="app__window">
+          <aside class="app__side" aria-hidden="true">
+            <div class="app__brand"><img src="assets/daybreak-logo.svg" alt="" width="20" height="20"> Daybreak</div>
+            <ul class="app__menu">
+              <li class="is-on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11M15 9v11"/></svg>Week</li>
+              <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Today</li>
+              <li><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Daily log</li>
+              <li><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Weekly goals</li>
+            </ul>
+            <p class="app__label">Rituals</p>
+            <ul class="app__menu">
+              <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Sunrise</li>
+              <li><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Sundown</li>
+              <li><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>Check-in</li>
+            </ul>
+            <div class="app__me"><span>K</span> Kosta</div>
+          </aside>
 
-      <div class="mock-day" aria-hidden="true">
-        <div class="mock-day__col mock-day__col--tasks">
-          <div class="mock-day__head">
-            <span class="mock-day__title">What do you want to get done?</span>
-            <span class="mock-day__section-pill">3 of 4 done</span>
-          </div>
-          <div class="mock-task">
-            <div class="mock-task__title">Ship onboarding copy review</div>
-            <div class="mock-task__bottom">
-              <span class="mock-task__check"></span>
-              <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Daybreak website &middot; 45m</span>
+          <div class="app__main">
+            <div class="app__bar">
+              <span class="app__range">Oct 19 – Oct 25</span>
+              <span class="app__year">2026</span>
+              <span class="app__goal"><b>Goal</b> Ship the visual refresh</span>
             </div>
-          </div>
-          <div class="mock-task">
-            <div class="mock-task__title">Respond to Q2 roadmap thread</div>
-            <div class="mock-task__bottom">
-              <span class="mock-task__check"></span>
-              <span class="mock-task__project mock-task__project--bc"><span class="mock-task__project-dot"></span>Roadmap &middot; 15m</span>
-            </div>
-          </div>
-          <div class="mock-task mock-task--completed">
-            <div class="mock-task__title">Morning ritual</div>
-            <div class="mock-task__bottom">
-              <span class="mock-task__check mock-task__check--done"></span>
-              <span class="mock-task__project">Daybreak</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mock-day__col mock-day__col--timeline">
-          <div class="mock-day__head">
-            <span class="mock-day__title">Calendar</span>
-            <span class="mock-day__section-pill mock-day__section-pill--tl">Timeline</span>
-          </div>
-          <div class="mock-timeline">
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">9 AM</span>
-              <div class="mock-tl-slot">
-                <div class="mock-tl-block mock-tl-block--task">Ship onboarding copy review</div>
-              </div>
-            </div>
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">10</span>
-              <div class="mock-tl-slot">
-                <div class="mock-tl-block mock-tl-block--hey">
-                  <img class="brand-mark" src="assets/logos/hey-mark.svg" alt="" width="12" height="12">
-                  Weekly 1:1 with Ric
+            <div class="app__days">
+              <div class="day">
+                <p class="day__head"><b>Mon</b> 19</p>
+                <div class="card is-done">
+                  <span class="tick tick--done"></span>
+                  <div><p>Weekly planning</p><p class="src">Daily log</p></div>
+                  <span class="stamp stamp--navy" role="img" aria-label="Done"></span>
+                </div>
+                <div class="card is-done">
+                  <span class="tick tick--done"></span>
+                  <div><p>Send invoice to Acme</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Clients</p></div>
+                  <span class="stamp stamp--green" role="img" aria-label="Done"></span>
                 </div>
               </div>
-            </div>
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">11</span>
-              <div class="mock-tl-slot"></div>
-            </div>
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">12 PM</span>
-              <div class="mock-tl-slot">
-                <div class="mock-tl-block mock-tl-block--bc">
-                  <img class="brand-mark" src="assets/logos/basecamp-mark.svg" alt="" width="12" height="12">
-                  Design review
+              <div class="day">
+                <p class="day__head"><b>Tue</b> 20</p>
+                <div class="card is-done">
+                  <span class="tick tick--done"></span>
+                  <div><p>Review HEY digest</p><p class="src"><img src="assets/tiles/hey.png" alt="">Imbox</p></div>
+                  <span class="stamp stamp--red" role="img" aria-label="Done"></span>
+                </div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Draft hiring post</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">People Ops</p></div>
                 </div>
               </div>
-            </div>
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">1</span>
-              <div class="mock-tl-slot"></div>
-            </div>
-            <div class="mock-tl-row">
-              <span class="mock-tl-hour">2</span>
-              <div class="mock-tl-slot">
-                <div class="mock-tl-block mock-tl-block--task">Focus block: roadmap reply</div>
+              <div class="day is-today">
+                <p class="day__head"><b>Wed</b> 21 <span class="chip-today">Today</span></p>
+                <div class="card card--event"><div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">9:30</span> · 45 min</p></div></div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Write Q4 roadmap</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Daybreak HQ <span class="stage">In progress</span></p></div>
+                </div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Fix onboarding copy</p><p class="src"><span class="box">2:00–3:30</span></p></div>
+                </div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Reply to Jason</p><p class="src"><img src="assets/tiles/hey.png" alt="">Reply Later</p></div>
+                </div>
+              </div>
+              <div class="day">
+                <p class="day__head"><b>Thu</b> 22</p>
+                <div class="card card--event"><div><p>1:1 with Mia</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">11:00</span> · 30 min</p></div></div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Ship icon refresh</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Design <span class="stage">Review</span></p></div>
+                </div>
+              </div>
+              <div class="day">
+                <p class="day__head"><b>Fri</b> 23</p>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Plan offsite</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Retreat</p></div>
+                </div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Update pricing page</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Marketing site</p></div>
+                </div>
+                <p class="add">+ Add a to-do</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-3" style="margin-top:40px">
-        <div class="card-feature card-blue">
-          <h3>Week</h3>
-          <p>A kanban of seven days plus a "sometime" bucket. Drag tasks between days. See what's coming before it arrives.</p>
-        </div>
-        <div class="card-feature">
-          <h3>Day</h3>
-          <p>Today's tasks with timeboxes, pinned alongside your HEY calendar events. A daily log lives here too.</p>
-        </div>
-        <div class="card-feature card-sage">
-          <h3>Focus</h3>
-          <p>One task at a time. A quiet timer. A single place to work until the thing is done.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="feature feature-tinted feature-bc">
-    <div class="wrap">
-      <div class="split">
-        <div>
-          <span class="eyebrow eyebrow-bc">Basecamp</span>
-          <h2>Your Basecamp work, <span class="serif">already planned</span>.</h2>
-          <p>Sign in with Basecamp and every assignment lands in your Daybreak inbox. Drag the ones you'll actually do onto today, a specific day, or "sometime". The rest stay parked until you're ready. Finish a task in Daybreak, it's done in Basecamp too.</p>
-          <ul class="checklist">
-            <li>Your Basecamp assignments arrive in an inbox, not your calendar</li>
-            <li>Drag what you'll do onto the day you'll do it; leave the rest</li>
-            <li>Project names, due dates, and back-links come along for the ride</li>
-            <li>Check it off here, it checks off in Basecamp too</li>
-          </ul>
-        </div>
-        <div class="mock-modal" aria-hidden="true">
-          <div class="mock-modal__topbar">
-            <img class="brand-mark" src="assets/logos/basecamp-mark.svg" alt="" width="14" height="14">
-            Basecamp &middot; assignment
-          </div>
-          <div class="mock-modal__body">
-            <div class="mock-modal__title">Ship onboarding copy review</div>
-            <div class="mock-modal__meta">Daybreak website &middot; due Friday</div>
-            <div class="mock-chip-row">
-              <span class="mock-chip mock-chip--active">Today</span>
-              <span class="mock-chip">Tomorrow</span>
-              <span class="mock-chip">This week</span>
-              <span class="mock-chip">Sometime</span>
+            <div class="app__tray">
+              <b>Sometime this week</b>
+              <span class="tray-chip"><span class="tick"></span>Read Shape Up again</span>
+              <span class="tray-chip"><span class="tick"></span>Call the accountant</span>
+              <span class="tray-chip"><span class="tick"></span>Book dentist</span>
             </div>
           </div>
+
+          <aside class="app__panel" aria-hidden="true">
+            <p class="panel__title"><img src="assets/tiles/basecamp.png" alt="">Assigned to you <span>3</span></p>
+            <div class="card card--sm"><span class="tick"></span><div><p>Sign off launch notes</p><p class="src">Daybreak HQ · due Fri</p></div></div>
+            <div class="card card--sm"><span class="tick"></span><div><p>Q4 budget check</p><p class="src">Finance</p></div></div>
+            <div class="card card--sm"><span class="tick"></span><div><p>Photos for the case study</p><p class="src">Marketing site</p></div></div>
+            <p class="panel__hint">Drag onto a day to plan it.</p>
+          </aside>
+        </div>
+      </figure>
+    </section>
+
+    <!-- Basecamp and HEY -->
+    <section class="band" id="apps" aria-labelledby="apps-title">
+      <div class="wrap">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow">Basecamp + HEY</p>
+          <h2 id="apps-title">Work stuff and life stuff, on one week.</h2>
+          <p class="section-lede">I use Basecamp for work and HEY for everything else, and I wanted one place to plan both. Some days are mostly work, some are mostly personal, most are a mix. Daybreak puts it all on the same week, so I can plan the day I actually have.</p>
+          <p class="section-sign">Kosta, who made it</p>
+        </header>
+        <div class="duo" data-reveal>
+          <article class="sheet">
+            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40"><span>Basecamp<small>Your work stuff</small></span></h3>
+            <div class="flow">
+              <p class="flow__label">Comes in</p>
+              <ul class="flow__list">
+                <li>To-dos assigned to you</li>
+                <li>Schedule entries</li>
+                <li>Cards from your card tables</li>
+                <li>Notes and comments, so you don't have to go digging</li>
+              </ul>
+            </div>
+            <div class="flow">
+              <p class="flow__label flow__label--out">Goes back</p>
+              <ul class="flow__list">
+                <li>Check off a to-do and it's done in Basecamp</li>
+                <li>Finish a card and it moves to Done</li>
+              </ul>
+            </div>
+          </article>
+          <article class="sheet">
+            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40"><span>HEY<small>Your personal stuff</small></span> <span class="optional">Optional</span></h3>
+            <div class="flow">
+              <p class="flow__label">Comes in</p>
+              <ul class="flow__list">
+                <li>Your HEY Calendar, next to your to-dos</li>
+                <li>Imbox, Reply Later and Set Aside</li>
+                <li>Turn any email into a to-do</li>
+              </ul>
+            </div>
+            <div class="flow">
+              <p class="flow__label flow__label--out">Goes back</p>
+              <ul class="flow__list">
+                <li>Block time for a to-do and it shows up on your calendar</li>
+                <li>Your evening note goes to your HEY Journal</li>
+              </ul>
+            </div>
+          </article>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="feature feature-tinted feature-hey">
-    <div class="wrap">
-      <div class="split split-reverse">
-        <div>
-          <span class="eyebrow eyebrow-hey">HEY &middot; optional</span>
-          <h2>Your email and calendar, <span class="serif">made plannable</span>.</h2>
-          <p>Connect HEY and today's calendar events sit next to your tasks. Turn a Reply Later message into a planned task, keep a meeting pinned to your timebox, and stop watching Set Aside emails slip through the cracks. HEY is optional, the planner still works without it.</p>
-          <ul class="checklist">
-            <li>Today's calendar events pinned next to your tasks</li>
-            <li>Turn an email into something you plan around, in one click</li>
-            <li>Reply Later and Set Aside surface where you actually work</li>
-            <li>Evening reflections and daily notes push to HEY Journal automatically</li>
+    <!-- The week -->
+    <section class="band band--panel" id="week" aria-labelledby="week-title">
+      <div class="wrap split" data-reveal>
+        <div class="split__copy">
+          <p class="eyebrow">The week</p>
+          <h2 id="week-title">See your whole week at once.</h2>
+          <p>Every day fits on the screen. Drag a to-do from Tuesday to Thursday. Not sure when? Drop it in <em>Sometime this week</em> and decide later.</p>
+          <ul class="facts">
+            <li>
+              <span class="fact__mark fact__mark--stamps">
+                <span class="stamp stamp--red"></span>
+                <span class="stamp stamp--green"></span>
+                <span class="stamp stamp--navy"></span>
+              </span>
+              <span><b>Stamp it done.</b> Finishing something should feel good. Pick the stamp you like.</span>
+            </li>
+            <li>
+              <span class="fact__mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>
+              <span><b>Set goals, keep a log.</b> Three goals for the week and a quick note for each day.</span>
+            </li>
+            <li>
+              <span class="fact__mark"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 18h4"/></svg></span>
+              <span><b>Works on your phone.</b> One day at a time, with everything a thumb away.</span>
+            </li>
           </ul>
         </div>
-        <div class="mock-modal" aria-hidden="true">
-          <div class="mock-modal__topbar">
-            <img class="brand-mark" src="assets/logos/hey-mark.svg" alt="" width="14" height="14">
-            HEY &middot; Reply Later
+
+        <figure class="phone" aria-label="Daybreak on a phone">
+          <div class="phone__screen">
+            <p class="phone__range">Oct 19 – Oct 25</p>
+            <p class="day__head"><b>Wed</b> 21 <span class="chip-today">Today</span></p>
+            <div class="card card--event"><div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">9:30</span> · 45 min</p></div></div>
+            <div class="card"><span class="tick"></span><div><p>Write Q4 roadmap</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Daybreak HQ</p></div></div>
+            <div class="card is-done"><span class="tick tick--done"></span><div><p>Morning pages</p><p class="src">Daily log</p></div><span class="stamp stamp--navy" role="img" aria-label="Done"></span></div>
+            <p class="add">+ Add a to-do</p>
+            <div class="phone__tray"><b>Sometime this week</b><span class="tray-chip"><span class="tick"></span>Read Shape Up again</span></div>
+            <nav class="phone__tabs" aria-hidden="true">
+              <span class="is-on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11M15 9v11"/></svg>Week</span>
+              <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Today</span>
+              <span><svg viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5M5 5h14l2 8v6H3v-6z"/></svg>Inbox</span>
+              <span><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Log</span>
+              <span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More</span>
+            </nav>
           </div>
-          <div class="mock-modal__body">
-            <div class="mock-modal__title">Dia: dinner on Friday?</div>
-            <div class="mock-modal__meta">From Dia &middot; 2 hours ago</div>
-            <div class="mock-chip-row">
-              <span class="mock-chip mock-chip--hey">Make it a task</span>
-              <span class="mock-chip">Snooze</span>
-              <span class="mock-chip">Set aside</span>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Rituals: each card runs its own sky -->
+    <section class="band" id="rituals" aria-labelledby="rituals-title">
+      <div class="wrap">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow">Rituals</p>
+          <h2 id="rituals-title">Start the day. Wrap it up.</h2>
+          <p class="section-lede">Two quick check-ins. A few minutes in the morning to pick what matters, and a few at night to close things out.</p>
+        </header>
+        <div class="rituals" data-reveal>
+          <article class="ritual ritual--sunrise">
+            <canvas class="sky" data-sky="card-sunrise" aria-hidden="true"></canvas>
+            <div class="ritual__body">
+              <p class="ritual__kicker">Sunrise · Morning</p>
+              <h3 class="serif">Good morning, Kosta.</h3>
+              <p>See what's left from yesterday, pull it forward, and pick what today is about.</p>
+              <ol class="ritual__steps">
+                <li>Look back</li><li>Choose today</li><li>Timebox it</li>
+              </ol>
             </div>
+          </article>
+          <article class="ritual ritual--sundown">
+            <canvas class="sky" data-sky="card-sundown" aria-hidden="true"></canvas>
+            <div class="ritual__body">
+              <p class="ritual__kicker">Sundown · Evening</p>
+              <h3 class="serif">How did today go?</h3>
+              <p>Check off what you finished, move what you didn't, and write a line about the day.</p>
+              <div class="journal">
+                <p class="journal__head"><img src="assets/tiles/hey.png" alt="" width="16" height="16">Saved to your HEY Journal</p>
+                <p class="serif">Roadmap's drafted. The design review ran long, but it was worth it.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+        <ul class="ritual-notes" data-reveal>
+          <li><b>Music if you want it.</b> A soft soundtrack for each check-in. Off by default.</li>
+          <li><b>Quick to set up.</b> Connect <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>, and you're planning in a couple of minutes.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Focus: a dark stage, like the mode itself -->
+    <section class="band" id="focus" aria-labelledby="focus-title">
+      <div class="wrap" data-reveal>
+        <div class="focus-stage">
+          <div class="focus-stage__copy">
+            <p class="eyebrow">Focus</p>
+            <h2 id="focus-title">Work on one thing at a time.</h2>
+            <p>Open a to-do in Focus and everything else gets out of the way. You get a timer, your notes, and the <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> details if you need them.</p>
+            <div class="sounds" role="list" aria-label="Focus sounds">
+              <span role="listitem" class="is-on">Silence</span><span role="listitem">Rain</span><span role="listitem">Waves</span><span role="listitem">Drift</span>
+            </div>
+            <p class="small">Four background sounds, if you like working to rain.</p>
           </div>
+          <figure class="focus-stage__shot">
+            <img src="assets/shots/focus.webp" alt="Focus mode: a to-do title, a large timer with a Start button, and sound choices Silence, Rain, Waves and Drift" width="1200" height="820" loading="lazy">
+          </figure>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="feature feature-alt" id="journal">
-    <div class="wrap">
-      <span class="eyebrow eyebrow-hey">HEY Journal</span>
-      <h2>A journal that <span class="serif">writes itself</span> to HEY.</h2>
-      <p class="lede">
-        Your evening ritual reflection and anything you scribble in the daily log automatically sync to HEY Journal on every save. No manual export, no separate app. If HEY disconnects, notes stay in Daybreak and sync when you reconnect.
-      </p>
-
-      <div class="mock-sync" aria-hidden="true">
-        <div class="mock-ritual mock-ritual--sunset">
-          <div class="mock-ritual__eyebrow">Sunset &middot; step 2</div>
-          <div class="mock-ritual__title">One line for tonight</div>
-          <div class="mock-ritual__prompt">What stays with you from today?</div>
-          <div class="mock-ritual__reflection">
-            The roadmap thread finally clicked after lunch. Dinner with Dia on Friday. I want to remember the walk, the light.
-          </div>
-        </div>
-
-        <div class="mock-sync__arrow" aria-hidden="true">&rarr;</div>
-
-        <div class="mock-journal">
-          <div class="mock-journal__head">
-            <span>Daily log &middot; Wed Apr 23</span>
-            <span class="mock-journal__badge">Synced to HEY</span>
-          </div>
-          <div class="mock-journal__toolbar">
-            <span style="font-weight:700">B</span>
-            <span style="font-style:italic">I</span>
-            <span style="text-decoration:line-through">S</span>
-            <span>&para;</span>
-            <span>&ldquo;</span>
-            <span>&equiv;</span>
-          </div>
-          <div class="mock-journal__body">
-            <p>The roadmap thread finally clicked after lunch. Dinner with Dia on Friday.</p>
-            <p>I want to remember the walk, the light.</p>
-          </div>
-        </div>
+    <!-- How it's built -->
+    <section class="band band--panel" aria-labelledby="built-title">
+      <div class="wrap">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow">How it's built</p>
+          <h2 id="built-title">Simple, private, and yours.</h2>
+        </header>
+        <ul class="values" data-reveal>
+          <li>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <b>Just for you</b>
+            <p>One install, one person. Your team keeps using <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> like always. Daybreak never bugs them.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <b>Quiet</b>
+            <p>No notifications, no badges, no streaks. It's there when you open it.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <b>Private</b>
+            <p>Everything lives in one file on your server. No tracking in the app or on this site.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+            <b>Open source</b>
+            <p>Free and MIT licensed. Change whatever you want, and keep it forever.</p>
+          </li>
+        </ul>
       </div>
+    </section>
 
-      <div class="grid-2" style="margin-top:40px">
-        <div class="card-feature card-sage">
-          <h3>The evening ritual writes your reflection</h3>
-          <p>At the end of your day, Daybreak asks "What stays with you from today?" in a quiet one-line prompt. Answer it and the ritual completes. The answer becomes your journal entry for the day.</p>
-        </div>
-        <div class="card-feature card-blue">
-          <h3>The daily log keeps notes alongside your work</h3>
-          <p>A scratchpad lives in the day view for longer thoughts, meeting notes, or stray ideas. Every keystroke saves. Every save pushes to HEY Journal, with a badge that quietly confirms the sync.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Evening: the sun sets into the self-host section -->
+    <div class="sunset" aria-hidden="true"></div>
 
-  <section class="feature">
-    <div class="wrap">
-      <h2>A <span class="serif">morning ritual</span>. An <span class="serif">evening ritual</span>.</h2>
-      <p class="lede">Planning is a practice, not a preference. Daybreak opens with a morning ritual to shape the day and closes with an evening one to log it.</p>
-
-      <div class="grid-2">
-        <div class="mock-ritual mock-ritual--sunrise">
-          <div class="mock-ritual__eyebrow">Sunrise</div>
-          <div class="mock-ritual__title">This morning</div>
-          <div class="mock-ritual__row">
-            <span class="mock-ritual__check mock-ritual__check--done"></span>
-            Review yesterday's open items
-          </div>
-          <div class="mock-ritual__row">
-            <span class="mock-ritual__check mock-ritual__check--done"></span>
-            Pull in today's Basecamp assignments
-          </div>
-          <div class="mock-ritual__row">
-            <span class="mock-ritual__check"></span>
-            Set one focus for the day
-          </div>
-          <div class="mock-ritual__footer">
-            <span class="mock-ritual__cta">Mark planned</span>
-          </div>
-        </div>
-
-        <div class="mock-ritual mock-ritual--sunset">
-          <div class="mock-ritual__eyebrow">Sunset</div>
-          <div class="mock-ritual__title">This evening</div>
-          <div class="mock-ritual__row">
-            <span class="mock-ritual__check mock-ritual__check--done"></span>
-            Close out: finish, defer, or drop
-          </div>
-          <div class="mock-ritual__prompt">What stays with you from today?</div>
-          <div class="mock-ritual__reflection">
-            Quiet progress on the roadmap reply. Good walk after lunch.
-          </div>
-          <div class="mock-ritual__footer">
-            <span class="mock-ritual__cta">Complete day</span>
-          </div>
+    <section class="night" id="self-host" aria-labelledby="host-title">
+      <canvas class="sky" data-sky="night" aria-hidden="true"></canvas>
+      <div class="wrap night__inner">
+        <header class="section-head" data-reveal>
+          <p class="eyebrow">Self-host</p>
+          <h2 id="host-title">Run it yourself.</h2>
+          <p class="section-lede">It's one Rails app and one SQLite file. A laptop, a $5 server, or Railway all work fine.</p>
+        </header>
+        <div class="host" data-reveal>
+          <article class="host__card host__card--steps">
+            <h3>With Docker</h3>
+            <ol class="steps">
+              <li>
+                <b>Create a <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> integration</b>
+                <p>At <a href="https://launchpad.37signals.com/integrations">launchpad.37signals.com/integrations</a>, with the redirect URL <code>http://localhost:3000/auth/basecamp/callback</code>.</p>
+              </li>
+              <li>
+                <b>Clone, add its keys to <code>.env</code>, and start</b>
+                <div class="code">
+                  <button class="copy" type="button" data-copy="#quickstart">Copy</button>
+                  <pre id="quickstart"><code>git clone https://github.com/is2b007/daybreak.git
+cd daybreak && cp .env.example .env
+docker compose up -d</code></pre>
+                </div>
+              </li>
+              <li>
+                <b>Open <code>localhost:3000</code></b>
+                <p>Onboarding connects your accounts. <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> is optional.</p>
+              </li>
+            </ol>
+          </article>
+          <article class="host__card">
+            <h3>Or in one click</h3>
+            <p>Deploy to Railway for about $5 a month. Set <code>RAILS_MASTER_KEY</code>, <code>BASECAMP_CLIENT_ID</code> and <code>BASECAMP_CLIENT_SECRET</code>, and add a volume at <code>/rails/storage</code> so your data survives deploys.</p>
+            <a class="pill pill--light" href="https://railway.com/deploy?template=https://github.com/is2b007/daybreak">
+              <img src="assets/logos/railway-mark.svg" alt="" width="18" height="18"> Deploy on Railway
+            </a>
+          </article>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="feature feature-alt">
-    <div class="wrap narrow">
-      <span class="eyebrow">Under the hood</span>
-      <h2>How the integrations actually connect.</h2>
-      <p>For the curious and the careful, here's what's happening behind the scenes.</p>
-      <ul class="plain-list">
-        <li><strong>Basecamp.</strong> Standard OAuth sign-in via Launchpad. Daybreak caches responses and stays well under Basecamp's 50 requests per 10 seconds rate limit, so nothing you do here slows down anyone else on your account.</li>
-        <li><strong>HEY.</strong> PKCE OAuth, no client secret to manage or leak. Your data moves between HEY and your Daybreak instance directly, it does not pass through a third-party server.</li>
-        <li><strong>HEY Journal.</strong> Every journal save pushes to HEY within about a second. If HEY is unreachable, notes stay in Daybreak and re-sync automatically once the connection returns.</li>
-        <li><strong>Your data.</strong> Everything lives in a local SQLite database and a <code>./storage</code> folder. Back up that folder and you've backed up Daybreak.</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="feature feature-dark" id="self-host">
-    <div class="wrap">
-      <span class="eyebrow">Self-host</span>
-      <h2>Run it yourself in one command.</h2>
-      <p class="lede">Daybreak is single-user and made to run on your own machine or a small server. No account to create, no usage to meter, no one watching what you plan.</p>
-      <pre class="code"><code>git clone https://github.com/is2b007/daybreak.git
-cd daybreak
-cp .env.example .env     # add your Basecamp credentials
-docker compose up -d
-open http://localhost:3000</code></pre>
-      <p class="microcopy">Your SQLite database and files live in <code>./storage</code> on the host. Back up that folder, that's your whole data set.</p>
-      <p class="lede" style="margin-top: 32px;">Prefer not to touch a terminal? One click spins up Daybreak on Railway. Bring your Basecamp credentials, attach a storage volume, done. Roughly $5/mo on Railway's Hobby plan.</p>
-      <div class="cta-row">
-        <a class="btn btn-railway" href="https://railway.com/deploy?template=https://github.com/is2b007/daybreak">
-          <img src="assets/logos/railway-mark.svg" alt="" width="18" height="18">
-          Deploy on Railway
-        </a>
-        <a class="btn btn-github" href="https://github.com/is2b007/daybreak">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.28-1.67-1.28-1.67-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .3.2.66.79.55C20.22 21.38 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
-          View on GitHub
-        </a>
-        <a class="btn btn-ghost" href="https://github.com/is2b007/daybreak/blob/main/CONTRIBUTING.md">Contributing guide</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="feature">
-    <div class="wrap narrow">
-      <span class="eyebrow">Philosophy</span>
-      <h2><span class="serif">Opinionated</span>, not optional.</h2>
-      <p>
-        Daybreak was built to replace a $240-a-year planner with something calmer, more opinionated, and shaped around how Basecamp and HEY already work. It follows the 37signals stack: Rails 8, Hotwire, SQLite. No React. No Tailwind. No TypeScript. No bundler. No team features, no AI, no analytics, no notifications.
-      </p>
-      <p>
-        Software should have opinions. This one does. If you disagree with the opinions, the code is open. Fork it and build the planner you actually want.
-      </p>
-    </div>
-  </section>
-
-  <section class="feature feature-sponsor">
-    <div class="wrap narrow">
-      <span class="eyebrow">Support the work</span>
-      <h2>Daybreak is free. <span class="serif">Sponsors keep it that way.</span></h2>
-      <p>If Daybreak is useful to you and you'd like it to keep getting better, consider sponsoring on GitHub. Any amount helps cover the time it takes to maintain the project and the domain.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/sponsors/is2b007">Sponsor on GitHub</a>
-        <a class="btn btn-github" href="https://github.com/is2b007/daybreak">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.28-1.67-1.28-1.67-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.9-.38 2.88-.39.98.01 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .3.2.66.79.55C20.22 21.38 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
-          Star the repo
-        </a>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-cols">
-      <div>
-        <a class="logo" href="/" aria-label="Daybreak home">
-          <img src="assets/daybreak-logo.svg" alt="" width="24" height="24">
-          <span>Daybreak</span>
-        </a>
-        <p class="microcopy">A calm planner that bridges Basecamp and HEY.</p>
-      </div>
-      <div>
-        <h4>Project</h4>
-        <a href="https://github.com/is2b007/daybreak">GitHub</a>
-        <a href="https://github.com/is2b007/daybreak/blob/main/LICENSE">MIT license</a>
-        <a href="https://github.com/is2b007/daybreak/blob/main/CONTRIBUTING.md">Contributing</a>
-        <a href="https://github.com/is2b007/daybreak/blob/main/SECURITY.md">Security</a>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <a href="https://github.com/sponsors/is2b007">Sponsor</a>
-        <a href="https://github.com/is2b007/daybreak/issues">Report an issue</a>
-        <a href="mailto:kostac@hey.com">Email</a>
-      </div>
-    </div>
-    <p class="microcopy copyright">&copy; 2026 Kosta Canatselis. Daybreak is open source, MIT licensed.</p>
-  </div>
-</footer>
-
-<script>
-(function() {
-  if (!('IntersectionObserver' in window)) return;
-  var targets = document.querySelectorAll('main > section:not(.hero) > .wrap');
-  targets.forEach(function(el) { el.classList.add('reveal'); });
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
-  targets.forEach(function(el) { io.observe(el); });
-})();
-</script>
-
+      <footer class="foot">
+        <div class="wrap foot__inner">
+          <a class="brand brand--night" href="/"><img src="assets/daybreak-logo.svg" alt="" width="28" height="28"><span>Daybreak</span></a>
+          <p>Built with Rails, SQLite and Hotwire. MIT licensed. Not affiliated with 37signals.</p>
+          <nav aria-label="Footer">
+            <a href="https://github.com/is2b007/daybreak">GitHub</a>
+            <a href="https://github.com/sponsors/is2b007">Sponsor</a>
+            <a href="https://github.com/is2b007/daybreak/issues">Issues</a>
+          </nav>
+        </div>
+      </footer>
+    </section>
+  </main>
 </body>
 </html>

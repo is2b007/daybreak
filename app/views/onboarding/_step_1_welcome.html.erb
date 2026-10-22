@@ -1,17 +1,14 @@
-<p class="ritual-doc__dateline">Daybreak</p>
-<h1 class="ritual-doc__title">Welcome.</h1>
+<%= render layout: "step", locals: { step: 1, elevation: 0.02 } do %>
+  <%= image_tag "daybreak-logo.svg", class: "onb__logo", alt: "", data: { reveal: "" } %>
+  <h1 class="onb__title" id="onb-title-1" tabindex="-1" data-reveal="words">Welcome to Daybreak.</h1>
+  <p class="onb__prose" data-reveal>
+    A calm place to plan your week, with your Basecamp and HEY work close at hand.
+    Let&rsquo;s set it up together. It takes about a minute.
+  </p>
 
-<p class="ritual-doc__prose">
-  Daybreak is a calm planning surface for your week.
-  It pulls in your work from Basecamp and, if you use it, HEY &mdash;
-  and stays out of your way the rest of the time.
-</p>
-
-<p class="ritual-doc__prose ritual-doc__prose--muted">
-  Seven short steps and you&rsquo;ll be set. Takes about a minute.
-</p>
-
-<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" }, html: { class: "ritual-doc__actions" } do |f| %>
-  <%= f.hidden_field :step, value: 1 %>
-  <button type="submit" class="ritual-doc__link">begin <span aria-hidden="true">&rarr;</span></button>
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
+    <%= f.hidden_field :step, value: 1 %>
+    <button type="submit" class="onb__button onb__button--primary">Begin</button>
+  <% end %>
+  <p class="onb__hint" data-reveal>Best with sound on.</p>
 <% end %>

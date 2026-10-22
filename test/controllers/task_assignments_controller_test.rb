@@ -41,6 +41,13 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { task.reload }
   end
 
+  test "PATCH update saves private notes without touching the synced description" do
+    @task.update!(description: "<div>From Basecamp</div>")
+    patch :update, params: { id: @task.id, task_assignment: { notes: "Call Jason first" } }, format: :turbo_stream
+    assert_equal "Call Jason first", @task.reload.notes
+    assert_equal "<div>From Basecamp</div>", @task.description
+  end
+
   test "PATCH move renders turbo stream (regression for missing template)" do
     patch :move,
       params: { id: @task.id, target_date: "2026-04-09", position: 0, source_date: "2026-04-07" },
@@ -154,5 +161,44 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
       status: :pending,
       position: 0
     )
+  end
+
+  test "PATCH stage moves a Basecamp card and remembers the column" do
+    card = @user.task_assignments.create!(title: "Hero art", source: :basecamp, external_id: "77",
+      basecamp_recording_type: TaskAssignment::BASECAMP_CARD_TYPE, week_bucket: "inbox")
+    moves = []
+    fake = Object.new
+    fake.define_singleton_method(:move_card) { |id, column| moves << [ id, column ] }
+    fake.define_singleton_method(:comments) { |*| [] }
+    fake.define_singleton_method(:card_columns) { |_id| { current_id: "42", columns: [ { "id" => 42, "title" => "Review", "type" => "Kanban::Column" } ] } }
+    with_basecamp_client(fake) do
+      patch :stage, params: { id: card.id, column_id: "42", column_title: "Review", column_type: "Kanban::Column" }, format: :turbo_stream
+    end
+
+    assert_equal [ [ "77", "42" ] ], moves
+    assert_equal "Review", card.reload.basecamp_column_name
+    assert_not card.completed?
+  end
+
+  test "PATCH stage into the Done column completes the card" do
+    card = @user.task_assignments.create!(title: "Hero art", source: :basecamp, external_id: "77",
+      basecamp_recording_type: TaskAssignment::BASECAMP_CARD_TYPE, week_bucket: "inbox")
+    fake = Object.new
+    fake.define_singleton_method(:move_card) { |*| nil }
+    fake.define_singleton_method(:card_columns) { |_id| nil }
+    fake.define_singleton_method(:comments) { |*| [] }
+    with_basecamp_client(fake) do
+      patch :stage, params: { id: card.id, column_id: "9", column_title: "Done", column_type: BasecampClient::DONE_COLUMN_TYPE }, format: :turbo_stream
+    end
+
+    assert card.reload.completed?
+  end
+
+  def with_basecamp_client(fake)
+    original = BasecampClient.method(:new)
+    BasecampClient.define_singleton_method(:new) { |*_args| fake }
+    yield
+  ensure
+    BasecampClient.define_singleton_method(:new, original)
   end
 end

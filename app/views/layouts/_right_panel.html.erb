@@ -7,7 +7,7 @@
     </div>
   <% end %>
   <%# Basecamp tab %>
-  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel"
+  <div class="r-tab-content on" id="rc-bc" data-right-panel-target="tab" data-tab="bc" data-controller="bc-inbox-panel"<%= %( data-bc-inbox-panel-arriving-value="true").html_safe if flash[:arrival] && @rp_bc_tasks.blank? %>
        data-bc-inbox-panel-next-offset-value="<%= @rp_bc_tasks&.size || 0 %>">
     <div class="r-head">
       <div class="r-dot r-dot--bc"></div>
@@ -48,43 +48,17 @@
     <div class="r-list" id="bc-inbox-list" data-bc-inbox-panel-target="list"
          data-action="scroll->bc-inbox-panel#onScroll dragover->bc-inbox-panel#dragover dragleave->bc-inbox-panel#dragleave drop->bc-inbox-panel#drop">
       <% if @rp_bc_tasks&.any? %>
-        <% @rp_bc_tasks.each do |task| %>
-          <%
-            pn = task.project_name.to_s.strip
-          %>
-          <div
-            class="r-item"
-            id="inbox_task_<%= task.id %>"
-            draggable="true"
-            data-bc-inbox-panel-target="item"
-            data-task-id="<%= task.id %>"
-            data-project-name="<%= h(pn) %>"
-            data-planned-start="<%= task.planned_start_at&.iso8601 %>"
-            data-created-at="<%= task.created_at&.iso8601 %>"
-            data-title="<%= h(task.title) %>"
-            data-action="click->bc-inbox-panel#openModal dragstart->bc-inbox-panel#dragstart dragend->bc-inbox-panel#dragend">
-            <div class="r-item__check">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.25"/>
-              </svg>
-            </div>
-            <div class="r-item-body">
-              <div class="r-item-name"><%= task.title %></div>
-              <% if pn.present? %>
-                <div class="r-item-project"><%= pn %></div>
-              <% end %>
-              <div class="r-item-drag-hint">
-                <svg width="12" height="10" viewBox="0 0 12 10" fill="currentColor" aria-hidden="true">
-                  <rect y="0" width="12" height="1.5" rx="0.75"/>
-                  <rect y="4" width="12" height="1.5" rx="0.75"/>
-                  <rect y="8" width="12" height="1.5" rx="0.75"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-        <% end %>
+        <%= render "layouts/bc_inbox_items", tasks: @rp_bc_tasks %>
       <% else %>
-        <div class="r-empty" data-bc-inbox-panel-target="empty">No Basecamp tasks</div>
+        <% settled_title = "Nothing assigned to you" %>
+        <% settled_sub = "To-dos assigned to you in Basecamp show up here, ready to drag onto a day." %>
+        <%# Straight after onboarding the first sync is still running, so say so and watch for it %>
+        <div class="r-empty" data-bc-inbox-panel-target="empty"
+             data-settled-title="<%= settled_title %>" data-settled-sub="<%= settled_sub %>">
+          <%= source_tile "basecamp", class: "r-empty__tile" %>
+          <p class="r-empty__title" data-bc-inbox-panel-target="emptyTitle"><%= flash[:arrival] ? "Bringing in your to-dos" : settled_title %></p>
+          <p class="r-empty__sub" data-bc-inbox-panel-target="emptySub"><%= flash[:arrival] ? "Your Basecamp assignments land here as they sync, ready to drag onto a day." : settled_sub %></p>
+        </div>
       <% end %>
       <div class="r-list__loader" data-bc-inbox-panel-target="loader"><div class="r-list__spinner"></div></div>
     </div>
@@ -141,12 +115,18 @@
         <% end %>
         <div data-hey-inbox-panel-target="sentinel" class="hey-inbox__sentinel" aria-hidden="true"></div>
         <div class="r-list__loader" data-hey-inbox-panel-target="loader"><div class="r-list__spinner"></div></div>
-        <div class="r-empty" data-hey-inbox-panel-target="empty" <%= @rp_hey_emails&.any? ? 'hidden' : '' %>>No emails in this mailbox</div>
+        <div class="r-empty" data-hey-inbox-panel-target="empty" <%= @rp_hey_emails&.any? ? 'hidden' : '' %>>
+          <%= source_tile "hey", class: "r-empty__tile" %>
+          <p class="r-empty__title">All clear</p>
+          <p class="r-empty__sub">No emails in this mailbox.</p>
+        </div>
       </div>
     <% else %>
       <div class="r-empty">
-        <%= link_to "Connect HEY", auth_hey_path, class: "r-empty__link" %>
-        <span class="r-empty__sub">to see your inbox here</span>
+        <%= source_tile "hey", class: "r-empty__tile" %>
+        <p class="r-empty__title">Bring in your HEY inbox</p>
+        <p class="r-empty__sub">Turn emails into tasks by dragging them onto a day.</p>
+        <%= link_to "Connect HEY", auth_hey_path, class: "btn btn--primary btn--small" %>
       </div>
     <% end %>
   </div>
@@ -161,12 +141,13 @@
       <span class="jrnl-date"><%= Date.current.strftime("%B %-d") %> <span class="jrnl-dow"><%= Date.current.strftime("%a") %></span></span>
       <div class="jrnl-header-meta">
         <% if current_user.hey_connected? %>
+          <%= icon "hey", class: "jrnl-hey-tile" %>
           <% if @rp_journal_hey_synced %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for today.">Synced</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--synced" data-journal-editor-target="heyBadge" title="Your last save matches what’s in HEY Journal for today.">Journal · Synced</span>
           <% elsif @rp_journal.present? %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically.">HEY</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. This note is saved in Daybreak; we send each version to HEY Journal automatically.">Journal</span>
           <% else %>
-            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save.">HEY</span>
+            <span class="jrnl-hey-badge jrnl-hey-badge--idle" data-journal-editor-target="heyBadge" title="HEY is connected. Notes you write below are saved here and sent to HEY Journal after each save.">Journal</span>
           <% end %>
         <% end %>
         <span class="jrnl-status" data-journal-editor-target="status"></span>
@@ -174,9 +155,13 @@
     </div>
     <div class="jrnl-body"
          contenteditable="true"
+         role="textbox"
+         aria-multiline="true"
+         aria-label="Today’s journal"
+         spellcheck="true"
          data-journal-editor-target="editor"
          data-action="input->journal-editor#onInput"
-         data-placeholder="Add a note to your journal..."><%= sanitize(@rp_journal&.content.to_s) %></div>
+         data-placeholder="How’s today going? Write a few lines…"><%= sanitize(@rp_journal&.content.to_s) %></div>
     <div class="jrnl-toolbar">
       <button type="button" class="jrnl-btn" data-action="click->journal-editor#bold" title="Bold"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
       <button type="button" class="jrnl-btn" data-action="click->journal-editor#italic" title="Italic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
@@ -201,22 +186,48 @@
     </div>
     <div class="g-list">
       <% if @rp_goals&.any? %>
-        <% goals_week_start = current_user.current_week_start %>
-        <div class="g-section-label"><%= goals_week_start.strftime("%B %-d") %> &ndash; <%= (goals_week_start + 6.days).strftime("%-d, %Y") %></div>
-        <% @rp_goals.each do |goal| %>
-          <div class="g-card">
-            <div class="g-title"><%= goal.title %></div>
-            <div class="g-progress">
-              <div class="g-progress-fill <%= 'g-progress-fill--complete' if goal.completed? %>" style="width: <%= goal.respond_to?(:progress_percent) ? goal.progress_percent : 0 %>%"></div>
-            </div>
-            <div class="g-meta">
-              <span class="g-frac"><%= goal.progress_text(preloaded: @rp_goal_progress) %></span>
-            </div>
+        <% goals_done = @rp_goals.count(&:completed?) %>
+        <% week_total = @rp_goal_progress[:total].to_i %>
+        <% week_done = @rp_goal_progress[:done].to_i %>
+        <div class="g-week">
+          <div class="g-week__row">
+            <span class="g-week__label">This week</span>
+            <span class="g-week__frac"><%= week_done %> of <%= pluralize(week_total, "to-do") %> done</span>
           </div>
-        <% end %>
+          <div class="g-progress" role="progressbar" aria-label="To-dos done this week" aria-valuemin="0" aria-valuemax="<%= week_total %>" aria-valuenow="<%= week_done %>">
+            <div class="g-progress-fill" style="width: <%= week_total.zero? ? 0 : (week_done * 100.0 / week_total).round %>%"></div>
+          </div>
+        </div>
+
+        <div class="g-head">
+          <span class="g-head__title">Goals</span>
+          <span class="g-head__count"><%= goals_done %> of <%= @rp_goals.size %></span>
+        </div>
+        <ul class="g-goals">
+          <% @rp_goals.each do |goal| %>
+            <li class="g-goal <%= 'g-goal--done' if goal.completed? %>">
+              <%= button_to weekly_goal_path(goal), method: :patch, params: { completed: goal.completed? ? 0 : 1 },
+                    class: "g-goal__check", form_class: "g-goal__form",
+                    aria: { label: goal.completed? ? "Mark “#{goal.title}” not done" : "Mark “#{goal.title}” done", pressed: goal.completed? } do %>
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <% if goal.completed? %>
+                    <circle cx="8" cy="8" r="7" fill="#16A34A"/>
+                    <path d="M5 8.2l2 2 4-4.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  <% else %>
+                    <circle cx="8" cy="8" r="6.6" stroke="currentColor" stroke-width="1.25"/>
+                  <% end %>
+                </svg>
+              <% end %>
+              <span class="g-goal__title"><%= goal.title %></span>
+            </li>
+          <% end %>
+        </ul>
+        <%= link_to "Edit goals", weekly_checkin_path, class: "g-edit" %>
       <% else %>
         <div class="r-empty">
-          <%= link_to "Set weekly goals", weekly_checkin_path, style: "color: var(--amber); text-decoration: none;" %>
+          <p class="r-empty__title">No goals this week yet</p>
+          <p class="r-empty__sub">Pick two or three things that would make the week a good one.</p>
+          <%= link_to "Set weekly goals", weekly_checkin_path, class: "btn btn--primary btn--small" %>
         </div>
       <% end %>
     </div>
@@ -226,26 +237,26 @@
 <%# Icon rail — panel toggle lives here so it stays visible (shell overflow would clip a seam-hugging control) %>
 <nav class="r-rail">
   <button type="button" class="rri rri--panel-toggle" data-right-panel-target="toggleBtn" data-action="click->right-panel#toggle" aria-expanded="true" aria-label="Collapse side panel" title="Collapse side panel">
-    <svg class="rri--panel-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="5 7 11 12 5 17"/>
-      <polyline points="11 7 17 12 11 17"/>
-    </svg>
+    <%= icon "panel-right", class: "rri--panel-toggle-icon" %>
   </button>
-  <button class="rri on" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.6516 22.453c-4.0328 0-7.575-1.5542-10.244-4.4946a1.11 1.11 0 0 1-.219-1.1338c.7008-1.8884 2.5935-6.2808 5.0205-6.2948h.0125c1.219 0 2.1312.9655 2.8648 1.7412.2192.2324.555.5875.7818.7611.5656-.5587 1.6775-2.4158 2.5422-4.2779.259-.5567.9203-.7985 1.4765-.5402.557.2584.7988.919.5404 1.4762-2.6217 5.6503-4.019 5.6503-4.478 5.6503-1.022 0-1.7628-.7843-2.4791-1.5422-.3208-.339-.9878-1.045-1.2482-1.045h-.0004c-.5665.095-1.8085 2.0531-2.6966 4.2034 2.1925 2.1722 4.9232 3.2726 8.1266 3.2726 4.3955 0 7.683-1.1964 9.0996-3.2953-.4888-5.585-3.5642-13.1634-9.0996-13.1634-4.6855 0-8.2152 3.264-10.4915 9.7007-.205.579-.8416.8828-1.4187.6776-.5789-.2047-.882-.8398-.6776-1.4185 2.624-7.421 6.859-11.1833 12.5878-11.1833 7.4826 0 10.9304 9.5613 11.3458 15.588a1.1154 1.1154 0 0 1-.1456.6314c-1.7407 3.0221-5.7182 4.6864-11.2002 4.6864Z"/></svg>
+  <button type="button" class="rri on" aria-label="Basecamp" data-action="click->right-panel#switchTab" data-tab="bc" data-right-panel-target="railBtn">
+    <%= source_tile "basecamp", class: "rri-tile" %>
     <span class="rri-tip">Basecamp</span>
   </button>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="hey" data-right-panel-target="railBtn">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.57 6.698a5.724 5.724 0 00-2.644 1.572c-.84-2.952-2.65-7.42-4.415-8.15a1.283 1.283 0 00-1.181.05c-1.104.643-1.823 2.709-1.194 6.624C7.71 2.353 6.863 2.36 6.472 2.353a.956.956 0 00-.873.597c-.263.584-.79 2.406.494 6.327C4.547 7.16 4.072 6.89 3.526 6.917a.969.969 0 00-.821.557c-.463.873-.41 3.068 1.027 6.34a2.946 2.946 0 00-1.773-.73 1.06 1.06 0 00-.853.544c-.584 1.073.642 4.083 2.157 6.124C4.49 21.427 6.947 24 10.515 24a8.047 8.047 0 001.489-.141.654.654 0 00-.25-1.284c-2.965.578-5.2-1.052-6.553-2.515-2.021-2.19-2.908-4.82-2.959-5.622.424.173 1.644.892 4.018 3.934a.65.65 0 001.059-.757c-3.337-5.066-3.664-8.132-3.555-9.166.982 1 3.433 4.671 5.28 7.445a.642.642 0 00.88.199.642.642 0 00.238-.873C6.312 8.16 6.446 4.952 6.67 3.874c.577.584 2.11 2.618 5.34 9.626a.642.642 0 00.84.327.642.642 0 00.366-.827c-3.132-8.504-1.772-11.385-1.252-11.712.674 0 2.567 3.247 3.748 7.502.07.263.141.52.205.77a4.094 4.094 0 00-.385.924c-.64 2.355-1.283 7.7-.045 9.17a1.194 1.194 0 001.04.444 1.688 1.688 0 001.232-.757c1.15-1.675.475-5.879-.443-9.557a4.832 4.832 0 012.567-1.84 1.283 1.283 0 011.284.307c.526.59 1.445 2.798-1.34 10.583a.654.654 0 001.231.436c2.22-6.206 2.568-10.204 1.084-11.886A2.528 2.528 0 0019.57 6.7zm-2.888 11.918a.41.41 0 01-.218.186c-.48-.571-.48-3.953.045-6.727.995 4.795.417 6.2.173 6.54z"/></svg>
+  <button type="button" class="rri" aria-label="HEY" data-action="click->right-panel#switchTab" data-tab="hey" data-right-panel-target="railBtn">
+    <%= source_tile "hey", class: "rri-tile" %>
     <span class="rri-tip">HEY</span>
   </button>
   <div class="r-rail-div" aria-hidden="true"></div>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="goals" data-right-panel-target="railBtn">
-    <%= render "icons/nav/goals" %>
+  <button type="button" class="rri" aria-label="Goals" data-action="click->right-panel#switchTab" data-tab="goals" data-right-panel-target="railBtn">
+    <%= icon "bookmark", class: "nav-icon" %>
     <span class="rri-tip">Goals</span>
   </button>
-  <button class="rri" data-action="click->right-panel#switchTab" data-tab="log" data-right-panel-target="railBtn">
+  <button type="button" class="rri" aria-label="Daily log" data-action="click->right-panel#switchTab" data-tab="log" data-right-panel-target="railBtn">
     <%= render "icons/nav/daily_log" %>
     <span class="rri-tip">Daily log</span>
+  </button>
+  <button type="button" class="sheet-close" data-action="click->right-panel#toggle" aria-label="Close inbox">
+    <%= icon "close" %>
   </button>
 </nav>

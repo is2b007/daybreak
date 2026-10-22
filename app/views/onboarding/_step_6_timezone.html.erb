@@ -1,21 +1,22 @@
-<p class="ritual-doc__dateline">Step 6 of 7</p>
-<h1 class="ritual-doc__title">Where are you?</h1>
-<p class="ritual-doc__prose" data-controller="timezone-detector" data-timezone-detector-target="message">
-  Daybreak uses your timezone to anchor days, weeks, and rituals.
-  We&rsquo;re guessing from your browser &mdash; change it if it&rsquo;s off.
-</p>
+<%= render layout: "step", locals: { step: 6, elevation: 0.79 } do %>
+  <div class="onb__stack" data-controller="timezone-detector">
+    <h1 class="onb__title" id="onb-title-6" tabindex="-1" data-reveal="words">Where are you?</h1>
+    <p class="onb__prose" data-reveal data-timezone-detector-target="message">
+      Your timezone anchors your days, weeks and rituals. We&rsquo;ve guessed from your browser.
+    </p>
 
-<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
-  <%= f.hidden_field :step, value: 6 %>
-  <div class="ritual-doc__goal-row" data-controller="timezone-detector">
-    <%= f.select :timezone,
-        ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
-        { selected: current_user.timezone },
-        class: "ritual-doc__goal-input",
-        data: { timezone_detector_target: "select" } %>
-  </div>
-  <div class="ritual-doc__actions">
-    <%= link_to "back", onboarding_path(step: 5), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
-    <button type="submit" class="ritual-doc__link">continue <span aria-hidden="true">&rarr;</span></button>
+    <%= form_with url: onboarding_path, method: :patch, class: "onb__form" do |f| %>
+      <%= f.hidden_field :step, value: 6 %>
+      <%= f.label :timezone, "Timezone", class: "sr-only" %>
+      <%= f.select :timezone,
+          ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
+          { selected: current_user.timezone },
+          class: "onb__input onb__select",
+          data: { timezone_detector_target: "select", reveal: "" } %>
+      <div class="onb__actions" data-reveal>
+        <%= link_to "Back", onboarding_path(step: 5), class: "onb__button onb__button--quiet" %>
+        <button type="submit" class="onb__button onb__button--primary">Continue</button>
+      </div>
+    <% end %>
   </div>
 <% end %>

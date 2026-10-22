@@ -33,7 +33,7 @@
           <%# Explicit, so the response targets this view's frame rather than relying
               on the controller sniffing the referer path. %>
           <%= hidden_field_tag :view, "day" %>
-          <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "Add task", required: true, autocomplete: "off" %>
+          <%= f.text_field :title, name: :title, class: "day-view__quick-add-input", placeholder: "+ Add a to-do", required: true, autocomplete: "off" %>
           <%= f.submit "+", class: "btn btn--icon btn--secondary day-view__quick-add-button", aria: { label: "Add local task" }, title: "Add local task" %>
         <% end %>
       </div>
@@ -45,10 +45,10 @@
       <% else %>
         <%= render "days/day_plan_tasks", date: date, tasks: tasks %>
 
-        <div class="mt-6" style="opacity: 0.35;" id="day_<%= date %>_completed">
+        <div class="mt-6 day-view__completed" id="day_<%= date %>_completed">
           <% completed_tasks = tasks.completed %>
           <% if completed_tasks.any? %>
-            <p class="text-xs text-muted font-semibold mb-3" style="text-transform: uppercase; letter-spacing: 0.05em;">Completed</p>
+            <h3 class="day-view__completed-label">Completed</h3>
             <% completed_tasks.each do |task| %>
               <%= render "shared/task_card", task: task, compact: false %>
             <% end %>

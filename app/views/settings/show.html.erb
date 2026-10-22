@@ -11,11 +11,19 @@
     </div>
 
     <div class="settings__section">
+      <div class="settings__section-title">Appearance</div>
+      <div class="form-group">
+        <%= f.label :theme, "Theme", class: "form-label" %>
+        <%= f.select :theme, [ [ "Follow the sun (light by day, dark at night)", "sun" ], [ "Match my system", "system" ], [ "Light", "light" ], [ "Dark", "dark" ] ], {}, class: "form-input" %>
+      </div>
+    </div>
+
+    <div class="settings__section">
       <div class="settings__section-title">Your stamp</div>
       <div class="stamp-picker">
         <% User::STAMP_OPTIONS.each do |stamp| %>
           <label class="stamp-option <%= 'stamp-option--selected' if current_user.stamp_choice == stamp %>">
-            <input type="radio" name="user[stamp_choice]" value="<%= stamp %>" class="sr-only" <%= 'checked' if current_user.stamp_choice == stamp %>>
+            <input type="radio" name="user[stamp_choice]" value="<%= stamp %>" class="sr-only" aria-label="<%= stamp.humanize %> stamp" <%= 'checked' if current_user.stamp_choice == stamp %>>
             <%= render "stamps/#{stamp}" %>
           </label>
         <% end %>
@@ -61,6 +69,7 @@
               ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
               { selected: current_user.timezone },
               class: "form-input",
+              aria: { label: "Timezone" },
               data: { timezone_detector_target: "select" } %>
       </div>
     </div>

@@ -25,6 +25,21 @@ class SettingsControllerTest < ActionController::TestCase
     assert_equal "cal-abc", @user.reload.hey_default_calendar_id
   end
 
+  test "an explicit dark theme sets data-theme on html" do
+    @user.update!(theme: "dark")
+    get :show
+
+    assert_select "html[data-theme=dark]"
+    assert_select "select[name='user[theme]'] option[selected][value=dark]"
+  end
+
+  test "the system theme leaves data-theme off so the OS decides" do
+    @user.update!(theme: "system")
+    get :show
+
+    assert_select "html[data-theme]", false
+  end
+
   test "show warns when HEY is connected without a refresh token" do
     @user.update!(
       hey_access_token: "pasted-token",

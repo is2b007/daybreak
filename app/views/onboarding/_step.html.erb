@@ -1,0 +1,5 @@
+<%# Wraps one onboarding step. elevation: how high the sun is (0 night, 1 full day). %>
+<section class="onb__step" data-onboarding-step="<%= step %>" data-elevation="<%= elevation %>"<%= %( data-moment="#{moment}").html_safe if local_assigns[:moment] %>
+         aria-labelledby="onb-title-<%= step %>">
+  <%= yield %>
+</section>

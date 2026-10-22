@@ -30,6 +30,7 @@ Rails.application.routes.draw do
       get :more
     end
     member do
+      get   :body
       patch :triage
       patch :dismiss
       post  :plan
@@ -68,6 +69,7 @@ Rails.application.routes.draw do
       get   :focus
       post  :comment
       patch :move
+      patch :stage
       patch :cycle_size
       patch :complete
       patch :defer
@@ -100,10 +102,12 @@ Rails.application.routes.draw do
 
   # Weekly check-in
   resource :weekly_checkin, only: [ :show, :update ], controller: "weekly_checkins"
+  resources :weekly_goals, only: :update
 
   # Settings
   resource :settings, only: [ :show, :update ], controller: "settings"
 
   # Proxies Basecamp profile photo (API requires Bearer token; <img> cannot send it).
   get "profile/basecamp_avatar", to: "basecamp_avatars#show", as: :basecamp_avatar
+  get "basecamp/avatar", to: "basecamp_avatars#person", as: :basecamp_person_avatar
 end

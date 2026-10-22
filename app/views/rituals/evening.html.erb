@@ -1,16 +1,17 @@
 <% if @step == 1 %>
   <% content_for(:topbar) do %>
-    <span class="topbar__title topbar__title--serif">Sunset</span>
+    <span class="topbar__title topbar__title--serif">Sundown</span>
     <span class="topbar__sub topbar__sub--serif">A look back at today</span>
   <% end %>
 <% elsif @step == 2 %>
   <% content_for(:topbar) do %>
-    <span class="topbar__title topbar__title--serif">Sunset</span>
+    <span class="topbar__title topbar__title--serif">Sundown</span>
     <span class="topbar__sub topbar__sub--serif">One line for tonight</span>
   <% end %>
 <% end %>
 
-<div class="ritual-doc ritual-doc--sunset" data-controller="ritual">
+<div class="ritual-doc ritual-doc--sunset ritual-doc--with-sky" data-controller="ritual">
+  <%= render "rituals/sky", mode: "sundown", play: false %>
   <% if @step == 1 %>
     <%= render "evening_review",
         completed_tasks: @completed_tasks,

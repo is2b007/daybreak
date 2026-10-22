@@ -1,20 +1,17 @@
-<p class="ritual-doc__dateline">Step 4 of 7</p>
-<h1 class="ritual-doc__title">Your Basecamp work.</h1>
-<p class="ritual-doc__prose">
-  Daybreak is already connected to Basecamp &mdash; that&rsquo;s how you got here.
-  On continue, we&rsquo;ll pull in your assigned to-dos so you can plan with them tomorrow morning.
-</p>
+<%= render layout: "step", locals: { step: 4, elevation: 0.66 } do %>
+  <%= image_tag "tiles/basecamp.png", class: "onb__app-icon", alt: "", data: { reveal: "" } %>
+  <h1 class="onb__title" id="onb-title-4" tabindex="-1" data-reveal="words">Your Basecamp work.</h1>
+  <p class="onb__prose" data-reveal>Daybreak is already connected to Basecamp. Continue, and your assigned to-dos start coming in.</p>
 
-<ul class="onboarding-doc__feature-list">
-  <li>Assigned to-dos land in the inbox on the right</li>
-  <li>Schedule events sit alongside your day timeline</li>
-  <li>Complete here &rarr; marked complete in Basecamp</li>
-</ul>
+  <ul class="onb__list">
+    <li data-reveal>Assigned to-dos land in your inbox, ready to plan</li>
+    <li data-reveal>Schedule events sit alongside your day</li>
+    <li data-reveal>Finish something here and it&rsquo;s done in Basecamp too</li>
+  </ul>
 
-<%= form_with url: onboarding_path, method: :patch, data: { turbo_frame: "onboarding_step" } do |f| %>
-  <%= f.hidden_field :step, value: 4 %>
-  <div class="ritual-doc__actions">
-    <%= link_to "back", onboarding_path(step: 3), class: "ritual-doc__link ritual-doc__link--back", data: { turbo_frame: "onboarding_step" } %>
-    <button type="submit" class="ritual-doc__link">pull it in <span aria-hidden="true">&rarr;</span></button>
-  </div>
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
+    <%= f.hidden_field :step, value: 4 %>
+    <%= link_to "Back", onboarding_path(step: 3), class: "onb__button onb__button--quiet" %>
+    <button type="submit" class="onb__button onb__button--primary">Bring it in</button>
+  <% end %>
 <% end %>

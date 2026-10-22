@@ -99,7 +99,7 @@ class HeyConnectionsController < ApplicationController
     if current_user.onboarded?
       redirect_to settings_path, notice: "HEY is connected."
     else
-      redirect_to onboarding_path(step: 4)
+      redirect_to onboarding_path(step: 5)
     end
   end
 
@@ -176,7 +176,7 @@ class HeyConnectionsController < ApplicationController
     SyncHeyEmailsJob.perform_later(user.id)
     SyncCalendarEventsJob.perform_later(user.id)
 
-    user.onboarded? ? redirect_to(settings_path, notice: "HEY is connected.") : redirect_to(onboarding_path(step: 4))
+    user.onboarded? ? redirect_to(settings_path, notice: "HEY is connected.") : redirect_to(onboarding_path(step: 5))
   rescue HeyClient::AuthError => e
     Rails.logger.warn("HEY OAuth exchange error: #{e.message}")
     session[:user_id] = user.id if user && expected_user.nil?
