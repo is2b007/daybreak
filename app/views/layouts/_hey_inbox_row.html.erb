@@ -1,6 +1,7 @@
 <%# locals: (email:) %>
 <% sender = email.sender_name.presence || email.sender_email.presence || "Unknown sender" %>
-<div class="r-item hey-r-item"
+<% unread = email.seen == false %>
+<div class="r-item hey-r-item<%= " hey-r-item--unread" if unread %>"
      id="hey_email_<%= email.id %>"
      draggable="true"
      data-hey-inbox-panel-target="item"
@@ -13,7 +14,10 @@
   <%= contact_avatar(email.sender_name, email.sender_email) %>
   <div class="r-item-body">
     <div class="hey-r-item__top">
-      <span class="hey-r-item__sender"><%= sender %></span>
+      <span class="hey-r-item__sender">
+        <% if unread %><span class="hey-r-item__unread" role="img" aria-label="Unread"></span><% end %>
+        <%= sender %>
+      </span>
       <time class="hey-r-item__time" datetime="<%= email.received_at&.iso8601 %>"><%= inbox_time(email.received_at) %></time>
     </div>
     <div class="r-item-name"><%= truncate(email.subject, length: 72) %></div>
