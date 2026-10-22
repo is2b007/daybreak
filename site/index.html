@@ -4,19 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Daybreak · A calm planner for Basecamp and HEY</title>
-  <meta name="description" content="Daybreak puts your Basecamp to-dos and your HEY calendar on one calm week, with a short sunrise to set the day and a sundown to close it. Open source, self-hosted, single user.">
+  <meta name="description" content="Daybreak is a calm, self-hosted planner that puts your Basecamp to-dos and HEY calendar on one week, with a short ritual to open the day and another to close it.">
   <meta name="theme-color" content="#9cc8f2">
   <meta property="og:title" content="Daybreak">
   <meta property="og:description" content="A calm, self-hosted planner for Basecamp and HEY.">
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/daybreak-icon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/newsreader-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css?v=2">
-  <script type="module" src="assets/site.js?v=2"></script>
+  <link rel="stylesheet" href="assets/site.css?v=3">
+  <script type="module" src="assets/site.js?v=3"></script>
 </head>
 <body>
-  <!-- One sky for the whole page: morning at the top, night at the bottom -->
-  <canvas class="sky sky--page" data-sky="page" aria-hidden="true"></canvas>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="masthead" data-masthead>
@@ -26,9 +24,9 @@
         <span>Daybreak</span>
       </a>
       <nav class="nav" aria-label="Main">
+        <a href="#apps">Basecamp &amp; HEY</a>
         <a href="#week">The week</a>
         <a href="#rituals">Rituals</a>
-        <a href="#focus">Focus</a>
         <a href="#self-host">Self-host</a>
       </nav>
       <a class="pill pill--ink pill--sm" href="https://github.com/is2b007/daybreak">GitHub</a>
@@ -36,17 +34,18 @@
   </header>
 
   <main id="main">
-    <!-- Sunrise: the sky rises once as you arrive -->
+    <!-- Morning: the only sunrise on the page -->
     <section class="hero" aria-labelledby="hero-title">
+      <canvas class="sky" data-sky="sunrise" aria-hidden="true"></canvas>
       <div class="hero__copy">
-        <p class="eyebrow-chip">Free and open source · Runs on your own server</p>
+        <p class="eyebrow-chip">Open source · Self-hosted · Made for one</p>
         <h1 id="hero-title">Know what today is for.</h1>
-        <p class="lede">Daybreak brings your <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> to-dos and your <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> calendar into one week you can see at a glance. Plan the day each morning, close it each evening, and spend the hours in between on the work itself.</p>
+        <p class="lede">Daybreak is a calm planner on top of <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>. Your to-dos and your calendar share one week. Each morning you choose what the day is for, each evening you close it, and in between you get on with it.</p>
         <div class="actions">
-          <a class="pill pill--ink" href="#self-host">Self-host Daybreak</a>
-          <a class="pill pill--glass" href="https://github.com/is2b007/daybreak">Star on GitHub</a>
+          <a class="pill pill--ink" href="#self-host">Run your own</a>
+          <a class="pill pill--glass" href="https://github.com/is2b007/daybreak">View on GitHub</a>
         </div>
-        <p class="fine">MIT licensed · Single user · Your server, your data · No tracking</p>
+        <p class="fine">Free and MIT licensed · Your server, your data · No tracking</p>
       </div>
 
       <!-- The week, drawn in HTML so it stays crisp and follows the theme -->
@@ -58,6 +57,7 @@
               <li class="is-on"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11M15 9v11"/></svg>Week</li>
               <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Today</li>
               <li><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Daily log</li>
+              <li><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>Weekly goals</li>
             </ul>
             <p class="app__label">Rituals</p>
             <ul class="app__menu">
@@ -72,13 +72,27 @@
             <div class="app__bar">
               <span class="app__range">Oct 19 – Oct 25</span>
               <span class="app__year">2026</span>
+              <span class="app__goal"><b>Goal</b> Ship the visual refresh</span>
             </div>
             <div class="app__days">
+              <div class="day">
+                <p class="day__head"><b>Mon</b> 19</p>
+                <div class="card is-done">
+                  <span class="tick tick--done"></span>
+                  <div><p>Weekly planning</p><p class="src">Daily log</p></div>
+                  <span class="stamp stamp--navy" role="img" aria-label="Done"></span>
+                </div>
+                <div class="card is-done">
+                  <span class="tick tick--done"></span>
+                  <div><p>Send invoice to Acme</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Clients</p></div>
+                  <span class="stamp stamp--green" role="img" aria-label="Done"></span>
+                </div>
+              </div>
               <div class="day">
                 <p class="day__head"><b>Tue</b> 20</p>
                 <div class="card is-done">
                   <span class="tick tick--done"></span>
-                  <div><p>Review HEY digest</p><p class="src"><img src="assets/tiles/hey.png" alt="">HEY</p></div>
+                  <div><p>Review HEY digest</p><p class="src"><img src="assets/tiles/hey.png" alt="">Imbox</p></div>
                   <span class="stamp stamp--red" role="img" aria-label="Done"></span>
                 </div>
                 <div class="card">
@@ -88,28 +102,26 @@
               </div>
               <div class="day is-today">
                 <p class="day__head"><b>Wed</b> 21 <span class="chip-today">Today</span></p>
-                <div class="card card--event">
-                  <span class="time">9:30</span>
-                  <div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt="">HEY Calendar</p></div>
-                </div>
+                <div class="card card--event"><div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">9:30</span> · 45 min</p></div></div>
                 <div class="card">
                   <span class="tick"></span>
                   <div><p>Write Q4 roadmap</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Daybreak HQ <span class="stage">In progress</span></p></div>
                 </div>
-                <div class="card card--box">
-                  <span class="tick"></span>
-                  <div><p>Fix onboarding copy</p><p class="src"><span class="box">2:00–3:30</span></p></div>
-                </div>
-              </div>
-              <div class="day">
-                <p class="day__head"><b>Thu</b> 22</p>
                 <div class="card">
                   <span class="tick"></span>
-                  <div><p>Ship icon refresh</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Design <span class="stage">Review</span></p></div>
+                  <div><p>Fix onboarding copy</p><p class="src"><span class="box">2:00–3:30</span></p></div>
                 </div>
                 <div class="card">
                   <span class="tick"></span>
                   <div><p>Reply to Jason</p><p class="src"><img src="assets/tiles/hey.png" alt="">Reply Later</p></div>
+                </div>
+              </div>
+              <div class="day">
+                <p class="day__head"><b>Thu</b> 22</p>
+                <div class="card card--event"><div><p>1:1 with Mia</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">11:00</span> · 30 min</p></div></div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Ship icon refresh</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Design <span class="stage">Review</span></p></div>
                 </div>
               </div>
               <div class="day">
@@ -118,64 +130,89 @@
                   <span class="tick"></span>
                   <div><p>Plan offsite</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Retreat</p></div>
                 </div>
+                <div class="card">
+                  <span class="tick"></span>
+                  <div><p>Update pricing page</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Marketing site</p></div>
+                </div>
                 <p class="add">+ Add a to-do</p>
               </div>
             </div>
             <div class="app__tray">
               <b>Sometime this week</b>
               <span class="tray-chip"><span class="tick"></span>Read Shape Up again</span>
-              <span class="tray-chip"><span class="tick"></span>Call accountant</span>
+              <span class="tray-chip"><span class="tick"></span>Call the accountant</span>
+              <span class="tray-chip"><span class="tick"></span>Book dentist</span>
             </div>
           </div>
 
           <aside class="app__panel" aria-hidden="true">
             <p class="panel__title"><img src="assets/tiles/basecamp.png" alt="">Assigned to you <span>3</span></p>
-            <div class="card card--sm"><span class="tick"></span><div><p>Update pricing page</p><p class="src">Marketing site · due Fri</p></div></div>
-            <div class="card card--sm"><span class="tick"></span><div><p>Sign off launch notes</p><p class="src">Daybreak HQ</p></div></div>
+            <div class="card card--sm"><span class="tick"></span><div><p>Sign off launch notes</p><p class="src">Daybreak HQ · due Fri</p></div></div>
             <div class="card card--sm"><span class="tick"></span><div><p>Q4 budget check</p><p class="src">Finance</p></div></div>
+            <div class="card card--sm"><span class="tick"></span><div><p>Photos for the case study</p><p class="src">Marketing site</p></div></div>
             <p class="panel__hint">Drag onto a day to plan it.</p>
           </aside>
         </div>
       </figure>
     </section>
 
-    <!-- Two apps, one week -->
-    <section class="band" id="sync" aria-labelledby="sync-title">
+    <!-- Basecamp and HEY -->
+    <section class="band" id="apps" aria-labelledby="apps-title">
       <div class="wrap">
         <header class="section-head">
-          <p class="eyebrow">Two apps, one week</p>
-          <h2 id="sync-title">Everything you owe, in the order you'll do it.</h2>
-          <p class="section-lede">Daybreak doesn't replace <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> or <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>. It reads what's on your plate from both, lets you decide when each thing happens, and writes the result back where it belongs.</p>
+          <p class="eyebrow">Basecamp and HEY</p>
+          <h2 id="apps-title">Built on the apps you already live in.</h2>
+          <p class="section-lede">Daybreak isn't one more place to keep work. It reads what's already on your plate, lets you decide when each thing happens, and sends the result back where it belongs.</p>
         </header>
         <div class="duo">
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="36" height="36">Basecamp</h3>
-            <ul class="ticks">
-              <li><b>Assignments and schedule entries</b> come in on their own, ready to drag onto a day.</li>
-              <li><b>Card table cards</b> show their stage, and finishing one moves it to Done.</li>
-              <li><b>Check off a to-do</b> in Daybreak and it's checked off in <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span>.</li>
-              <li><b>Descriptions and comments</b> open right on the card, rich text and all.</li>
-            </ul>
+            <h3 class="sheet__title"><img src="assets/tiles/basecamp.png" alt="" width="40" height="40">Basecamp</h3>
+            <div class="flow">
+              <p class="flow__label">Comes in</p>
+              <ul class="flow__list">
+                <li>To-dos assigned to you</li>
+                <li>Schedule entries</li>
+                <li>Card table cards, with their stage</li>
+                <li>Descriptions and comments, right on the card</li>
+              </ul>
+            </div>
+            <div class="flow">
+              <p class="flow__label flow__label--out">Goes back</p>
+              <ul class="flow__list">
+                <li>Check off a to-do and it's done in Basecamp</li>
+                <li>Finish a card and it moves to Done</li>
+              </ul>
+            </div>
           </article>
           <article class="sheet">
-            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="36" height="36">HEY <span class="optional">Optional</span></h3>
-            <ul class="ticks">
-              <li><b>Your calendar</b> sits beside your to-dos, and a timebox becomes a <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> event, reminders intact.</li>
-              <li><b>Imbox, Reply Later and Set Aside</b> in a side panel, and any email can become a to-do.</li>
-              <li><b>Your sundown note</b> lands in the <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> Journal, so the day is written down where you'll find it.</li>
-            </ul>
+            <h3 class="sheet__title"><img src="assets/tiles/hey.png" alt="" width="40" height="40">HEY <span class="optional">Optional</span></h3>
+            <div class="flow">
+              <p class="flow__label">Comes in</p>
+              <ul class="flow__list">
+                <li>Your HEY Calendar, beside your to-dos</li>
+                <li>Imbox, Reply Later and Set Aside</li>
+                <li>Any email, as a to-do</li>
+              </ul>
+            </div>
+            <div class="flow">
+              <p class="flow__label flow__label--out">Goes back</p>
+              <ul class="flow__list">
+                <li>Timeboxes become calendar events, reminders and all</li>
+                <li>Your evening note goes to your HEY Journal</li>
+              </ul>
+            </div>
           </article>
         </div>
       </div>
     </section>
 
     <!-- The week -->
-    <section class="band" id="week" aria-labelledby="week-title">
+    <section class="band band--panel" id="week" aria-labelledby="week-title">
       <div class="wrap split">
         <div class="split__copy">
           <p class="eyebrow">The week</p>
-          <h2 id="week-title">A week you can see all of.</h2>
-          <p>Every day fits on screen at any width, so nothing hides off to the right. Drag work between days. Things without a day wait in <em>Sometime this week</em> along the bottom.</p>
+          <h2 id="week-title">The whole week, on one screen.</h2>
+          <p>Every day fits at any width, so nothing hides off to the right. Drag a to-do from Tuesday to Thursday, or into <em>Sometime this week</em> when it doesn't need a day yet.</p>
           <ul class="facts">
             <li>
               <span class="fact__mark fact__mark--stamps">
@@ -183,15 +220,15 @@
                 <span class="stamp stamp--green"></span>
                 <span class="stamp stamp--navy"></span>
               </span>
-              <span><b>Finish with a stamp.</b> Done gets an ink stamp, the way a paper planner would.</span>
+              <span><b>Finish with a stamp.</b> Pick the one you like. Done should feel done.</span>
+            </li>
+            <li>
+              <span class="fact__mark"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span>
+              <span><b>Goals and a daily log.</b> Three goals for the week, and a running note for each day.</span>
             </li>
             <li>
               <span class="fact__mark"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 18h4"/></svg></span>
-              <span><b>Made for your phone too.</b> One day at a time, with Week, Today, Inbox and Log a thumb away.</span>
-            </li>
-            <li>
-              <span class="fact__mark"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></span>
-              <span><b>Weekly goals and a daily log.</b> Three goals for the week and a running note for each day.</span>
+              <span><b>In your pocket, too.</b> One day at a time, with Week, Today, Inbox and Log under your thumb.</span>
             </li>
           </ul>
         </div>
@@ -200,7 +237,7 @@
           <div class="phone__screen">
             <p class="phone__range">Oct 19 – Oct 25</p>
             <p class="day__head"><b>Wed</b> 21 <span class="chip-today">Today</span></p>
-            <div class="card card--event"><span class="time">9:30</span><div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt="">HEY Calendar</p></div></div>
+            <div class="card card--event"><div><p>Design review</p><p class="src"><img src="assets/tiles/hey.png" alt=""><span class="time">9:30</span> · 45 min</p></div></div>
             <div class="card"><span class="tick"></span><div><p>Write Q4 roadmap</p><p class="src"><img src="assets/tiles/basecamp.png" alt="">Daybreak HQ</p></div></div>
             <div class="card is-done"><span class="tick tick--done"></span><div><p>Morning pages</p><p class="src">Daily log</p></div><span class="stamp stamp--navy" role="img" aria-label="Done"></span></div>
             <p class="add">+ Add a to-do</p>
@@ -220,112 +257,135 @@
     <!-- Rituals: each card runs its own sky -->
     <section class="band" id="rituals" aria-labelledby="rituals-title">
       <div class="wrap">
-        <header class="section-head">
+        <header class="section-head section-head--center">
           <p class="eyebrow">Rituals</p>
-          <h2 id="rituals-title">Start slowly. Stop on purpose.</h2>
-          <p class="section-lede">Two short rituals bookend the day, each under its own sky. They take a couple of minutes, and they're the part people miss when they go back to a plain to-do list.</p>
+          <h2 id="rituals-title">Open the day. Close the day.</h2>
+          <p class="section-lede">Two short rituals bookend your day. A few minutes each, and they're why the rest of it feels lighter.</p>
         </header>
         <div class="rituals">
           <article class="ritual ritual--sunrise">
-            <canvas class="sky" data-sky="sunrise" aria-hidden="true"></canvas>
+            <canvas class="sky" data-sky="card-sunrise" aria-hidden="true"></canvas>
             <div class="ritual__body">
-              <p class="ritual__kicker">Sunrise · 7:42</p>
+              <p class="ritual__kicker">Sunrise · Morning</p>
               <h3 class="serif">Good morning, Kosta.</h3>
-              <p>A short look back at yesterday, then you choose what today is for. Carry over what didn't get done, pull in what's due, and set a timebox or two.</p>
+              <p>Look back at yesterday, bring along what didn't get done, and choose what today is for.</p>
               <ol class="ritual__steps">
-                <li>Look back</li><li>Pick today's work</li><li>Timebox it</li>
+                <li>Look back</li><li>Choose today</li><li>Timebox it</li>
               </ol>
             </div>
           </article>
           <article class="ritual ritual--sundown">
-            <canvas class="sky" data-sky="sundown" aria-hidden="true"></canvas>
+            <canvas class="sky" data-sky="card-sundown" aria-hidden="true"></canvas>
             <div class="ritual__body">
-              <p class="ritual__kicker">Sundown · 18:05</p>
+              <p class="ritual__kicker">Sundown · Evening</p>
               <h3 class="serif">How did today go?</h3>
-              <p>Tick off what you finished, move what you didn't, and write a line or two about the day. With <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> connected, that note goes straight to your Journal.</p>
+              <p>Check off what you finished, move what you didn't, and write a line about the day.</p>
               <div class="journal">
-                <p class="journal__head"><img src="assets/tiles/hey.png" alt="" width="16" height="16">Journal · Oct 21</p>
+                <p class="journal__head"><img src="assets/tiles/hey.png" alt="" width="16" height="16">Saved to your HEY Journal</p>
                 <p class="serif">Roadmap's drafted. The design review ran long, but it was worth it.</p>
               </div>
             </div>
           </article>
         </div>
-        <p class="aside-note">Both rituals have an optional soft soundtrack, made live in your browser. Set up takes one long sunrise too: <b>onboarding</b> walks you from night to morning while you connect <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span>.</p>
-      </div>
-    </section>
-
-    <!-- Focus -->
-    <section class="band" id="focus" aria-labelledby="focus-title">
-      <div class="wrap split split--flip">
-        <figure class="shot">
-          <img src="assets/shots/focus.webp" alt="Focus mode: one task title in serif type, a large timer with a Start button, and sound choices Silence, Rain, Waves and Drift" width="1200" height="820" loading="lazy">
-        </figure>
-        <div class="split__copy">
-          <p class="eyebrow">Focus</p>
-          <h2 id="focus-title">One thing, nothing else.</h2>
-          <p>Open any to-do in Focus and the rest of the week goes away. A timer, your private notes, and the <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> description and comments if you need them.</p>
-          <div class="sounds" role="list" aria-label="Focus sounds">
-            <span role="listitem" class="is-on">Silence</span><span role="listitem">Rain</span><span role="listitem">Waves</span><span role="listitem">Drift</span>
-          </div>
-          <p class="small">Four calm sounds, generated as you listen. Nothing to download, nothing streamed.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- What it won't do -->
-    <section class="band" aria-labelledby="nots-title">
-      <div class="wrap">
-        <header class="section-head">
-          <p class="eyebrow">On purpose</p>
-          <h2 id="nots-title">What Daybreak won't do.</h2>
-        </header>
-        <ul class="nots">
-          <li><b>No team features.</b> It's your plan. <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> is where the team works.</li>
-          <li><b>No AI.</b> You decide what today is for.</li>
-          <li><b>No notifications.</b> Daybreak waits until you open it.</li>
-          <li><b>No analytics.</b> Not in the app, not on this page.</li>
+        <ul class="ritual-notes">
+          <li><b>Optional soundtrack.</b> A soft score for each ritual, made live in your browser.</li>
+          <li><b>Setup is a sunrise too.</b> You connect <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> and <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> while the sky lightens.</li>
         </ul>
       </div>
     </section>
 
-    <!-- Nothing to read here: the sun sets while this passes -->
-    <div class="dusk" data-dusk aria-hidden="true"></div>
+    <!-- Focus: a dark stage, like the mode itself -->
+    <section class="band" id="focus" aria-labelledby="focus-title">
+      <div class="wrap">
+        <div class="focus-stage">
+          <div class="focus-stage__copy">
+            <p class="eyebrow">Focus</p>
+            <h2 id="focus-title">One to-do. Nothing else on screen.</h2>
+            <p>Open any to-do in Focus and the week steps aside. A timer, your private notes, and the <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> description and comments for when you need them.</p>
+            <div class="sounds" role="list" aria-label="Focus sounds">
+              <span role="listitem" class="is-on">Silence</span><span role="listitem">Rain</span><span role="listitem">Waves</span><span role="listitem">Drift</span>
+            </div>
+            <p class="small">Four calm sounds, generated as you listen.</p>
+          </div>
+          <figure class="focus-stage__shot">
+            <img src="assets/shots/focus.webp" alt="Focus mode: a to-do title, a large timer with a Start button, and sound choices Silence, Rain, Waves and Drift" width="1200" height="820" loading="lazy">
+          </figure>
+        </div>
+      </div>
+    </section>
 
-    <!-- Self-host, at night -->
+    <!-- How it's built -->
+    <section class="band band--panel" aria-labelledby="built-title">
+      <div class="wrap">
+        <header class="section-head">
+          <p class="eyebrow">How it's built</p>
+          <h2 id="built-title">Small, quiet, and yours.</h2>
+        </header>
+        <ul class="values">
+          <li>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <b>Just for you</b>
+            <p>One person, one plan. Your team keeps working in <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span>, and Daybreak never asks them for anything.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <b>Quiet</b>
+            <p>No notifications, no badges, no streaks. It's there when you open it.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <b>Private</b>
+            <p>Your plan lives in one SQLite file on your server. No analytics in the app, or on this page.</p>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>
+            <b>Open source</b>
+            <p>MIT licensed. Read every line, change what you like, and run it for as long as you want.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Evening: the sun sets into the self-host section -->
+    <div class="sunset" aria-hidden="true"></div>
+
     <section class="night" id="self-host" aria-labelledby="host-title">
+      <canvas class="sky" data-sky="night" aria-hidden="true"></canvas>
       <div class="wrap night__inner">
-        <header class="section-head section-head--night">
+        <header class="section-head">
           <p class="eyebrow">Self-host</p>
-          <h2 id="host-title">Yours, on your own server.</h2>
-          <p class="section-lede">Daybreak is one Rails app with one SQLite file. Run it on a laptop, a $5 box, or Railway in a click.</p>
+          <h2 id="host-title">Run it on your own server.</h2>
+          <p class="section-lede">Daybreak is one Rails app and one SQLite file. A laptop, a $5 server or Railway all work fine.</p>
         </header>
         <div class="host">
-          <article class="host__card">
-            <h3>Docker</h3>
-            <div class="code">
-              <button class="copy" type="button" data-copy="#quickstart">Copy</button>
-              <pre id="quickstart"><code>git clone https://github.com/is2b007/daybreak.git
-cd daybreak
-cp .env.example .env
-docker compose up -d
-open http://localhost:3000</code></pre>
-            </div>
-            <p class="small">Add your <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> client ID and secret to <code>.env</code> first.</p>
+          <article class="host__card host__card--steps">
+            <h3>With Docker</h3>
+            <ol class="steps">
+              <li>
+                <b>Create a <span class="mention"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> integration</b>
+                <p>At <a href="https://launchpad.37signals.com/integrations">launchpad.37signals.com/integrations</a>, with the redirect URL <code>http://localhost:3000/auth/basecamp/callback</code>.</p>
+              </li>
+              <li>
+                <b>Clone, add its keys to <code>.env</code>, and start</b>
+                <div class="code">
+                  <button class="copy" type="button" data-copy="#quickstart">Copy</button>
+                  <pre id="quickstart"><code>git clone https://github.com/is2b007/daybreak.git
+cd daybreak && cp .env.example .env
+docker compose up -d</code></pre>
+                </div>
+              </li>
+              <li>
+                <b>Open <code>localhost:3000</code></b>
+                <p>Onboarding connects your accounts. <span class="mention"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> is optional.</p>
+              </li>
+            </ol>
           </article>
           <article class="host__card">
-            <h3>Railway</h3>
-            <p>One click, about $5 a month. Add a volume at <code>/rails/storage</code> so your data survives deploys.</p>
+            <h3>Or in one click</h3>
+            <p>Deploy to Railway for about $5 a month. Set <code>RAILS_MASTER_KEY</code>, <code>BASECAMP_CLIENT_ID</code> and <code>BASECAMP_CLIENT_SECRET</code>, and add a volume at <code>/rails/storage</code> so your data survives deploys.</p>
             <a class="pill pill--light" href="https://railway.com/deploy?template=https://github.com/is2b007/daybreak">
               <img src="assets/logos/railway-mark.svg" alt="" width="18" height="18"> Deploy on Railway
             </a>
-          </article>
-          <article class="host__card">
-            <h3>You'll need</h3>
-            <ul class="needs">
-              <li>A <span class="mention mention--bc"><img src="assets/tiles/basecamp.png" alt="" width="18" height="18">Basecamp</span> integration from <a href="https://launchpad.37signals.com/integrations">launchpad.37signals.com</a></li>
-              <li><code>RAILS_MASTER_KEY</code>, <code>BASECAMP_CLIENT_ID</code>, <code>BASECAMP_CLIENT_SECRET</code></li>
-              <li>A <span class="mention mention--hey"><img src="assets/tiles/hey.png" alt="" width="18" height="18">HEY</span> account, if you want calendar, email and journal</li>
-            </ul>
           </article>
         </div>
       </div>
@@ -333,7 +393,7 @@ open http://localhost:3000</code></pre>
       <footer class="foot">
         <div class="wrap foot__inner">
           <a class="brand brand--night" href="/"><img src="assets/daybreak-logo.svg" alt="" width="28" height="28"><span>Daybreak</span></a>
-          <p>Rails 8 · SQLite · Hotwire · MIT licensed. Not affiliated with 37signals.</p>
+          <p>Built with Rails, SQLite and Hotwire. MIT licensed. Not affiliated with 37signals.</p>
           <nav aria-label="Footer">
             <a href="https://github.com/is2b007/daybreak">GitHub</a>
             <a href="https://github.com/sponsors/is2b007">Sponsor</a>
