@@ -17,6 +17,10 @@
 
   --canvas: oklch(98.6% 0.008 60);
   --panel: oklch(96.6% 0.011 60);
+  /* Soft washes of the day's colours that drift across section edges */
+  --wash-dawn: oklch(90% 0.08 75 / 0.6);
+  --wash-sky: oklch(88% 0.06 235 / 0.5);
+  --wash-dusk: oklch(84% 0.06 320 / 0.36);
   --surface: oklch(100% 0 0);
   --ink-darkest: oklch(32.09% 0.0204 233.83);
   --ink-darker: oklch(42% 0.018 234);
@@ -69,6 +73,9 @@
   :root:not([data-theme="light"]) {
     --canvas: oklch(20% 0.0195 232.58);
     --panel: oklch(23% 0.02 232);
+    --wash-dawn: oklch(40% 0.07 60 / 0.30);
+    --wash-sky: oklch(38% 0.06 240 / 0.34);
+    --wash-dusk: oklch(34% 0.07 310 / 0.30);
     --surface: oklch(27% 0.02 232);
     --ink-darkest: oklch(96% 0.0034 260);
     --ink-darker: oklch(88% 0.006 250);
@@ -97,6 +104,9 @@
 :root[data-theme="dark"] {
   --canvas: oklch(20% 0.0195 232.58);
   --panel: oklch(23% 0.02 232);
+  --wash-dawn: oklch(40% 0.07 60 / 0.30);
+  --wash-sky: oklch(38% 0.06 240 / 0.34);
+  --wash-dusk: oklch(34% 0.07 310 / 0.30);
   --surface: oklch(27% 0.02 232);
   --ink-darkest: oklch(96% 0.0034 260);
   --ink-darker: oklch(88% 0.006 250);
@@ -382,8 +392,19 @@ figure { margin: 0; }
 }
 
 /* Sections */
-.band { padding-block: clamp(80px, 11vw, 136px); }
-.band--panel { background: var(--panel); }
+/* No hard edges between sections: tinted bands feather in and out of the
+   canvas, and soft washes of colour float across the joins */
+.band { position: relative; isolation: isolate; padding-block: clamp(80px, 11vw, 136px); --feather: clamp(96px, 12vw, 200px); }
+.band--panel { background: linear-gradient(to bottom, transparent, var(--panel) var(--feather), var(--panel) calc(100% - var(--feather)), transparent); }
+.band::before {
+  content: ""; position: absolute; inset: calc(var(--feather) * -1) 0; z-index: -1; pointer-events: none;
+}
+#apps::before { background: radial-gradient(60% 45% at 18% 12%, var(--wash-dawn), transparent 70%), radial-gradient(50% 40% at 88% 70%, var(--wash-sky), transparent 70%); }
+#week::before { background: radial-gradient(45% 50% at 78% 50%, var(--wash-sky), transparent 72%); }
+#rituals::before { background: radial-gradient(45% 45% at 22% 60%, var(--wash-sky), transparent 72%), radial-gradient(45% 45% at 80% 60%, var(--wash-dusk), transparent 72%); }
+#focus::before { background: radial-gradient(55% 45% at 50% 55%, var(--wash-dusk), transparent 72%); }
+#built::before { background: radial-gradient(70% 50% at 50% 100%, var(--wash-dawn), transparent 72%); }
+main { overflow-x: clip; }
 .section-head { max-width: 760px; margin: 0 auto clamp(40px, 5vw, 60px); display: grid; gap: 16px; justify-items: center; text-align: center; }
 .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dawn-text); }
 h2 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.06; letter-spacing: -0.035em; font-weight: 800; }
@@ -507,7 +528,7 @@ h2 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.06; letter-spacing: -0.
 /* Evening: the page's only sunset, ending in the night sky's own colour */
 .sunset {
   height: clamp(240px, 34vw, 440px);
-  background: linear-gradient(to bottom, var(--panel), var(--sunset-1) 18%, var(--sunset-2) 38%, var(--sunset-3) 58%, var(--sunset-4) 80%, var(--night));
+  background: linear-gradient(to bottom, var(--canvas), var(--sunset-1) 22%, var(--sunset-2) 38%, var(--sunset-3) 58%, var(--sunset-4) 80%, var(--night));
 }
 
 /* Night: self-host and footer */
