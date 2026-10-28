@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Daybreak",
   "short_name": "Daybreak",
   "icons": [
@@ -20,5 +21,10 @@
   "scope": "/",
   "description": "A calm daily and weekly planner that bridges Basecamp and HEY into one workspace.",
   "theme_color": "#FDFCFA",
-  "background_color": "#FDFCFA"
+  "background_color": "#FDFCFA",
+  "shortcuts": [
+    { "name": "This week", "url": "<%= root_path %>" },
+    { "name": "Sunrise", "url": "<%= ritual_morning_path %>" },
+    { "name": "Sundown", "url": "<%= ritual_evening_path %>" }
+  ]
 }

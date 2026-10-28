@@ -7,7 +7,7 @@
     </div>
 
     <% if BasecampClient.configured? %>
-      <%= link_to @authorize_url, class: "btn btn--primary btn--large" do %>
+      <%= link_to (native_app? ? auth_basecamp_url(native: 1) : @authorize_url), class: "btn btn--primary btn--large" do %>
         Sign in with Basecamp
       <% end %>
     <% else %>

@@ -1,0 +1,22 @@
+[package]
+name = "daybreak"
+version = "0.0.0"
+description = "Daybreak for Mac and Windows"
+edition = "2021"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2.7", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = [] }
+tauri-plugin-deep-link = "2.6"
+tauri-plugin-opener = "2.7"
+tauri-plugin-single-instance = { version = "2.5", features = ["deep-link"] }
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

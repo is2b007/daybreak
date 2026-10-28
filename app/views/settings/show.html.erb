@@ -14,9 +14,18 @@
       <div class="settings__section-title">Appearance</div>
       <div class="form-group">
         <%= f.label :theme, "Theme", class: "form-label" %>
-        <%= f.select :theme, [ [ "Follow the sun (light by day, dark at night)", "sun" ], [ "Match my system", "system" ], [ "Light", "light" ], [ "Dark", "dark" ] ], {}, class: "form-input" %>
+        <%= f.select :theme, [ [ "Follow the sun (light by day, dark at night)", "sun" ], [ "Match my system", "system" ], [ "Light", "light" ], [ "Dark", "dark" ], [ "Paper (black on white, for e-paper style screens)", "paper" ] ], {}, class: "form-input" %>
+        <p class="text-xs text-muted mt-1">On a Daylight DC-1, matching your system means Paper.</p>
       </div>
     </div>
+
+    <% if native_app? %>
+      <div class="settings__section">
+        <div class="settings__section-title">Server</div>
+        <p>This app uses the Daybreak at <strong><%= request.host %></strong>.</p>
+        <p class="mt-1"><a href="daybreak://switch-server" data-turbo="false">Use a different server</a></p>
+      </div>
+    <% end %>
 
     <div class="settings__section">
       <div class="settings__section-title">Your stamp</div>

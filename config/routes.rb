@@ -4,6 +4,12 @@ Rails.application.routes.draw do
 
   # PWA manifest — drives the home-screen icon, name and theme colour.
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+
+  # Native apps (Android, Mac, Windows): server check, navigation rules, sign-in handoff
+  get "native/config",                      to: "native#server",             as: :native_config
+  get "native/android/path-configuration",  to: "native#path_configuration", as: :native_path_configuration
+  get "native/sign_in",                     to: "native#sign_in",            as: :native_sign_in
 
   # Dev backdoor login (development only)
   if Rails.env.development?

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Daybreak" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FFE6EAEC</item>
+        <item name="colorPrimaryVariant">#FFFFFFFF</item>
+        <item name="colorOnPrimary">#FF121D22</item>
+        <item name="colorSecondary">#FFE6EAEC</item>
+        <item name="colorOnSecondary">#FF121D22</item>
+        <item name="android:colorBackground">#FF121D22</item>
+        <item name="colorSurface">#FF121D22</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

@@ -1,0 +1,87 @@
+package app.daybreak.android
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.View
+import androidx.activity.enableEdgeToEdge
+import dev.hotwire.core.config.Hotwire
+import dev.hotwire.core.turbo.config.PathConfiguration
+import dev.hotwire.core.turbo.visit.VisitAction
+import dev.hotwire.core.turbo.visit.VisitOptions
+import dev.hotwire.navigation.activities.HotwireActivity
+import dev.hotwire.navigation.navigator.Navigator
+import dev.hotwire.navigation.navigator.NavigatorConfiguration
+import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
+
+class MainActivity : HotwireActivity() {
+    // Set before super.onCreate, which asks for navigatorConfigurations().
+    private var serverUrl = "https://localhost"
+    private var pendingLink: Uri? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val url = Server.url(this)
+        if (url == null) {
+            super.onCreate(savedInstanceState)
+            startActivity(Intent(this, SetupActivity::class.java))
+            finish()
+            return
+        }
+        serverUrl = url
+
+        Hotwire.loadPathConfiguration(
+            context = this,
+            location = PathConfiguration.Location(
+                assetFilePath = "json/path-configuration.json",
+                remoteFileUrl = "$serverUrl/native/android/path-configuration"
+            )
+        )
+
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
+
+        pendingLink = intent?.data
+    }
+
+    override fun navigatorConfigurations() = listOf(
+        NavigatorConfiguration(
+            name = "main",
+            startLocation = serverUrl,
+            navigatorHostId = R.id.main_nav_host
+        )
+    )
+
+    override fun onNavigatorReady(navigator: Navigator) {
+        pendingLink?.let { handleLink(it, navigator) }
+        pendingLink = null
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val navigator = delegate.currentNavigator
+        val link = intent.data ?: return
+        if (navigator != null) handleLink(link, navigator) else pendingLink = link
+    }
+
+    // daybreak://signed-in?code=... comes back from the browser after sign-in;
+    // daybreak://switch-server comes from the link in Settings.
+    private fun handleLink(link: Uri, navigator: Navigator) {
+        if (link.scheme != "daybreak") return
+        when (link.host) {
+            "signed-in" -> {
+                val code = link.getQueryParameter("code") ?: return
+                navigator.route(
+                    "$serverUrl/native/sign_in?code=${Uri.encode(code)}",
+                    VisitOptions(action = VisitAction.REPLACE)
+                )
+            }
+            "switch-server" -> {
+                Server.forget(this)
+                startActivity(Intent(this, SetupActivity::class.java))
+                finish()
+            }
+        }
+    }
+}

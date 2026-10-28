@@ -9,7 +9,7 @@
     <meta name="application-name" content="Daybreak">
     <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0E1A1F" media="(prefers-color-scheme: dark)">
-    <meta name="color-scheme" content="<%= theme_attribute || "light dark" %>">
+    <meta name="color-scheme" content="<%= theme_attribute == "paper" ? "light" : (theme_attribute || "light dark") %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
