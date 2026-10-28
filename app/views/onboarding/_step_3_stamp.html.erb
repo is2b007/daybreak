@@ -1,6 +1,6 @@
 <%= render layout: "step", locals: { step: 3, elevation: 0.6 } do %>
   <h1 class="onb__title" id="onb-title-3" tabindex="-1" data-reveal="words">Nice to meet you, <%= current_user.greeting_name %>.</h1>
-  <p class="onb__prose" data-reveal>Pick a stamp. It&rsquo;s how finished things get marked done, and you can change it later.</p>
+  <p class="onb__prose" data-reveal>Pick a stamp. Daybreak stamps your to-dos with it when they&rsquo;re done. You can change it later in Settings.</p>
 
   <%= form_with url: onboarding_path, method: :patch, class: "onb__form", data: { controller: "stamp-picker" } do |f| %>
     <%= f.hidden_field :step, value: 3 %>
@@ -36,7 +36,6 @@
     </div>
 
     <div class="onb__actions" data-reveal>
-      <%= link_to "Back", onboarding_path(step: 2), class: "onb__button onb__button--quiet" %>
       <button type="submit" class="onb__button onb__button--primary">Continue</button>
     </div>
   <% end %>

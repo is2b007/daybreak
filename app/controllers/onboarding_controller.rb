@@ -7,6 +7,7 @@ class OnboardingController < ApplicationController
 
   def show
     @step = (params[:step] || 1).to_i.clamp(1, STEPS)
+    @hey_error = flash[:hey_error]
   end
 
   def update
@@ -23,9 +24,9 @@ class OnboardingController < ApplicationController
       current_user.update!(stamp_choice: params[:stamp_choice]) if params[:stamp_choice].present?
       redirect_to onboarding_path(step: 4)
     when 4
-      # basecamp — already connected (that's how they got here via OAuth).
-      # Trigger a visible sync so the inbox starts filling while they continue.
-      SyncBasecampAssignmentsJob.perform_later(current_user.id)
+      # basecamp — usually connected already (that's how they signed in).
+      # Start a sync so the inbox fills while they continue; skipping leaves it for later.
+      SyncBasecampAssignmentsJob.perform_later(current_user.id) if current_user.basecamp_connected?
       redirect_to onboarding_path(step: 5)
     when 5
       if params[:connect_hey] == "true"

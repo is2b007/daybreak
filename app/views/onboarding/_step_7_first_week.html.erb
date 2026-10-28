@@ -1,13 +1,13 @@
 <%= render layout: "step", locals: { step: 7, elevation: 0.86, moment: "morning" } do %>
-  <h1 class="onb__title" id="onb-title-7" tabindex="-1" data-reveal="words">Good morning, <%= current_user.greeting_name %>.</h1>
+  <h1 class="onb__title" id="onb-title-7" tabindex="-1" data-reveal="words">You&rsquo;re all set, <%= current_user.greeting_name %>.</h1>
   <p class="onb__prose" data-reveal>
-    You&rsquo;re all set. Your work is arriving quietly in the background.
-    Tomorrow, open Daybreak for your first sunrise: a short look back, then you set the day.
+    Your week is ready, and your work is syncing in. Start each day with Sunrise to pick
+    what matters, and end it with Sundown to wrap up.
   </p>
+  <p class="onb__hint" data-reveal>You can change any of this later in Settings.</p>
 
   <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { turbo: false, action: "submit->onboarding#finish", reveal: "" } do |f| %>
     <%= f.hidden_field :step, value: 7 %>
-    <%= link_to "Back", onboarding_path(step: 6), class: "onb__button onb__button--quiet" %>
     <button type="submit" class="onb__button onb__button--primary">Open my week</button>
   <% end %>
 <% end %>

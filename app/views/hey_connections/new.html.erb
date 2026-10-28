@@ -137,7 +137,7 @@
       <% if current_user.onboarded? %>
         <%= link_to "← Back to settings", settings_path, class: "connect-hey__back" %>
       <% else %>
-        <%= link_to "Skip for now →", onboarding_path, class: "connect-hey__back" %>
+        <%= link_to "← Back to setup", onboarding_path(step: 5), class: "connect-hey__back" %>
       <% end %>
     </div>
   </div>

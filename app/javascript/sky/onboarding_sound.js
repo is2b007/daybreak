@@ -45,6 +45,7 @@ export class OnboardingSound {
       if (this.master) return true
 
       const now = ctx.currentTime
+      this.volume = volume
       this.master = ctx.createGain()
       this.master.gain.setValueAtTime(0, now)
       this.master.gain.linearRampToValueAtTime(volume, now + 2.5)
@@ -88,6 +89,16 @@ export class OnboardingSound {
     const ctx = this.ctx
     this.ctx = null
     if (ctx) setTimeout(() => ctx.close().catch(() => {}), fade * 1000 + 300)
+  }
+
+  // Turns the whole thing down to a murmur while nobody's there, and back up
+  settle(quiet) {
+    if (!this.master) return
+    const g = this.master.gain
+    const t = this.ctx.currentTime
+    g.cancelScheduledValues(t)
+    g.setValueAtTime(g.value, t)
+    g.linearRampToValueAtTime(quiet ? this.volume * 0.3 : this.volume, t + (quiet ? 8 : 1.5))
   }
 
   // Crossfades the pad to the chord for this step

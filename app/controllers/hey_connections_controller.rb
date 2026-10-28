@@ -192,6 +192,13 @@ class HeyConnectionsController < ApplicationController
   end
 
   def redirect_after_hey_failure(message)
-    logged_in? ? redirect_to(settings_path, alert: message) : redirect_to(login_path, alert: message)
+    if logged_in? && !current_user.onboarded?
+      # Back to the HEY step of setup, with the reason shown there
+      redirect_to onboarding_path(step: 5), flash: { hey_error: message }
+    elsif logged_in?
+      redirect_to settings_path, alert: message
+    else
+      redirect_to login_path, alert: message
+    end
   end
 end

@@ -18,7 +18,7 @@
 
   <ol class="onb__progress" aria-label="Progress">
     <% (1..OnboardingController::STEPS).each do |s| %>
-      <li class="onb__dot" data-onboarding-target="progress"><span class="sr-only">Step <%= s %></span></li>
+      <li class="onb__dot<%= " is-done" if s < @step %><%= " is-current" if s == @step %>" data-onboarding-target="progress"<%= %( aria-current="step").html_safe if s == @step %>><span class="sr-only">Step <%= s %> of <%= OnboardingController::STEPS %></span></li>
     <% end %>
   </ol>
 </div>

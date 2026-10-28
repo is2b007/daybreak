@@ -1,5 +1,12 @@
 <%# Wraps one onboarding step. elevation: how high the sun is (0 night, 1 full day). %>
 <section class="onb__step" data-onboarding-step="<%= step %>" data-elevation="<%= elevation %>"<%= %( data-moment="#{moment}").html_safe if local_assigns[:moment] %>
          aria-labelledby="onb-title-<%= step %>">
+  <% if step > 1 %>
+    <%# One Back, always in the same corner, so the actions below only go forward %>
+    <%= link_to onboarding_path(step: step - 1), class: "onb__back", aria: { label: "Back" } do %>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Back</span>
+    <% end %>
+  <% end %>
   <%= yield %>
 </section>
