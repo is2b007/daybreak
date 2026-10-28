@@ -7285,9 +7285,12 @@ body.focus-open { overflow: hidden; }
 
 .onb--ready .is-in .onb__word { animation-duration: 1300ms; }
 
-.onb__step.is-leaving {
+.onb__step.is-leaving > :not(.onb__back) {
   animation: onb-leave 420ms ease-in both;
 }
+
+/* Fixed, so it can't be animated with the words (a transform would unpin it) */
+.onb__step.is-leaving > .onb__back { opacity: 0; transition: opacity 300ms ease; }
 
 .onb--leaving .onb__stage,
 .onb--leaving .onb__progress {
@@ -7326,9 +7329,48 @@ body.focus-open { overflow: hidden; }
 
 @keyframes onb-fade { from { opacity: 0; } to { opacity: 1; } }
 
+/* Back sits in the corner opposite the sound toggle, the same on every step */
+.onb__back {
+  position: fixed;
+  top: 8px;
+  left: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 14px 0 8px;
+  border-radius: var(--radius-full);
+  font: 500 15px/1 var(--font-sans);
+  color: var(--onb-ink-soft);
+  text-decoration: none;
+  transition: color 1.2s ease, background var(--transition-base);
+}
+
+.onb__back svg { width: 18px; height: 18px; }
+.onb__back:hover { color: var(--onb-ink); background: var(--onb-field); text-decoration: none; }
+.onb__back:focus-visible { outline: 2px solid var(--onb-ink); outline-offset: 2px; }
+
+/* Why connecting didn't work: plain words on a solid panel so it reads on any sky */
+.onb__error {
+  margin: 0;
+  max-width: 30em;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: oklch(36% 0.13 28);
+  background: oklch(97% 0.02 40);
+  box-shadow: 0 0 0 1px oklch(55% 0.15 28 / 0.25);
+}
+
 @media (max-width: 480px) {
   .onb__prose { font-size: 17px; }
   .onb__stamp.stamp-option { width: 56px; height: 56px; }
+
+  /* Thumb-sized actions, the one that moves you forward on top */
+  .onb__actions { flex-direction: column; align-items: stretch; width: min(100%, 320px); }
+  .onb__actions .onb__button { width: 100%; min-height: 48px; }
 }
 
 /* Arrival: the first week view after onboarding starts under the same

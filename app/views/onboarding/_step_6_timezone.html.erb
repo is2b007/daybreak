@@ -1,20 +1,19 @@
 <%= render layout: "step", locals: { step: 6, elevation: 0.79 } do %>
   <div class="onb__stack" data-controller="timezone-detector">
-    <h1 class="onb__title" id="onb-title-6" tabindex="-1" data-reveal="words">Where are you?</h1>
-    <p class="onb__prose" data-reveal data-timezone-detector-target="message">
-      Your timezone anchors your days, weeks and rituals. We&rsquo;ve guessed from your browser.
+    <h1 class="onb__title" id="onb-title-6" tabindex="-1" data-reveal="words">What&rsquo;s your time zone?</h1>
+    <p class="onb__prose" data-reveal>
+      Daybreak starts your days and weeks by it. We picked one from your browser, so just check it&rsquo;s right.
     </p>
 
     <%= form_with url: onboarding_path, method: :patch, class: "onb__form" do |f| %>
       <%= f.hidden_field :step, value: 6 %>
-      <%= f.label :timezone, "Timezone", class: "sr-only" %>
+      <%= f.label :timezone, "Time zone", class: "sr-only" %>
       <%= f.select :timezone,
           ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.tzinfo.identifier] },
-          { selected: current_user.timezone },
+          { selected: ActiveSupport::TimeZone[current_user.timezone]&.tzinfo&.identifier || current_user.timezone },
           class: "onb__input onb__select",
           data: { timezone_detector_target: "select", reveal: "" } %>
       <div class="onb__actions" data-reveal>
-        <%= link_to "Back", onboarding_path(step: 5), class: "onb__button onb__button--quiet" %>
         <button type="submit" class="onb__button onb__button--primary">Continue</button>
       </div>
     <% end %>

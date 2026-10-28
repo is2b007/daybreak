@@ -2,13 +2,13 @@
   <%= image_tag "daybreak-logo.svg", class: "onb__logo", alt: "", data: { reveal: "" } %>
   <h1 class="onb__title" id="onb-title-1" tabindex="-1" data-reveal="words">Welcome to Daybreak.</h1>
   <p class="onb__prose" data-reveal>
-    A calm place to plan your week, with your Basecamp and HEY work close at hand.
-    Let&rsquo;s set it up together. It takes about a minute.
+    Your week on one page: Basecamp to-dos, your HEY calendar and email,
+    and a few minutes each morning and evening to plan. Setup takes about a minute.
   </p>
 
   <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
     <%= f.hidden_field :step, value: 1 %>
-    <button type="submit" class="onb__button onb__button--primary">Begin</button>
+    <button type="submit" class="onb__button onb__button--primary">Get started</button>
   <% end %>
-  <p class="onb__hint" data-reveal>Best with sound on.</p>
+  <p class="onb__hint" data-reveal>Turn your sound on, it&rsquo;s nicer that way.</p>
 <% end %>

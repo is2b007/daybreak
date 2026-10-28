@@ -3,6 +3,8 @@ import { SkyScene } from "sky/scene"
 import { soundEnabled, setSoundEnabled } from "sky/sound"
 import { OnboardingSound } from "sky/onboarding_sound"
 
+const IDLE_AFTER = 45_000
+
 // Onboarding is one long sunrise. The sky starts at night and the sun climbs
 // a little with every step; each step's words drift in, the pad moves to a
 // new chord and a bell rings. Steps load into a Turbo Frame, so this
@@ -43,12 +45,32 @@ export default class extends Controller {
     // (a touch pointerdown is not an activation gesture, so listen for click/touchend)
     for (const type of ["click", "touchend", "keydown"]) document.addEventListener(type, this.unlock, true)
     this.renderSoundToggle()
+
+    // Someone who wanders off shouldn't come back to a pad still going at full
+    // strength: after a while without input the sound settles to a murmur
+    this.wake = this.wake.bind(this)
+    for (const type of ["pointerdown", "keydown"]) document.addEventListener(type, this.wake, true)
+    this.wake()
+  }
+
+  wake() {
+    clearTimeout(this.idleTimer)
+    if (this.idle) {
+      this.idle = false
+      this.sound.settle(false)
+    }
+    this.idleTimer = setTimeout(() => {
+      this.idle = true
+      this.sound.settle(true)
+    }, IDLE_AFTER)
   }
 
   disconnect() {
     this.frameTarget.removeEventListener("turbo:before-frame-render", this.beforeRender)
     this.frameTarget.removeEventListener("turbo:frame-render", this.afterRender)
     this.removeUnlock()
+    for (const type of ["pointerdown", "keydown"]) document.removeEventListener(type, this.wake, true)
+    clearTimeout(this.idleTimer)
     this.scene?.destroy()
     this.sound?.close()
   }
@@ -143,15 +165,15 @@ export default class extends Controller {
     const tone = step.elevation < 0.4 ? "night" : "day"
     clearTimeout(this.toneTimer)
     // Flip light/dark text about when the sky crosses from dusk to day
-    this.toneTimer = setTimeout(() => (this.element.dataset.tone = tone), rising && !this.reducedMotion ? 2300 : 0)
+    this.toneTimer = setTimeout(() => (this.element.dataset.tone = tone), rising && !this.reducedMotion ? 1700 : 0)
 
     if (!initial) {
-      this.scene.glideTo(step.elevation, rising ? 4200 : 2200)
+      this.scene.glideTo(step.elevation, rising ? 3200 : 1800)
       this.sound.setStep(step.number)
       if (rising && climb > 0) this.sound.flourish({ delay: 0.4 })
       else this.sound.chime(step.number, { delay: 0.25 })
       if (step.element.dataset.moment === "morning") this.sound.flourish({ delay: 0.6 })
-      this.reveal(step.element, rising && !this.reducedMotion ? 2500 : 150)
+      this.reveal(step.element, rising && !this.reducedMotion ? 1900 : 150)
     } else {
       this.reveal(step.element, 500)
     }
@@ -212,6 +234,8 @@ export default class extends Controller {
     this.progressTargets.forEach((dot, i) => {
       dot.classList.toggle("is-done", i + 1 < number)
       dot.classList.toggle("is-current", i + 1 === number)
+      if (i + 1 === number) dot.setAttribute("aria-current", "step")
+      else dot.removeAttribute("aria-current")
     })
   }
 

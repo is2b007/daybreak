@@ -1,15 +1,14 @@
 <%= render layout: "step", locals: { step: 2, elevation: 0.16 } do %>
   <h1 class="onb__title" id="onb-title-2" tabindex="-1" data-reveal="words">What should we call you?</h1>
-  <p class="onb__prose" data-reveal>Just a first name. It&rsquo;s how Daybreak says good morning.</p>
+  <p class="onb__prose" data-reveal>Your first name is fine. Daybreak uses it to say good morning.</p>
 
   <%= form_with url: onboarding_path, method: :patch, class: "onb__form" do |f| %>
     <%= f.hidden_field :step, value: 2 %>
-    <label class="sr-only" for="onb-name">Your first name</label>
-    <input type="text" id="onb-name" name="name" value="<%= current_user.name %>"
-           class="onb__input" placeholder="Your first name" autocomplete="given-name"
+    <label class="sr-only" for="onb-name">First name</label>
+    <input type="text" id="onb-name" name="name" value="<%= current_user.greeting_name %>"
+           class="onb__input" placeholder="First name" autocomplete="given-name" maxlength="60"
            autofocus required data-reveal data-action="keydown->onboarding#type">
     <div class="onb__actions" data-reveal>
-      <%= link_to "Back", onboarding_path(step: 1), class: "onb__button onb__button--quiet" %>
       <button type="submit" class="onb__button onb__button--primary">Continue</button>
     </div>
   <% end %>

@@ -1,0 +1,50 @@
+<%#
+  A "connect an app" step. Basecamp and HEY share it so a new way of connecting
+  (hosted sign-in, a native app's own flow) only changes the locals passed in.
+
+  step, elevation   – as for _step
+  app               – "basecamp" or "hey" (names the tile and the title id)
+  title, intro      – heading and one line under it
+  features          – what connecting brings in, one short line each
+  connected         – whether this account is already connected
+  connected_note    – shown instead of the intro and features once connected
+  connect_label     – the button that starts connecting (nil when there's nothing to start)
+  connect_path      – where that button goes; it leaves onboarding, so it targets _top
+  skip_label        – a way past the step without connecting (nil for required apps)
+  continue_label    – the button once connected
+  error             – why the last attempt failed, if it did
+%>
+<%= render layout: "step", locals: { step: step, elevation: elevation } do %>
+  <%= image_tag "tiles/#{app}.png", class: "onb__app-icon", alt: "", data: { reveal: "" } %>
+  <h1 class="onb__title" id="onb-title-<%= step %>" tabindex="-1" data-reveal="words"><%= title %></h1>
+
+  <% if local_assigns[:error].present? %>
+    <p class="onb__error" role="alert" data-reveal><%= error %></p>
+  <% end %>
+
+  <% if connected %>
+    <p class="onb__prose" data-reveal><%= connected_note %></p>
+  <% else %>
+    <p class="onb__prose" data-reveal><%= intro %></p>
+  <% end %>
+
+  <% if features.present? && (!connected || local_assigns[:features_when_connected]) %>
+    <ul class="onb__list">
+      <% features.each do |feature| %>
+        <li data-reveal><%= feature %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
+    <%= f.hidden_field :step, value: step %>
+    <% if connected || local_assigns[:connect_label].blank? %>
+      <button type="submit" class="onb__button onb__button--primary"><%= continue_label %></button>
+    <% else %>
+      <%= link_to connect_label, connect_path, class: "onb__button onb__button--primary", data: { turbo_frame: "_top" } %>
+      <% if local_assigns[:skip_label] %>
+        <button type="submit" class="onb__button"><%= skip_label %></button>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

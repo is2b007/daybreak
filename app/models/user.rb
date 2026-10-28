@@ -25,6 +25,10 @@ class User < ApplicationRecord
     hey_access_token.present?
   end
 
+  def basecamp_connected?
+    basecamp_access_token.present?
+  end
+
   # HEY mailboxes on this identity (personal plus work domains), synced from /identity.json.
   def hey_mailboxes
     Array(hey_accounts).select { |a| a.is_a?(Hash) && a["id"].present? }

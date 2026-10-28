@@ -111,6 +111,30 @@ class HeyConnectionsControllerTest < ActionController::TestCase
     assert_equal "Denied", flash[:alert]
   end
 
+  test "a failed connect during setup goes back to the HEY step with the reason" do
+    @user.update!(onboarded: false)
+
+    get :callback, params: { error: "access_denied", error_description: "Denied" }
+
+    assert_redirected_to onboarding_path(step: 5)
+    assert_equal "Denied", flash[:hey_error]
+  end
+
+  test "a failed connect after setup goes to settings" do
+    get :callback, params: { error: "access_denied" }
+
+    assert_redirected_to settings_path
+    assert_equal "HEY connection was cancelled.", flash[:alert]
+  end
+
+  test "the connect page leads back to the HEY step during setup" do
+    @user.update!(onboarded: false)
+
+    get :new
+
+    assert_select "a[href=?]", onboarding_path(step: 5), text: /Back to setup/
+  end
+
   private
 
   def start_hosted_flow

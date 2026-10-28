@@ -1,25 +1,15 @@
-<%= render layout: "step", locals: { step: 5, elevation: 0.72 } do %>
-  <%= image_tag "tiles/hey.png", class: "onb__app-icon", alt: "", data: { reveal: "" } %>
-  <h1 class="onb__title" id="onb-title-5" tabindex="-1" data-reveal="words">Do you use HEY?</h1>
-  <% if current_user.hey_connected? %>
-    <p class="onb__prose" data-reveal>HEY is connected. Your calendar, to-dos, email and journal are on their way in.</p>
-  <% else %>
-    <p class="onb__prose" data-reveal>If you do, Daybreak can bring in your calendar, to-dos, email and journal. If not, skip this one.</p>
-    <ul class="onb__list">
-      <li data-reveal>Calendar events next to your Basecamp schedule</li>
-      <li data-reveal>Imbox, Reply Later and Set Aside, triaged from here</li>
-      <li data-reveal>Evening reflections saved to your HEY Journal</li>
-    </ul>
-  <% end %>
-
-  <%= form_with url: onboarding_path, method: :patch, class: "onb__actions", data: { reveal: "" } do |f| %>
-    <%= f.hidden_field :step, value: 5 %>
-    <%= link_to "Back", onboarding_path(step: 4), class: "onb__button onb__button--quiet" %>
-    <% if current_user.hey_connected? %>
-      <button type="submit" name="connect_hey" value="false" class="onb__button onb__button--primary">Continue</button>
-    <% else %>
-      <button type="submit" name="connect_hey" value="false" class="onb__button">Skip for now</button>
-      <%= link_to "Connect HEY", auth_hey_path, class: "onb__button onb__button--primary", data: { turbo_frame: "_top" } %>
-    <% end %>
-  <% end %>
-<% end %>
+<%= render "connection",
+      step: 5, elevation: 0.72, app: "hey",
+      title: current_user.hey_connected? ? "HEY is connected." : "Do you use HEY?",
+      intro: "Connect it to bring your HEY calendar, to-dos, email and Journal into Daybreak. Not a HEY user? Skip this.",
+      connected: current_user.hey_connected?,
+      connected_note: "Your calendar, email and Journal are syncing now.",
+      features: [
+        "Calendar events next to your Basecamp schedule",
+        "Imbox, Reply Later and Set Aside, triaged from here",
+        "Evening notes saved to your HEY Journal"
+      ],
+      error: @hey_error,
+      connect_label: "Connect HEY", connect_path: auth_hey_path,
+      skip_label: "Skip for now",
+      continue_label: "Continue" %>
