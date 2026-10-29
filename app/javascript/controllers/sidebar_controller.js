@@ -13,6 +13,8 @@ export default class extends Controller {
     this.#applyStoredState()
     this.#syncToggle()
     this.element.dataset.sheetReady = ""
+    // Only open and close animate, not settling into the stored state on load.
+    requestAnimationFrame(() => requestAnimationFrame(() => { this.element.dataset.animate = "" }))
 
     // Rotating or resizing into a narrow viewport with the sidebar open would
     // leave a drawer sitting on top of the content.

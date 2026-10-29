@@ -1,6 +1,7 @@
 package app.daybreak.android
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.util.Base64
 import android.webkit.CookieManager
@@ -47,6 +48,26 @@ object Server {
             val body = connection.inputStream.bufferedReader().readText()
             if (JSONObject(body).optString("app") != "daybreak") error("not a Daybreak")
             connection.url.toString().removeSuffix("/native/config")
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    // Trades the code from the browser for a session cookie in the web view.
+    // Done here rather than by visiting /native/sign_in, which would leave that
+    // address in the back stack. Runs on a background thread.
+    fun signIn(url: String, code: String, verifier: String): Result<Unit> = runCatching {
+        val query = "code=${Uri.encode(code)}&verifier=${Uri.encode(verifier)}"
+        val connection = URL("$url/native/sign_in?$query").openConnection() as HttpURLConnection
+        connection.instanceFollowRedirects = false
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 10_000
+        connection.setRequestProperty("User-Agent", "Daybreak Android; Hotwire Native Android")
+        try {
+            if (connection.responseCode != 200) error("sign-in refused")
+            val cookies = CookieManager.getInstance()
+            connection.headerFields["Set-Cookie"].orEmpty().forEach { cookies.setCookie(url, it) }
+            cookies.flush()
         } finally {
             connection.disconnect()
         }

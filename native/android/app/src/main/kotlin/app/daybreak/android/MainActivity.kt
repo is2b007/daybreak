@@ -10,8 +10,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import dev.hotwire.core.config.Hotwire
 import dev.hotwire.core.turbo.config.PathConfiguration
-import dev.hotwire.core.turbo.visit.VisitAction
-import dev.hotwire.core.turbo.visit.VisitOptions
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.Navigator
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
@@ -99,10 +97,11 @@ class MainActivity : HotwireActivity() {
             "signed-in" -> {
                 val code = link.getQueryParameter("code") ?: return
                 val verifier = Server.takeSignInVerifier(this) ?: return
-                navigator.route(
-                    "$serverUrl/native/sign_in?code=${Uri.encode(code)}&verifier=${Uri.encode(verifier)}",
-                    VisitOptions(action = VisitAction.REPLACE)
-                )
+                Thread {
+                    Server.signIn(serverUrl, code, verifier)
+                    // Signed in or not, the start page shows which (week or sign-in).
+                    runOnUiThread { navigator.reset() }
+                }.start()
             }
             // Any web page can open a daybreak:// link, so check first.
             "switch-server" -> AlertDialog.Builder(this)
