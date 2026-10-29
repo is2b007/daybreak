@@ -1,6 +1,5 @@
 package app.daybreak.android
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -18,8 +17,6 @@ import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 private const val MIN_WEBVIEW = 111
 
 class MainActivity : HotwireActivity() {
-    override fun attachBaseContext(base: Context) = super.attachBaseContext(Scale.wrap(base))
-
     // Set before super.onCreate, which asks for navigatorConfigurations().
     private var serverUrl = "https://localhost"
     private var pendingLink: Uri? = null
