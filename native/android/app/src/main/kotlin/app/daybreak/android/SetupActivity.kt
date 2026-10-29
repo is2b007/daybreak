@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -41,6 +42,7 @@ class SetupActivity : AppCompatActivity() {
     private fun use(url: String) {
         if (url == "https://") return
         error.visibility = View.GONE
+        getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(address.windowToken, 0)
         connect.isEnabled = false
         connect.setText(R.string.setup_checking)
 

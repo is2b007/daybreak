@@ -16,8 +16,9 @@ module ApplicationHelper
   # decides, except on a Daylight tablet, where it means paper.
   def theme_attribute
     return ("paper" if daylight_device?) unless respond_to?(:logged_in?) && logged_in?
+    # A Daylight is greyscale, so following the system or the sun means Paper there.
+    return "paper" if current_user.theme.in?(%w[system sun]) && daylight_device?
     return current_user.sun_theme_now if current_user.theme == "sun"
-    return "paper" if current_user.theme == "system" && daylight_device?
     current_user.theme if current_user.theme.in?(%w[light dark paper])
   end
 
@@ -27,7 +28,7 @@ module ApplicationHelper
   end
 
   def follows_the_sun?
-    respond_to?(:logged_in?) && logged_in? && current_user.theme == "sun"
+    respond_to?(:logged_in?) && logged_in? && current_user.theme == "sun" && !daylight_device?
   end
 
   BASECAMP_RICH_TEXT_TAGS = %w[p br a ul ol li strong em b i del s div span h1 h2 h3 h4 blockquote code pre].freeze

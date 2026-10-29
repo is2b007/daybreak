@@ -26,8 +26,9 @@ class NativeControllerTest < ActionDispatch::IntegrationTest
   test "sign in trades a code and its verifier for a session" do
     get native_sign_in_path(code: NativeSignIn.issue(users(:one), CHALLENGE), verifier: VERIFIER), headers: APP
 
-    assert_redirected_to root_path
-    follow_redirect! headers: APP
+    assert_response :success
+    assert_includes response.body, 'Turbo.visit("/", { action: "replace" })'
+    get root_path, headers: APP
     assert_response :success
   end
 
@@ -64,6 +65,16 @@ class NativeControllerTest < ActionDispatch::IntegrationTest
 
     get login_path, headers: { "User-Agent" => old.sub(/ Daybreak Android.*/, "") }
     assert_response :not_acceptable
+  end
+
+  test "a Daylight following the sun gets Paper" do
+    users(:one).update!(theme: "sun")
+    daylight = { "User-Agent" => APP["User-Agent"].sub("Daybreak Android;", "Daybreak Android; Daylight;") }
+    get native_sign_in_path(code: NativeSignIn.issue(users(:one), CHALLENGE), verifier: VERIFIER), headers: daylight
+
+    get root_path, headers: daylight
+    assert_select "html[data-theme=paper]"
+    assert_select "[data-controller=sun-theme]", count: 0
   end
 
   test "sign in only works in the apps" do

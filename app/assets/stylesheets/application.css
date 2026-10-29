@@ -4553,6 +4553,9 @@ select.form-input {
   margin-bottom: var(--space-10);
 }
 
+.login-tagline,
+.login-footnote { text-wrap: pretty; }
+
 .login-footnote {
   font-size: var(--font-size-xs);
   color: var(--muted2);

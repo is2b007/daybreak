@@ -68,6 +68,9 @@ class NativeController < ApplicationController
 
     reset_session
     session[:user_id] = user.id
-    redirect_to user.onboarded? ? root_path : onboarding_path
+    # A page, not a redirect: the app would keep this address and replay the
+    # spent code on pull to refresh, so the page replaces itself instead.
+    @destination = user.onboarded? ? root_path : onboarding_path
+    render :signed_in
   end
 end
