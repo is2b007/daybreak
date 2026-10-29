@@ -1,5 +1,6 @@
 package app.daybreak.android
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -12,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 
 // First launch: "Where's your Daybreak?"
 class SetupActivity : AppCompatActivity() {
+    override fun attachBaseContext(base: Context) = super.attachBaseContext(Scale.wrap(base))
+
     private lateinit var address: EditText
     private lateinit var error: TextView
     private lateinit var connect: Button
