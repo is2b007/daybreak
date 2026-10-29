@@ -7401,11 +7401,19 @@ body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
     position: relative;
   }
 
-  /* Side columns claim rail width only, whatever the stored collapse state. */
+  /* Side columns claim rail width only, whatever the stored collapse state.
+     The right track is fixed rather than auto: an open drawer is out of flow,
+     so an auto track would collapse and widen the content under it. */
   .shell,
   .shell:has(.sb.sb--collapsed) {
-    grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr) auto;
+    grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr) var(--rail-width);
   }
+
+  /* Pin each column to its track. Otherwise an open drawer leaves the grid and
+     the content auto-places into the 52px sidebar track. */
+  .shell > .sb { grid-column: 1; grid-row: 1; }
+  .shell > .mid { grid-column: 2; grid-row: 1; }
+  .shell > .right { grid-column: 3; grid-row: 1; }
 
   .shell.shell--no-right,
   .shell.shell--no-right:has(.sb.sb--collapsed) {
@@ -7436,6 +7444,43 @@ body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
   .shell::after {
     z-index: 899;
   }
+}
+
+/* Phones open panels as full-screen sheets instead (see the mobile tab bar). */
+@media (min-width: 701px) and (max-width: 1100px) {
+  /* Drawers open by uncovering themselves from their rail, already laid out at
+     full width, instead of growing a width that reflows the text every frame. */
+  .sb[data-animate],
+  .right[data-animate] {
+    transition: none;
+  }
+
+  .sb[data-animate]:not(.sb--collapsed) {
+    animation: drawer-open-left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .right[data-animate]:not(.right--collapsed) {
+    animation: drawer-open-right 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .right[data-animate]:not(.right--collapsed) .r-content {
+    animation: drawer-slide-right 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+/* The negative insets leave room for the drawer's shadow. */
+@keyframes drawer-open-left {
+  from { clip-path: inset(0 calc(100% - var(--sidebar-collapsed-width)) 0 0); }
+  to { clip-path: inset(0 -40px 0 0); }
+}
+
+@keyframes drawer-open-right {
+  from { clip-path: inset(0 0 0 calc(100% - var(--rail-width))); }
+  to { clip-path: inset(0 0 0 -40px); }
+}
+
+@keyframes drawer-slide-right {
+  from { transform: translateX(100%); }
 }
 
 /* Day view is a 50/50 split of task list and timeline. Below this the two halves
@@ -8745,6 +8790,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   }
 
   .mid { padding-bottom: var(--mtab-height); }
+  .shell > .mid { grid-column: 1; }
 
   .mtab {
     display: grid;
