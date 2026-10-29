@@ -57,8 +57,11 @@ export default class extends Controller {
     this._pointerStartY = event.clientY
     this._pxPerHour = this._readPxPerHour(tl)
 
-    this._initialTopRel = tl.scrollTop + (blockRect.top - tlRect.top)
-    this._initialHeight = blockRect.height
+    // Rects and pointer positions come back scaled by CSS zoom (the Daylight
+    // layout sets one); scrollTop and the styles written below are unscaled.
+    this._zoom = tl.currentCSSZoom || 1
+    this._initialTopRel = tl.scrollTop + (blockRect.top - tlRect.top) / this._zoom
+    this._initialHeight = blockRect.height / this._zoom
 
     this.element.style.top = `${this._initialTopRel}px`
     this.element.style.height = `${this._initialHeight}px`
@@ -72,7 +75,7 @@ export default class extends Controller {
   _move(event) {
     if (!this._dragging) return
     this._pointerMoves += 1
-    const dy = event.clientY - this._pointerStartY
+    const dy = (event.clientY - this._pointerStartY) / this._zoom
     const minH = Math.max(this._pxPerHour * 0.25, 12)
 
     if (this._mode === "move") {
@@ -126,8 +129,8 @@ export default class extends Controller {
     const pxPerHour = this._readPxPerHour(tl)
     const tlRect = tl.getBoundingClientRect()
     const br = this.element.getBoundingClientRect()
-    const relTop = tl.scrollTop + (br.top - tlRect.top)
-    const relH = br.height
+    const relTop = tl.scrollTop + (br.top - tlRect.top) / this._zoom
+    const relH = br.height / this._zoom
 
     const startDec = HOUR_START + relTop / pxPerHour
     const endDec = HOUR_START + (relTop + relH) / pxPerHour

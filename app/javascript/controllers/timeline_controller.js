@@ -18,7 +18,8 @@ export default class extends Controller {
 
   _syncHourHeight() {
     const n = this.hourTargets.length || 15
-    const h = this.element.getBoundingClientRect().height
+    // The rect is scaled by CSS zoom (set on a Daylight); the variable is not.
+    const h = this.element.getBoundingClientRect().height / (this.element.currentCSSZoom || 1)
     if (h > 0) {
       const px = Math.max(28, h / n)
       this.element.style.setProperty("--timeline-hour", `${px}px`)

@@ -2775,7 +2775,9 @@ select.form-input {
 .timeline__hour {
   display: grid;
   grid-template-columns: 38px 1fr;
-  flex: 1 1 0;
+  /* Exactly one --timeline-hour tall, the unit blocks and the now line are
+     placed in; the timeline scrolls when the hours don't fit. */
+  flex: 0 0 var(--timeline-hour);
   min-height: 0;
   position: relative;
 }
@@ -3041,6 +3043,12 @@ select.form-input {
   position: absolute;
   left: -38px;
   top: -7px;
+  /* Covers the hour label it lands on, instead of printing over it. */
+  width: 38px;
+  box-sizing: border-box;
+  padding: 2px 6px 2px 0;
+  text-align: right;
+  background: var(--bg);
   font-size: 9px;
   font-weight: 600;
   color: var(--amber);
@@ -7857,7 +7865,12 @@ body { font-size: 16px; line-height: 1.5; }
 
 /* Today page */
 .day-view__tasks-header { padding: 24px 24px 12px; }
-.day-view__tasks-list { padding: 12px 18px; }
+/* One left edge for the heading, "Add a to-do", the cards and Completed:
+   the list, its drop zone and the quick-add each used to add their own inset. */
+.day-view__tasks-list { padding: 12px 24px; }
+.day-view__tasks-list .kanban__tasks { padding: 0; }
+.day-view__tasks-list .task-card { margin-bottom: 10px; }
+.day-view__quick-add { margin-left: -10px; margin-right: -10px; }
 
 /* Right rail */
 .right-panel__body,
@@ -7894,7 +7907,7 @@ body { font-size: 16px; line-height: 1.5; }
 
 .day-view__completed { margin-top: 28px; }
 .day-view__completed-label {
-  margin: 0 0 10px 4px;
+  margin: 0 0 10px;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
