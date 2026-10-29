@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import dev.hotwire.core.turbo.errors.VisitError
@@ -21,6 +22,7 @@ class WebFragment : HotwireWebFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbarForNavigation()?.visibility = View.GONE
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backToPage)
 
         // The keyboard pans the window rather than shrinking the page, so a field
         // low on the page could end up under it. Tell the page how tall it is.
@@ -33,6 +35,23 @@ class WebFragment : HotwireWebFragment() {
                 attachedWebView?.evaluateJavascript("window.daybreakKeyboard?.($height)", null)
             }
             insets
+        }
+    }
+
+    // Let the page close what it has open (a to-do's detail) before Back
+    // leaves the screen, or the app.
+    private val backToPage = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            val webView = attachedWebView ?: return passBack()
+            webView.evaluateJavascript("window.daybreakBack?.() === true") { handled ->
+                if (handled != "true") passBack()
+            }
+        }
+
+        private fun passBack() {
+            isEnabled = false
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+            isEnabled = true
         }
     }
 

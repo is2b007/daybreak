@@ -85,3 +85,12 @@ const bringFocusIntoView = () => {
 document.addEventListener("focusin", () => {
   if (document.documentElement.hasAttribute("data-keyboard")) bringFocusIntoView()
 })
+
+// The Android app asks this before its own Back: a to-do's detail opens in a
+// frame on the same page, so Back used to close the whole app instead of it.
+window.daybreakBack = () => {
+  const modal = document.getElementById("modal")
+  if (!modal || !modal.children.length) return false
+  modal.innerHTML = ""
+  return true
+}
