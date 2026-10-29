@@ -31,21 +31,32 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      # Signs with the release key when the repository has one; otherwise the
-      # debug key, which is fine for sideloading.
-      - name: Restore release key
+      # Signs with the release key when the repository has one. Without it,
+      # each build gets a throwaway key: fine to try, but Android won't install
+      # one such build over another, so add the secrets before relying on it.
+      - name: Set up the signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        if: env.KEYSTORE_BASE64 != ''
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/daybreak.keystore"
-          echo "DAYBREAK_KEYSTORE=$RUNNER_TEMP/daybreak.keystore" >> "$GITHUB_ENV"
+          keystore="$RUNNER_TEMP/daybreak.keystore"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          else
+            KEYSTORE_PASSWORD=throwaway KEY_ALIAS=daybreak KEY_PASSWORD=throwaway
+            keytool -genkeypair -keystore "$keystore" -storepass throwaway -keypass throwaway \
+              -alias daybreak -keyalg RSA -keysize 2048 -validity 365 -dname "CN=Daybreak"
+          fi
+          {
+            echo "DAYBREAK_KEYSTORE=$keystore"
+            echo "DAYBREAK_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "DAYBREAK_KEY_ALIAS=$KEY_ALIAS"
+            echo "DAYBREAK_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
 
       - name: Build
-        env:
-          DAYBREAK_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          DAYBREAK_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          DAYBREAK_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease -PdaybreakHostedUrl="${{ vars.DAYBREAK_HOSTED_URL }}"
 
       - run: mv app/build/outputs/apk/release/app-release.apk Daybreak.apk

@@ -22,18 +22,16 @@ android {
     }
 
     // Release builds are signed with the key in DAYBREAK_KEYSTORE (a path), when
-    // it is set. Without it they fall back to the debug key, which is fine for
+    // it is set. Without it they use this machine's debug key, which is fine for
     // sideloading onto your own device.
+    val releaseKeystore = System.getenv("DAYBREAK_KEYSTORE").orEmpty()
     signingConfigs {
         create("release") {
-            val keystore = System.getenv("DAYBREAK_KEYSTORE")
-            if (!keystore.isNullOrBlank()) {
-                storeFile = file(keystore)
+            if (releaseKeystore.isNotBlank()) {
+                storeFile = file(releaseKeystore)
                 storePassword = System.getenv("DAYBREAK_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("DAYBREAK_KEY_ALIAS")
                 keyPassword = System.getenv("DAYBREAK_KEY_PASSWORD")
-            } else {
-                initWith(getByName("debug"))
             }
         }
     }
@@ -41,7 +39,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName(if (releaseKeystore.isNotBlank()) "release" else "debug")
         }
     }
 

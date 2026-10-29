@@ -34,7 +34,8 @@ To install on the DC-1, copy the APK over (or download it from a release on the
 tablet), open it, and allow installs from that app when Android asks.
 
 Release builds use the key in `DAYBREAK_KEYSTORE` when it is set, and the debug
-key otherwise. For releases from GitHub Actions, add these repository secrets:
+key otherwise. Without the secrets below, GitHub Actions signs each build with a
+throwaway key, so a new build won't install over the last one. Add them:
 `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
 `ANDROID_KEY_PASSWORD`. Keep the same key forever: Android refuses an update
 signed with a different one.
