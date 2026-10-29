@@ -6450,6 +6450,13 @@ body.focus-open { overflow: hidden; }
   opacity: 0.7;
 }
 
+/* A keyboard hint means nothing on a touch screen, where tapping a card
+   counts as hover and focus. */
+@media (hover: none) {
+  .task-card:not(.task-card--completed):hover::after,
+  .task-card:not(.task-card--completed):focus-visible::after { opacity: 0; }
+}
+
 /* --------------------------------------------------------------------------
    UTILITIES
    -------------------------------------------------------------------------- */
@@ -9155,6 +9162,10 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 
 /* Links read as links without colour */
 :root[data-theme="paper"] .rich-text a:not(.bc-file) { text-decoration: underline; }
+/* Placeholders read as real text at Paper's contrast; step them back. */
+:root[data-theme="paper"] ::placeholder { color: oklch(62% 0 0); }
+/* The greyscale sky is mid-grey, so muted text on it has to go full ink. */
+:root[data-theme="paper"] .ritual-doc--with-sky .ritual-doc__dateline { color: var(--text); }
 
 /* Finger- and pen-sized targets on touch screens */
 @media (pointer: coarse) {
