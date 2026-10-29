@@ -3,6 +3,7 @@ package app.daybreak.android
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -36,8 +37,10 @@ class SetupActivity : AppCompatActivity() {
         }
 
         connect.setOnClickListener { use(Server.normalize(address.text.toString())) }
-        address.setOnEditorActionListener { _, action, _ ->
-            if (action == EditorInfo.IME_ACTION_GO) connect.performClick()
+        // Go on the on-screen keyboard, or Enter on a hardware one.
+        address.setOnEditorActionListener { _, action, event ->
+            val enter = event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            if (action == EditorInfo.IME_ACTION_GO || enter) connect.performClick()
             true
         }
     }

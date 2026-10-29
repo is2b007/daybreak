@@ -52,6 +52,7 @@
             android:hint="@string/setup_address_hint"
             android:imeOptions="actionGo"
             android:inputType="textUri"
+            android:maxLines="1"
             android:minHeight="56dp" />
 
         <TextView

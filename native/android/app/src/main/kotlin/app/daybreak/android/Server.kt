@@ -3,6 +3,7 @@ package app.daybreak.android
 import android.content.Context
 import android.os.Build
 import android.util.Base64
+import android.webkit.CookieManager
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -22,8 +23,10 @@ object Server {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_URL, url).apply()
     }
 
+    // Also signs out, so switching back to the same server asks you to sign in again.
     fun forget(context: Context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_URL).apply()
+        CookieManager.getInstance().removeAllCookies(null)
     }
 
     // "daybreak.example.com" -> "https://daybreak.example.com", no trailing slash.
