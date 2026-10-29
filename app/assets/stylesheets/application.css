@@ -7892,7 +7892,7 @@ body { font-size: 16px; line-height: 1.5; }
 .day-view__tasks-list { padding: 12px 24px; }
 .day-view__tasks-list .kanban__tasks { padding: 0; }
 .day-view__tasks-list .task-card { margin-bottom: 10px; }
-.day-view__quick-add { margin-left: -10px; margin-right: -10px; }
+
 /* The Daily log tab brings its own padding; stacked on the list's it sat
    inset from the Today heading's edge, under a shorter divider. */
 .day-view__tasks-list:has(> .daily-log) { padding: 0; }

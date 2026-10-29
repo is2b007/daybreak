@@ -3,7 +3,6 @@ package app.daybreak.android
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -12,7 +11,6 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.Navigator
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
-import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 
 private const val MIN_WEBVIEW = 111
 
@@ -42,7 +40,8 @@ class MainActivity : HotwireActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
+        // No IME insets on the root: padding it by the keyboard squeezed the page
+        // (Today's list shrank to just the field). The keyboard pans instead.
 
         pendingLink = intent?.data
         if (savedInstanceState == null) checkWebView()
