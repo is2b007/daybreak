@@ -15,7 +15,18 @@ permissions:
   contents: write
 
 jobs:
+  # One job makes the release so the builds below don't race to create it.
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" || gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --title "Daybreak $GITHUB_REF_NAME" --generate-notes
+
   android:
+    needs: release
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -70,9 +81,10 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" Daybreak.apk --clobber || gh release create "$GITHUB_REF_NAME" Daybreak.apk --title "Daybreak $GITHUB_REF_NAME" --generate-notes
+        run: gh release upload "$GITHUB_REF_NAME" Daybreak.apk --clobber
 
   desktop:
+    needs: release
     strategy:
       fail-fast: false
       matrix:
@@ -106,7 +118,14 @@ jobs:
         if: vars.DAYBREAK_HOSTED_URL != ''
         shell: bash
         working-directory: native/desktop
-        run: sed -i.bak 's|const HOSTED_URL = ""|const HOSTED_URL = "${{ vars.DAYBREAK_HOSTED_URL }}"|' dist/index.html
+        env:
+          HOSTED_URL: ${{ vars.DAYBREAK_HOSTED_URL }}
+        run: |
+          node -e '
+            const fs = require("fs")
+            const page = fs.readFileSync("dist/index.html", "utf8")
+            fs.writeFileSync("dist/index.html", page.replace(`const HOSTED_URL = ""`, () => `const HOSTED_URL = ${JSON.stringify(process.env.HOSTED_URL)}`))
+          '
 
       - uses: tauri-apps/tauri-action@v0
         env:

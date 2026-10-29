@@ -50,7 +50,7 @@ class SetupActivity : AppCompatActivity() {
                 connect.isEnabled = true
                 connect.setText(R.string.setup_connect)
                 if (result.isSuccess) {
-                    Server.save(this, url)
+                    Server.save(this, result.getOrThrow())
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {

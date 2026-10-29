@@ -87,7 +87,9 @@
           const response = await fetch(`${url}/native/config`)
           const config = await response.json()
           if (config.app !== "daybreak") throw new Error("not a Daybreak")
-          await window.__TAURI__.core.invoke("use_server", { url })
+          // Save where it ended up after redirects (example.com -> www.example.com).
+          const server = response.url.replace(/\/native\/config$/, "")
+          await window.__TAURI__.core.invoke("use_server", { url: server })
         } catch {
           error.textContent = `Couldn't find a Daybreak at ${url}. Check the address and try again.`
           error.hidden = false

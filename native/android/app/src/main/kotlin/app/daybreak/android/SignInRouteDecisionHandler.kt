@@ -23,7 +23,10 @@ class SignInRouteDecisionHandler : Router.RouteDecisionHandler {
         configuration: NavigatorConfiguration,
         activity: HotwireActivity
     ): Router.Decision {
-        val uri = proposal.location.toUri().buildUpon().clearQuery().appendQueryParameter("native", "android").build()
+        val uri = proposal.location.toUri().buildUpon().clearQuery()
+            .appendQueryParameter("native", "android")
+            .appendQueryParameter("code_challenge", Server.newSignInChallenge(activity))
+            .build()
         CustomTabsIntent.Builder().setShowTitle(true).build().launchUrl(activity, uri)
         return Router.Decision.CANCEL
     }

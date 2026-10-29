@@ -69,31 +69,40 @@ class SessionsControllerTest < ActionController::TestCase
     assert_equal owner.id, session[:user_id]
   end
 
+  CHALLENGE = NativeSignIn.challenge_for("a" * 43)
+
   test "a native sign-in goes straight to Basecamp" do
-    get :new, params: { native: 1 }
+    get :new, params: { native: 1, code_challenge: CHALLENGE }
 
     assert_redirected_to %r{\Ahttps://launchpad\.37signals\.com/authorization/new}
-    assert session[:native_sign_in]
+    assert_equal CHALLENGE, session[:native_sign_in]
+  end
+
+  test "a native sign-in without a challenge is a plain web sign-in" do
+    get :new, params: { native: 1 }
+
+    assert_response :success
+    assert_nil session[:native_sign_in]
   end
 
   test "a native sign-in hands the session back to the app" do
     owner = users(:one)
     session[:basecamp_oauth_state] = "s"
-    session[:native_sign_in] = true
+    session[:native_sign_in] = CHALLENGE
     identity = IDENTITY.merge("identity" => IDENTITY["identity"].merge("id" => owner.basecamp_uid))
 
     with_basecamp_sign_in(identity) { get :create, params: { code: "c", state: "s" } }
 
-    assert_match %r{\Adaybreak://signed-in\?code=}, response.location
-    assert_nil session[:native_sign_in]
+    assert_redirected_to native_handoff_path
+    assert_equal CHALLENGE, session[:native_sign_in]
   end
 
-  test "a native sign-in from an already signed-in browser hands back right away" do
+  test "a native sign-in from an already signed-in browser asks first" do
     session[:user_id] = users(:one).id
 
-    get :new, params: { native: 1 }
+    get :new, params: { native: 1, code_challenge: CHALLENGE }
 
-    assert_match %r{\Adaybreak://signed-in\?code=}, response.location
+    assert_redirected_to native_handoff_path
   end
 
   private

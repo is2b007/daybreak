@@ -10,6 +10,8 @@ Rails.application.routes.draw do
   get "native/config",                      to: "native#server",             as: :native_config
   get "native/android/path-configuration",  to: "native#path_configuration", as: :native_path_configuration
   get "native/sign_in",                     to: "native#sign_in",            as: :native_sign_in
+  get "native/handoff",                     to: "native#handoff",            as: :native_handoff
+  post "native/handoff",                    to: "native#complete_handoff"
 
   # Dev backdoor login (development only)
   if Rails.env.development?

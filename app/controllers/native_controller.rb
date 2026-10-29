@@ -41,9 +41,23 @@ class NativeController < ApplicationController
     }
   end
 
-  # The app's web view lands here with the code from the daybreak:// link.
+  # The browser, signed in, asks before handing the session to the app, so a web
+  # page can't send someone's session off to an app without them knowing.
+  def handoff
+    redirect_to(login_path) unless logged_in? && session[:native_sign_in]
+  end
+
+  def complete_handoff
+    challenge = session.delete(:native_sign_in)
+    return redirect_to(login_path) unless logged_in? && challenge
+
+    redirect_to NativeSignIn.app_url(current_user, challenge), allow_other_host: true
+  end
+
+  # The app's web view lands here with the code from the daybreak:// link and
+  # the verifier only it knows. Browsers can't be signed in this way.
   def sign_in
-    user = NativeSignIn.redeem(params[:code])
+    user = NativeSignIn.redeem(params[:code], params[:verifier]) if native_app?
     unless user
       redirect_to login_path, alert: "That sign-in took too long. Want to try again?"
       return

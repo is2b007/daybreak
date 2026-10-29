@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import dev.hotwire.core.config.Hotwire
 import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.core.turbo.visit.VisitAction
@@ -72,16 +73,22 @@ class MainActivity : HotwireActivity() {
         when (link.host) {
             "signed-in" -> {
                 val code = link.getQueryParameter("code") ?: return
+                val verifier = Server.takeSignInVerifier(this) ?: return
                 navigator.route(
-                    "$serverUrl/native/sign_in?code=${Uri.encode(code)}",
+                    "$serverUrl/native/sign_in?code=${Uri.encode(code)}&verifier=${Uri.encode(verifier)}",
                     VisitOptions(action = VisitAction.REPLACE)
                 )
             }
-            "switch-server" -> {
-                Server.forget(this)
-                startActivity(Intent(this, SetupActivity::class.java))
-                finish()
-            }
+            // Any web page can open a daybreak:// link, so check first.
+            "switch-server" -> AlertDialog.Builder(this)
+                .setMessage(R.string.switch_server_confirm)
+                .setPositiveButton(R.string.switch_server) { _, _ ->
+                    Server.forget(this)
+                    startActivity(Intent(this, SetupActivity::class.java))
+                    finish()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 }
