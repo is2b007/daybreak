@@ -1,3 +1,4 @@
+<% turbo_refreshes_with method: :replace, scroll: :preserve %>
 <% content_for(:topbar) do %>
   <%= link_to day_path(@date - 1.day, tab: @tab), class: "topbar__nav-arrow", aria: { label: "Previous day" } do %>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>

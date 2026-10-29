@@ -18,6 +18,9 @@ export default class extends Controller {
     this.#syncToggle()
     this.element.dataset.sheetReady = ""
     this.#expandForSunrisePlan()
+    // Only open and close animate, not settling into the stored state on each
+    // page load (a flicker on every visit, and a smear on e-ink).
+    requestAnimationFrame(() => requestAnimationFrame(() => { this.element.dataset.animate = "" }))
 
     // Rotating or resizing into a narrow viewport with the panel open would leave
     // a drawer sitting on top of the content.

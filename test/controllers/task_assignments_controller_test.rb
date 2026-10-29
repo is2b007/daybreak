@@ -15,6 +15,13 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
     )
   end
 
+  test "focus renders HTML when Turbo follows a redirect asking for a stream" do
+    @request.accept = "text/vnd.turbo-stream.html, text/html, application/xhtml+xml"
+    get :focus, params: { id: @task.id }
+    assert_response :success
+    assert_includes @response.body, "Ship spec 01"
+  end
+
   test "PATCH restore_hey_email clears triage and destroys task" do
     email = @user.hey_emails.create!(
       external_id: "restore-1",
@@ -127,16 +134,16 @@ class TaskAssignmentsControllerTest < ActionController::TestCase
     assert_response :bad_request
   end
 
-  # Quick-add always replaced the week board's #day_<date> frame, which the day
-  # view doesn't render — so adding a task there did nothing until a reload.
-  test "POST create from the day view targets the day view's own frame" do
+  # Replacing only the list left the counts, progress bar and the typed title
+  # in the add field stale, so the day view refreshes instead.
+  test "POST create from the day view refreshes the page" do
     post :create,
       params: { date: "2026-04-07", title: "Added from the day view", view: "day" },
       format: :turbo_stream
 
     assert_response :success
-    assert_match(/day_plan_tasks_2026-04-07/, @response.body)
-    assert_includes @response.body, "Added from the day view"
+    assert_includes @response.body, %(<turbo-stream action="refresh">)
+    assert @user.task_assignments.exists?(title: "Added from the day view")
   end
 
   test "POST create from the week board targets the day column" do

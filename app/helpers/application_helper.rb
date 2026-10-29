@@ -12,15 +12,23 @@ module ApplicationHelper
     image_tag "tiles/#{name}.png", alt: "", class: [ "src-tile", binding.local_variable_get(:class) ], decoding: "async"
   end
 
-  # <html data-theme>: an explicit light/dark choice; "system" leaves it off so the OS decides.
+  # <html data-theme>: an explicit light/dark/paper choice; "system" leaves it off so the OS
+  # decides, except on a Daylight tablet, where it means paper.
   def theme_attribute
-    return unless respond_to?(:logged_in?) && logged_in?
+    return ("paper" if daylight_device?) unless respond_to?(:logged_in?) && logged_in?
+    # A Daylight is greyscale, so following the system or the sun means Paper there.
+    return "paper" if current_user.theme.in?(%w[system sun]) && daylight_device?
     return current_user.sun_theme_now if current_user.theme == "sun"
-    current_user.theme if current_user.theme.in?(%w[light dark])
+    current_user.theme if current_user.theme.in?(%w[light dark paper])
+  end
+
+  # The Android app adds "Daylight" to its user agent on a Daylight DC-1.
+  def daylight_device?
+    request.user_agent.to_s.include?("Daylight")
   end
 
   def follows_the_sun?
-    respond_to?(:logged_in?) && logged_in? && current_user.theme == "sun"
+    respond_to?(:logged_in?) && logged_in? && current_user.theme == "sun" && !daylight_device?
   end
 
   BASECAMP_RICH_TEXT_TAGS = %w[p br a ul ol li strong em b i del s div span h1 h2 h3 h4 blockquote code pre].freeze

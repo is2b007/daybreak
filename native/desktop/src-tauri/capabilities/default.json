@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The local setup page. Pages from the server get no access to the app.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

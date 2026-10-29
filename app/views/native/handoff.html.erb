@@ -1,0 +1,16 @@
+<% content_for :full_screen, true %>
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <%= image_tag "daybreak-logo.svg", class: "login-logo-mark", alt: "" %>
+      <h1 class="login-logo">Back to the app</h1>
+      <p class="login-tagline">You're signed in as <%= current_user.name %>. Open the Daybreak app to carry on there.</p>
+    </div>
+
+    <%= button_to "Open Daybreak", native_handoff_path, class: "btn btn--primary btn--large", data: { turbo: false } %>
+
+    <p class="login-footnote">
+      Didn't start this from the Daybreak app? <%= link_to "Stay here", root_path %>.
+    </p>
+  </div>
+</div>

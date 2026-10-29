@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Replaces Hotwire Native's slide: screens change in place. Slides smear on
+     e-ink, and Daybreak's pages already settle in on their own. -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="0"
+    android:fromAlpha="1"
+    android:toAlpha="1" />

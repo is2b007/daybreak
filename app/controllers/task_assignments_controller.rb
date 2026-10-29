@@ -51,10 +51,9 @@ class TaskAssignmentsController < ApplicationController
       @hey_email_body = current_user.hey_emails.find_by(hey_url: @task.hey_app_url)&.snippet
     end
 
-    respond_to do |format|
-      format.turbo_stream { render :focus }
-      format.html { render :focus }
-    end
+    # Turbo follows the redirect from starting a timer with a turbo-stream
+    # Accept header, and there is only an HTML template.
+    render :focus, formats: :html
   end
 
   def create
@@ -73,10 +72,9 @@ class TaskAssignmentsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         date = day_plan.date
-        # The day view has no #day_<date> frame — only the week board does. Quick-add
-        # always targeted the week frame, so on the day view the new task didn't
-        # appear at all until a reload.
-        stream = day_view_stream_context? ? stream_replace_day_plan_tasks(date) : stream_replace_day_column(date)
+        # The day view's header (counts, progress, the add field) and topbar
+        # depend on the task list too, so refresh the whole page there.
+        stream = day_view_stream_context? ? turbo_stream.refresh(request_id: nil) : stream_replace_day_column(date)
         render turbo_stream: stream
       end
       format.html { redirect_back fallback_location: root_path }

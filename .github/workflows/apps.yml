@@ -1,0 +1,147 @@
+name: Apps
+
+# Builds the Android, Mac and Windows apps. Pull requests that touch them get
+# a build to download from the run; a v* tag attaches them to a GitHub release.
+on:
+  pull_request:
+    paths:
+      - "native/**"
+      - ".github/workflows/apps.yml"
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # One job makes the release so the builds below don't race to create it.
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" || gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --title "Daybreak $GITHUB_REF_NAME" --generate-notes
+
+  android:
+    needs: release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native/android
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      # Signs with the release key when the repository has one. Without it,
+      # each build gets a throwaway key: fine to try, but Android won't install
+      # one such build over another, so add the secrets before relying on it.
+      - name: Set up the signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          keystore="$RUNNER_TEMP/daybreak.keystore"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          else
+            KEYSTORE_PASSWORD=throwaway KEY_ALIAS=daybreak KEY_PASSWORD=throwaway
+            keytool -genkeypair -keystore "$keystore" -storepass throwaway -keypass throwaway \
+              -alias daybreak -keyalg RSA -keysize 2048 -validity 365 -dname "CN=Daybreak"
+          fi
+          {
+            echo "DAYBREAK_KEYSTORE=$keystore"
+            echo "DAYBREAK_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "DAYBREAK_KEY_ALIAS=$KEY_ALIAS"
+            echo "DAYBREAK_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+      - name: Build
+        run: ./gradlew assembleRelease -PdaybreakHostedUrl="${{ vars.DAYBREAK_HOSTED_URL }}"
+
+      - run: mv app/build/outputs/apk/release/app-release.apk Daybreak.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Daybreak-android
+          path: native/android/Daybreak.apk
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" Daybreak.apk --clobber
+
+  desktop:
+    needs: release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin
+          - platform: windows-latest
+            args: ""
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: native/desktop/src-tauri
+
+      - name: Install
+        working-directory: native/desktop
+        run: npm ci
+
+      - name: Point the hosted button at the hosted server
+        if: vars.DAYBREAK_HOSTED_URL != ''
+        shell: bash
+        working-directory: native/desktop
+        env:
+          HOSTED_URL: ${{ vars.DAYBREAK_HOSTED_URL }}
+        run: |
+          node -e '
+            const fs = require("fs")
+            const page = fs.readFileSync("dist/index.html", "utf8")
+            fs.writeFileSync("dist/index.html", page.replace(`const HOSTED_URL = ""`, () => `const HOSTED_URL = ${JSON.stringify(process.env.HOSTED_URL)}`))
+          '
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          projectPath: native/desktop
+          tauriScript: npm run tauri
+          args: ${{ matrix.args }}
+          tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+          releaseName: Daybreak ${{ github.ref_name }}
+          releaseDraft: false
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Daybreak-${{ matrix.platform }}
+          path: |
+            native/desktop/src-tauri/target/**/release/bundle/dmg/*.dmg
+            native/desktop/src-tauri/target/**/release/bundle/msi/*.msi
+            native/desktop/src-tauri/target/**/release/bundle/nsis/*.exe

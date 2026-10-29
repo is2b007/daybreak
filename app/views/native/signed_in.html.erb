@@ -1,0 +1,8 @@
+<% content_for :full_screen, true %>
+<div class="login-screen">
+  <p class="login-tagline">Signing you in…</p>
+</div>
+<script type="module">
+  import "@hotwired/turbo-rails"
+  Turbo.visit(<%= raw @destination.to_json %>, { action: "replace" })
+</script>

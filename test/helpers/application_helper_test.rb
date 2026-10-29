@@ -15,4 +15,18 @@ class ApplicationHelperTest < ActionView::TestCase
     refute_includes html, "javascript:"
     assert_includes html, "link"
   end
+
+  test "theme_attribute turns a system theme into paper on a Daylight tablet" do
+    user = users(:one)
+    define_singleton_method(:logged_in?) { true }
+    define_singleton_method(:current_user) { user }
+
+    assert_nil theme_attribute
+
+    request.user_agent = "Mozilla/5.0 (Linux; Android 13) Hotwire Native Android; Daylight"
+    assert_equal "paper", theme_attribute
+
+    user.theme = "dark"
+    assert_equal "dark", theme_attribute
+  end
 end

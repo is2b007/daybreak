@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %>>
+<html lang="en"<%= %( data-theme="#{theme_attribute}").html_safe if theme_attribute %><%= %( data-device="daylight").html_safe if daylight_device? %>>
   <head>
     <title><%= content_for(:title) || "Daybreak" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -9,7 +9,10 @@
     <meta name="application-name" content="Daybreak">
     <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0E1A1F" media="(prefers-color-scheme: dark)">
-    <meta name="color-scheme" content="<%= theme_attribute || "light dark" %>">
+    <meta name="color-scheme" content="<%= theme_attribute == "paper" ? "light" : (theme_attribute || "light dark") %>">
+    <%# Turbo prefetches links on touchstart, so in the apps a tap could fetch
+        the page twice. %>
+    <% if native_app? %><meta name="turbo-prefetch" content="false"><% end %>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>

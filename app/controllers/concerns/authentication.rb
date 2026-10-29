@@ -2,7 +2,8 @@ module Authentication
   extend ActiveSupport::Concern
 
   included do
-    helper_method :current_user, :logged_in?
+    helper_method :current_user, :logged_in?, :native_app?
+    before_action :keep_native_sessions
   end
 
   private
@@ -13,6 +14,18 @@ module Authentication
 
   def logged_in?
     current_user.present?
+  end
+
+  # The Android app (Hotwire Native) and the desktop app (Tauri) both say so in
+  # their user agent. They sign in through the system browser, not the web view.
+  def native_app?
+    request.user_agent.to_s.match?(/Hotwire Native|Daybreak Desktop/)
+  end
+
+  # App web views can drop cookies that end with the browser session, so the
+  # apps get one that lasts a year. Browsers keep the usual session cookie.
+  def keep_native_sessions
+    request.session_options[:expire_after] = 1.year if native_app?
   end
 
   def authenticate_user!

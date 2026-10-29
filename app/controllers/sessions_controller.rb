@@ -6,11 +6,23 @@ class SessionsController < ApplicationController
   ALLOWED_IDS_ENV = "DAYBREAK_ALLOWED_BASECAMP_IDS"
 
   def new
-    return redirect_to root_path if logged_in?
+    # A native app opened this in the system browser: sign in here, then hand
+    # the session back to the app (NativeSignIn). A plain web sign-in clears it.
+    native = params[:native].present? && NativeSignIn.valid_challenge?(params[:code_challenge])
+    if native
+      session[:native_sign_in] = params[:code_challenge]
+    else
+      session.delete(:native_sign_in)
+    end
+
+    if logged_in?
+      return redirect_to(native ? native_handoff_path : root_path)
+    end
     return unless BasecampClient.configured?
 
     session[:basecamp_oauth_state] = SecureRandom.urlsafe_base64(24)
     @authorize_url = BasecampClient.authorize_url(auth_basecamp_callback_url, state: session[:basecamp_oauth_state])
+    redirect_to @authorize_url, allow_other_host: true if native
   end
 
   def create
@@ -66,7 +78,9 @@ class SessionsController < ApplicationController
 
     session[:user_id] = user.id
 
-    if user.onboarded?
+    if session[:native_sign_in]
+      redirect_to native_handoff_path
+    elsif user.onboarded?
       redirect_to root_path
     else
       redirect_to onboarding_path

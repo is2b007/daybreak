@@ -42,6 +42,23 @@ class RitualsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  # pluck returns enum names, so comparing them to the stored integers left
+  # local time unlabelled ("● · 0:45") and skipped completed-task fallbacks.
+  test "GET evening step 1 labels tracked time on local tasks" do
+    @day_plan.task_assignments.create!(
+      user: @user, title: "Local work", source: :local, status: :pending,
+      actual_duration_minutes: 45
+    )
+    @day_plan.task_assignments.create!(
+      user: @user, title: "Done, no actual", source: :local, status: :completed,
+      planned_duration_minutes: 30
+    )
+
+    get :evening, params: { step: 1 }
+    assert_response :success
+    assert_match(/Local\s*<span class="ritual-doc__list-meta">&middot; 1:15/, @response.body)
+  end
+
   test "GET evening/complete records last_sunset_played_date on first hit of the day" do
     @user.update_column(:last_sunset_played_date, nil)
 

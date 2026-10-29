@@ -209,21 +209,18 @@ class RitualsController < ApplicationController
     rows = @day_plan.task_assignments.pluck(
       :project_name, :source, :actual_duration_minutes, :planned_duration_minutes, :status
     )
-    completed_status = TaskAssignment.statuses[:completed]
-    hey_source = TaskAssignment.sources[:hey]
-    local_source = TaskAssignment.sources[:local]
-
+    # pluck hands enums back as their names ("local"), not the stored integers.
     hash = Hash.new(0)
     rows.each do |project_name, source, actual, planned, status|
       mins = actual.to_i
-      mins = (planned || 60).to_i if mins <= 0 && status == completed_status
+      mins = (planned || 60).to_i if mins <= 0 && status.to_s == "completed"
       next if mins <= 0
 
       label = project_name.presence
-      label ||= case source
-      when hey_source then "HEY"
-      when local_source then "Local"
-      else TaskAssignment.sources.key(source).to_s.titleize
+      label ||= case source.to_s
+      when "hey" then "HEY"
+      when "local" then "Local"
+      else source.to_s.titleize
       end
       hash[label] += mins
     end

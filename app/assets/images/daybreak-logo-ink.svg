@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Daybreak">
+  <!-- The dome mark drawn in ink, for the Paper theme: shape and contrast instead of colour. -->
+  <defs>
+    <clipPath id="dbi-inner"><path d="M256 62C348 62 446 206 446 334C446 424 366 454 256 454C146 454 66 424 66 334C66 206 164 62 256 62Z"/></clipPath>
+  </defs>
+  <path d="M256 46C360 46 462 202 462 340C462 436 376 470 256 470C136 470 50 436 50 340C50 202 152 46 256 46Z" fill="#FFFFFF" stroke="#000000" stroke-width="32"/>
+  <g clip-path="url(#dbi-inner)">
+    <circle cx="250" cy="292" r="80" fill="#FFFFFF" stroke="#000000" stroke-width="28"/>
+    <path d="M40 360C80 300 120 262 158 262C196 262 214 322 256 322C306 322 346 186 404 186C438 186 462 214 480 240V480H40Z" fill="#000000"/>
+  </g>
+</svg>

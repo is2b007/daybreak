@@ -48,5 +48,23 @@ export default class extends Controller {
     if (this.hasHourTarget)  this.hourTarget.textContent  = h12
     if (this.hasMinuteTarget) this.minuteTarget.textContent = minuteStr
     if (this.hasAmpmTarget)  this.ampmTarget.textContent  = ampm
+
+    requestAnimationFrame(() => this._hideCoveredHourLabel())
+  }
+
+  // Near the top of an hour the time label lands on that hour's label, and the
+  // two printed over each other. The time is more useful, so the hour steps aside.
+  _hideCoveredHourLabel() {
+    const label = this.lineTarget.querySelector(".timeline__now-label")
+    if (!label) return
+    const now = label.getBoundingClientRect()
+    this.element.querySelectorAll(".timeline__hour-label").forEach(el => {
+      el.style.visibility = ""
+      // The label stretches to fill its row; measure just the text.
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const r = range.getBoundingClientRect()
+      if (r.top < now.bottom && r.bottom > now.top) el.style.visibility = "hidden"
+    })
   }
 }

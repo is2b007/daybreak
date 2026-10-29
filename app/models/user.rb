@@ -16,7 +16,7 @@ class User < ApplicationRecord
   validates :basecamp_uid, presence: true, uniqueness: true
   validates :timezone, presence: true
   validates :stamp_choice, inclusion: { in: %w[red_done navy_star green_check brown_complete black_dot] }
-  validates :theme, inclusion: { in: %w[system light dark sun] }
+  validates :theme, inclusion: { in: %w[system light dark sun paper] }
   validates :work_hours_target, numericality: { greater_than: 0, less_than_or_equal_to: 24 }
 
   STAMP_OPTIONS = %w[red_done navy_star green_check brown_complete black_dot].freeze
