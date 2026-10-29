@@ -73,7 +73,7 @@ class NativeControllerTest < ActionDispatch::IntegrationTest
     get native_sign_in_path(code: NativeSignIn.issue(users(:one), CHALLENGE), verifier: VERIFIER), headers: daylight
 
     get root_path, headers: daylight
-    assert_select "html[data-theme=paper]"
+    assert_select "html[data-theme=paper][data-device=daylight]"
     assert_select "[data-controller=sun-theme]", count: 0
   end
 

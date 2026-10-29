@@ -3,8 +3,8 @@ package app.daybreak.android
 import android.content.Context
 import android.content.res.Configuration
 
-// Daybreak is laid out for laptops. On a Daylight DC-1 everything, the web
-// pages included, is drawn 15% larger by raising the density the app sees.
+// On a Daylight DC-1 the app's own screens are drawn 15% larger, by raising
+// the density they see. The web pages scale themselves (data-device="daylight").
 object Scale {
     private const val DAYLIGHT = 1.15f
 

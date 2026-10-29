@@ -9120,3 +9120,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   content: url("/daybreak-logo-ink.svg");
   filter: none;
 }
+
+/* A Daylight DC-1 is a 10.5" tablet seen at arm's length; laptop sizes read
+   too small there, so everything is drawn 15% larger. */
+:root[data-device="daylight"] { zoom: 1.15; }
