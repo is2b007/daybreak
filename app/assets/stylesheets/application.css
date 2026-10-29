@@ -9189,7 +9189,9 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 
 /* Finger- and pen-sized targets on touch screens */
 @media (pointer: coarse) {
-  :root[data-theme="paper"] .btn { min-height: 48px; }
+  :root[data-theme="paper"] .btn:not(.btn--icon) { min-height: 48px; }
+  /* Icon buttons keep a fixed width, so a taller one turned into a thin sliver */
+  :root[data-theme="paper"] .btn--icon { min-width: 44px; min-height: 44px; }
 }
 
 /* Blur and see-through layers go muddy on a reflective screen */
