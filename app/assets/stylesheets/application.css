@@ -2252,6 +2252,11 @@ select.form-input {
   min-height: 0;
 }
 
+/* A full day scrolls the column instead of squashing the lists (cards got
+   clipped, then the completed list ran over the open one). */
+.kanban__column > .kanban__tasks,
+.kanban__tasks > .task-card { flex-shrink: 0; }
+
 .kanban__tasks--dragover {
   background: var(--amber-bg);
 }
@@ -6450,6 +6455,16 @@ body.focus-open { overflow: hidden; }
   opacity: 0.7;
 }
 
+/* Touch screens: hit areas of at least 44px for the small controls, without
+   changing how they look or the layout. */
+@media (pointer: coarse) {
+  .topbar__nav-arrow { position: relative; }
+  .topbar__nav-arrow::before { content: ""; position: absolute; inset: -5px; }
+  .timer-bar__play-btn { min-width: 44px; min-height: 44px; }
+  .jrnl-btn { min-width: 44px; min-height: 44px; }
+  .sb-bot-link { min-height: 44px; }
+}
+
 /* A keyboard hint means nothing on a touch screen, where tapping a card
    counts as hover and focus. */
 @media (hover: none) {
@@ -7592,11 +7607,11 @@ body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
     min-height: 38px;
   }
 
-  /* Completing a task is the primary gesture on the board; 16px is not a target. */
-  .task-card__check {
-    min-width: 28px;
-    min-height: 28px;
-  }
+  /* Completing a task is the primary gesture on the board; 16px is not a
+     target. Grow the hit area with a pseudo-element: a min-size grew the
+     circle's box, which pushed it below the title and made cards taller. */
+  .task-card__check { position: relative; }
+  .task-card__check::before { content: ""; position: absolute; inset: -14px -10px; }
 
   input[type="checkbox"],
   input[type="radio"] {
@@ -7878,6 +7893,11 @@ body { font-size: 16px; line-height: 1.5; }
 .day-view__tasks-list .kanban__tasks { padding: 0; }
 .day-view__tasks-list .task-card { margin-bottom: 10px; }
 .day-view__quick-add { margin-left: -10px; margin-right: -10px; }
+/* The Daily log tab brings its own padding; stacked on the list's it sat
+   inset from the Today heading's edge, under a shorter divider. */
+.day-view__tasks-list:has(> .daily-log) { padding: 0; }
+.daily-log--scratch .daily-log__head { padding-left: 24px; padding-right: 24px; }
+.daily-log--scratch .daily-log__scratchpad { padding-left: 24px; padding-right: 24px; }
 
 /* Right rail */
 .right-panel__body,
@@ -9163,7 +9183,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 /* Links read as links without colour */
 :root[data-theme="paper"] .rich-text a:not(.bc-file) { text-decoration: underline; }
 /* Placeholders read as real text at Paper's contrast; step them back. */
-:root[data-theme="paper"] ::placeholder { color: oklch(62% 0 0); }
+:root[data-theme="paper"] :not(.kanban__quick-add-input, .day-view__quick-add-input)::placeholder { color: oklch(62% 0 0); }
 /* The greyscale sky is mid-grey, so muted text on it has to go full ink. */
 :root[data-theme="paper"] .ritual-doc--with-sky .ritual-doc__dateline { color: var(--text); }
 

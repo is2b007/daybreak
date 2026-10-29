@@ -1,5 +1,8 @@
+<% content_for(:topbar) do %>
+  <span class="topbar__title">Settings</span>
+<% end %>
+
 <div class="settings">
-  <h1 class="settings__title">Settings</h1>
 
   <%= form_with model: current_user, url: settings_path, method: :patch, data: { turbo: false } do |f| %>
     <div class="settings__section">
