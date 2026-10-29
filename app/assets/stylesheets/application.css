@@ -9212,3 +9212,27 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
    too small there, so everything is drawn 15% larger. */
 :root[data-device="daylight"] { --zoom: 1.15; zoom: var(--zoom); }
 /* zoom scales viewport units too, so full-height blocks divide by --zoom. */
+
+/* Loading outline over the main column, while a slow page is on its way */
+.mid { position: relative; }
+.page-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: var(--bg);
+  animation: page-skeleton-in 0.15s ease-out;
+}
+.page-skeleton__bar {
+  border-radius: var(--radius-lg);
+  background: var(--line);
+  animation: page-skeleton-pulse 1.2s ease-in-out infinite alternate;
+}
+.page-skeleton__bar--title { width: 40%; height: 28px; }
+.page-skeleton__bar--line { width: 25%; height: 14px; margin-bottom: 12px; }
+.page-skeleton__bar--card { height: 56px; background: transparent; border: 1px solid var(--line); }
+@keyframes page-skeleton-in { from { opacity: 0; } }
+@keyframes page-skeleton-pulse { to { opacity: 0.5; } }

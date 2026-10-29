@@ -21,7 +21,8 @@ class WebFragment : HotwireWebFragment() {
 
     // Hotwire covers the page with a spinner on every move to a new screen, even
     // when the next page arrives a moment later. Leave the last page showing and
-    // only bring in the spinner when loading is slow.
+    // only bring in the spinner when loading is very slow (the page shows its
+    // own loading outline sooner).
     @SuppressLint("InflateParams")
     override fun createProgressView(location: String): View {
         return layoutInflater.inflate(R.layout.view_progress, null).apply {
@@ -47,7 +48,7 @@ class WebFragment : HotwireWebFragment() {
     }
 }
 
-private const val SLOW_LOAD_MS = 800L
+private const val SLOW_LOAD_MS = 2500L
 
 @HotwireDestinationDeepLink(uri = "hotwire://fragment/web/modal/sheet")
 class WebBottomSheetFragment : HotwireWebBottomSheetFragment()
