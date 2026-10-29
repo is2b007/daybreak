@@ -162,6 +162,8 @@ fn forget_server(app: &AppHandle) {
     }
     *app.state::<State>().server.lock().unwrap() = None;
     if let (Ok(window), Ok(local)) = (window(app), local_index()) {
+        // Signs out too, so coming back to the same server asks you to sign in.
+        let _ = window.clear_all_browsing_data();
         let _ = window.navigate(local);
     }
 }
