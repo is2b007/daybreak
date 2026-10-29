@@ -2,6 +2,13 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 
+// Not in the apps: Android sends service worker requests without the app's
+// user agent, so the server would stop recognising it.
+const inApp = /Hotwire Native|Daybreak Desktop/.test(navigator.userAgent)
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {})
+  if (inApp) {
+    navigator.serviceWorker.getRegistrations().then(registrations => registrations.forEach(r => r.unregister())).catch(() => {})
+  } else {
+    navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => {})
+  }
 }

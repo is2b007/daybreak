@@ -2,7 +2,9 @@ class ApplicationController < ActionController::Base
   include Authentication
   include WeekBoardDayColumn
 
-  allow_browser versions: :modern
+  # The apps check their own web view (an old Android System WebView gets a
+  # prompt to update), so only browsers are turned away here.
+  allow_browser versions: :modern, unless: :native_app?
   stale_when_importmap_changes
 
   before_action :authenticate_user!

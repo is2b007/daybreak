@@ -15,7 +15,7 @@ module ApplicationHelper
   # <html data-theme>: an explicit light/dark/paper choice; "system" leaves it off so the OS
   # decides, except on a Daylight tablet, where it means paper.
   def theme_attribute
-    return unless respond_to?(:logged_in?) && logged_in?
+    return ("paper" if daylight_device?) unless respond_to?(:logged_in?) && logged_in?
     return current_user.sun_theme_now if current_user.theme == "sun"
     return "paper" if current_user.theme == "system" && daylight_device?
     current_user.theme if current_user.theme.in?(%w[light dark paper])

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import dev.hotwire.core.config.Hotwire
@@ -14,6 +15,8 @@ import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.Navigator
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
+
+private const val MIN_WEBVIEW = 111
 
 class MainActivity : HotwireActivity() {
     // Set before super.onCreate, which asks for navigatorConfigurations().
@@ -44,6 +47,25 @@ class MainActivity : HotwireActivity() {
         findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
 
         pendingLink = intent?.data
+        if (savedInstanceState == null) checkWebView()
+    }
+
+    // Daybreak needs Chrome 111 or newer to draw. Some tablets (the DC-1 among
+    // them) ship an older Android System WebView that only updates from Play.
+    private fun checkWebView() {
+        val version = WebView.getCurrentWebViewPackage()?.versionName ?: return
+        val major = version.substringBefore('.').toIntOrNull() ?: return
+        if (major >= MIN_WEBVIEW) return
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.webview_title)
+            .setMessage(getString(R.string.webview_body, version))
+            .setPositiveButton(R.string.webview_update) { _, _ ->
+                val play = Uri.parse("market://details?id=com.google.android.webview")
+                runCatching { startActivity(Intent(Intent.ACTION_VIEW, play)) }
+            }
+            .setNegativeButton(R.string.webview_later, null)
+            .show()
     }
 
     override fun navigatorConfigurations() = listOf(

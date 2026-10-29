@@ -58,6 +58,9 @@ class NativeController < ApplicationController
   # the verifier only it knows. Browsers can't be signed in this way.
   def sign_in
     user = NativeSignIn.redeem(params[:code], params[:verifier]) if native_app?
+    # Pull to refresh reloads this address after the code is spent.
+    return redirect_to(root_path) if user.nil? && logged_in?
+
     unless user
       redirect_to login_path, alert: "That sign-in took too long. Want to try again?"
       return

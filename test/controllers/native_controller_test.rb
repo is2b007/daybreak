@@ -47,6 +47,25 @@ class NativeControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
   end
 
+  test "reloading a spent sign-in goes home" do
+    code = NativeSignIn.issue(users(:one), CHALLENGE)
+    get native_sign_in_path(code: code, verifier: VERIFIER), headers: APP
+
+    get native_sign_in_path(code: "spent", verifier: VERIFIER), headers: APP
+    assert_redirected_to root_path
+  end
+
+  test "an app on an old Android System WebView isn't turned away" do
+    old = "Mozilla/5.0 (Linux; Android 13; DC-1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/101.0.4951.61 Safari/537.36 Daybreak Android; Daylight; Hotwire Native Android"
+
+    get login_path, headers: { "User-Agent" => old }
+    assert_response :success
+    assert_select "html[data-theme=paper]"
+
+    get login_path, headers: { "User-Agent" => old.sub(/ Daybreak Android.*/, "") }
+    assert_response :not_acceptable
+  end
+
   test "sign in only works in the apps" do
     get native_sign_in_path(code: NativeSignIn.issue(users(:one), CHALLENGE), verifier: VERIFIER)
 

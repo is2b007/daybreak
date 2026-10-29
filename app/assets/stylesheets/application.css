@@ -29,8 +29,8 @@
    night (dark tokens, below). Listing them here re-derives every token on
    that element, not just the primitives. */
 :root,
-.ritual-doc--sunrise:has(> .sky),
-.ritual-doc--sunset:has(> .sky) {
+.ritual-doc--sunrise.ritual-doc--with-sky,
+.ritual-doc--sunset.ritual-doc--with-sky {
   color-scheme: light;
 
   /* Primitives (OKLCH). Only these change between themes; everything else
@@ -282,7 +282,7 @@
   }
 }
 :root[data-theme="dark"],
-.ritual-doc--sunset:has(> .sky) {
+.ritual-doc--sunset.ritual-doc--with-sky {
   color-scheme: dark;
   --lch-canvas: 20% 0.0195 232.58;
   --lch-panel: 17.5% 0.018 232;

@@ -11,4 +11,8 @@
     <string name="setup_error">Couldn\'t find a Daybreak at %1$s. Check the address and try again.</string>
     <string name="switch_server_confirm">Switch to a different Daybreak? You\'ll need to sign in again.</string>
     <string name="switch_server">Switch</string>
+    <string name="webview_title">Update Android System WebView</string>
+    <string name="webview_body">Daybreak draws its pages with Android System WebView, and this one (version %1$s) is too old to show them properly. Update it from the Play Store, then reopen Daybreak.</string>
+    <string name="webview_update">Open Play Store</string>
+    <string name="webview_later">Not now</string>
 </resources>
