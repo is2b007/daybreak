@@ -588,8 +588,8 @@ h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
 }
 
 .sb-logo-mark {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   display: block;
   object-fit: contain;
@@ -9110,4 +9110,10 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-top-width: 1.5px;
+}
+
+/* The colour mark goes grey and flat in greyscale; Paper draws it in ink */
+:root[data-theme="paper"] :is(.sb-logo-mark, .login-logo-mark, .onb__logo) {
+  content: url("/daybreak-logo-ink.svg");
+  filter: none;
 }
