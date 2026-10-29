@@ -7449,22 +7449,24 @@ body:has(> .arrival) .shell > :nth-child(3) { animation-delay: 750ms; }
 /* Phones open panels as full-screen sheets instead (see the mobile tab bar). */
 @media (min-width: 701px) and (max-width: 1100px) {
   /* Drawers open by uncovering themselves from their rail, already laid out at
-     full width, instead of growing a width that reflows the text every frame. */
+     full width, instead of growing a width that reflows the text every frame.
+     A plain ease: a sharper ease-out covered most of the distance in the
+     first frame or two, so on the DC-1 the panel seemed to snap open. */
   .sb[data-animate],
   .right[data-animate] {
     transition: none;
   }
 
   .sb[data-animate]:not(.sb--collapsed) {
-    animation: drawer-open-left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: drawer-open-left 0.28s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 
   .right[data-animate]:not(.right--collapsed) {
-    animation: drawer-open-right 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: drawer-open-right 0.28s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 
   .right[data-animate]:not(.right--collapsed) .r-content {
-    animation: drawer-slide-right 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: drawer-slide-right 0.28s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 }
 
@@ -9138,7 +9140,7 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
   --lch-red: 0% 0 0;
   --shadow-card: 0 0 0 1.5px oklch(0% 0 0 / 35%);
   --shadow-card-hover: 0 0 0 1.5px oklch(0% 0 0 / 70%);
-  --shadow-overlay: 0 0 0 1.5px oklch(0% 0 0);
+  --shadow-overlay: 0 0 0 1px oklch(0% 0 0 / 22%);
   --stamp-red: #000;
 }
 
