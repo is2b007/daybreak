@@ -9236,3 +9236,13 @@ a.bc-file:hover { background: color-mix(in oklch, var(--text) 12%, transparent);
 .page-skeleton__bar--card { height: 56px; background: transparent; border: 1px solid var(--line); }
 @keyframes page-skeleton-in { from { opacity: 0; } }
 @keyframes page-skeleton-pulse { to { opacity: 0.5; } }
+
+/* Android app with the keyboard up: room to scroll the last field above it */
+:root[data-keyboard] .kanban__column,
+:root[data-keyboard] .day-view__tasks-list,
+:root[data-keyboard] .view-area { padding-bottom: var(--keyboard); }
+
+/* The Paper sundown sky is near black, and so were the stamps on it */
+:root[data-theme="paper"] .ritual-doc--sunset .ritual-doc__list-mark .stamp { color: #fff; }
+/* Sky replay and sound buttons, finger-sized on touch */
+@media (pointer: coarse) { .sky__button { min-width: 44px; min-height: 44px; } }

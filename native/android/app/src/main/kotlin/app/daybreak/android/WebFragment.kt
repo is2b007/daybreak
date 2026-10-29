@@ -5,10 +5,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import dev.hotwire.core.turbo.errors.VisitError
 import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
 import dev.hotwire.navigation.fragments.HotwireWebBottomSheetFragment
+import dev.hotwire.core.turbo.webview.HotwireWebView
 import dev.hotwire.navigation.fragments.HotwireWebFragment
 
 // The web app draws its own header and tab bar, so the native toolbar stays out of the way.
@@ -17,6 +21,32 @@ class WebFragment : HotwireWebFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbarForNavigation()?.visibility = View.GONE
+
+        // The keyboard pans the window rather than shrinking the page, so a field
+        // low on the page could end up under it. Tell the page how tall it is.
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            val imeBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            val navBottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val height = (imeBottom - navBottom).coerceAtLeast(0) / resources.displayMetrics.density
+            if (height != keyboardHeight) {
+                keyboardHeight = height
+                attachedWebView?.evaluateJavascript("window.daybreakKeyboard?.($height)", null)
+            }
+            insets
+        }
+    }
+
+    private var attachedWebView: WebView? = null
+    private var keyboardHeight = 0f
+
+    override fun onWebViewAttached(webView: HotwireWebView) {
+        super.onWebViewAttached(webView)
+        attachedWebView = webView
+    }
+
+    override fun onWebViewDetached(webView: HotwireWebView) {
+        super.onWebViewDetached(webView)
+        attachedWebView = null
     }
 
     // Hotwire covers the page with a spinner on every move to a new screen, even
