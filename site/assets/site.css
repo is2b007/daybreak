@@ -230,7 +230,8 @@ figure { margin: 0; }
 
 /* Hero: morning */
 .hero {
-  position: relative; isolation: isolate; overflow-x: clip;
+  /* z-index keeps the next section's wash from tinting the app window */
+  position: relative; z-index: 1; isolation: isolate; overflow-x: clip;
   padding-top: calc(64px + env(safe-area-inset-top, 0px));
   /* A bright, high morning; the painted sky sits over it at low strength */
   background: linear-gradient(to bottom, oklch(96% 0.022 225), oklch(98.2% 0.012 215) 34%, oklch(98.4% 0.03 82) 66%, var(--canvas));
@@ -398,6 +399,9 @@ figure { margin: 0; }
 .band--panel { background: linear-gradient(to bottom, transparent, var(--panel) var(--feather), var(--panel) calc(100% - var(--feather)), transparent); }
 .band::before {
   content: ""; position: absolute; inset: calc(var(--feather) * -1) 0; z-index: -1; pointer-events: none;
+  /* Fade the wash out at its own edges so it never ends in a hard line */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
 }
 #apps::before { background: radial-gradient(60% 45% at 18% 12%, var(--wash-dawn), transparent 70%), radial-gradient(50% 40% at 88% 70%, var(--wash-sky), transparent 70%); }
 #week::before { background: radial-gradient(45% 50% at 78% 50%, var(--wash-sky), transparent 72%); }
